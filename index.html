@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="topcontainer">
+        <div class="left-container">
+            <h1>&lt;DinoBit/&gt;</h1>
+        </div>
+        <div class="right-container">
+            <nav class="desktop-only">
+                <ul class="nav-list">
+                    <li class="nav-item button0"><a class="nav-link" href="#home">[Home]</a></li>
+                    <li class="nav-item button1"><a class="nav-link" href="#about">[About]</a></li>
+                    <li class="nav-item button2"><a class="nav-link" href="#projects">[Projects]</a></li>
+                    <li class="nav-item button3"><a class="nav-link" href="#contact">[Contact]</a></li>
+                </ul>
+            </nav>
+            <nav class="mobile-only">
+                <ul class="nav-list">
+                    <li class="nav-item button0"><a class="nav-link" href="#home">[Home]</a></li>
+                    <li class="nav-item button1"><a class="nav-link" href="#about">[About]</a></li>
+                    <li class="nav-item button2"><a class="nav-link" href="#projects">[Projects]</a></li>
+                    <li class="nav-item button3"><a class="nav-link" href="#contact">[Contact]</a></li>
+                </ul>
+            </nav>
+        </div>
+        <button class="hamburger" id="hamburgerBtn" aria-label="Menu">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+    </div>
+
+    <main>
+        <div class="home" id="home">
+            <div class="home-container">
+                <h2>JL Arquesola</h2>
+                <h4>Junior Developer</h4>
+
+                <div class="button-pair">
+                    <button class="button" onclick="location.href='#projects'">View Projects()</button>
+                    <button class="button" onclick="location.href='#contact'">Get In Touch()</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="about" id="about">
+            <div class="about-headings">
+                <h2>// About Me</h2>
+                <h3>// welcomeMessage</h3>
+                <div class="about-left-container">
+                    <div class="inner-left-left-container">
+                        <pre>
+1   def welcomeMessage():
+2       shortIntroduction = """ 
+3           Hello! I'm JL Arquesola.
+4 
+5           A computer science student and junior graphic designer.
+6 
+7           With a passion for creativity and problem-solving. I'm constantly exploring new
+8           technologies and honing my skills in programming and design.
+9           Eager to learn and grow, I embrace challenges."""
+10          
+11      print("shortIntroduction")
+12 
+13 welcomeMessage()
+                </pre>
+                    </div>
+                    <div class="inner-right-left-container">
+                        <h4>me_profile.jpg</h4>
+                        <div class="Short-Introduction">
+                            <img src="" alt="img" class="home-image">
+                        </div>
+                    </div>
+                </div>
+
+
+                <div class="about-right-container">
+                    <h3>// skillsLanguages</h3>
+                    <div class="language-container">
+                        <div class="container"></div>
+
+                        <div class="container1"> </div>
+
+                    </div>
+                </div>
+                <div class="button-pair">
+                    <button class="button" onclick="location.href='#projects'">viewProjects()</button>
+                    <button class="button" onclick="location.href='#contact'">getInTouch()</button>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+    <script src="index.js"></script>
+</body>
+
+</html>
