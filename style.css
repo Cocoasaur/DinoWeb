@@ -6,7 +6,7 @@ body {
     padding: 0;
     box-sizing: border-box;
     font-family: Arial, sans-serif;
-    background: rgba(17, 23, 41, 1);
+    background: rgb(3, 20, 71);
     scroll-behavior: smooth;
 }
 
@@ -273,10 +273,100 @@ main {
     color: #000000;
     text-decoration: none;
     font-size: 1rem;
-    transition: background 0.3s, color 0.3s;
+    transition: transform 0.3s cubic-bezier(0.075, 0.82, 0.165, 1);
 }
 
 .button:hover {
-    background: #156a9f;
-    color: #000000;
+    transform: scale(1.05);
+}
+
+.about-heading-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem 1rem;
+    background: rgba(31, 46, 67, 1);
+    border-radius: 20px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.503);
+}
+
+.about-heading-container h2 {
+    text-align: center;
+    color: #fff;
+    margin: 10px;
+}
+
+.about-h3-row {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    gap: 2rem;
+    margin: 20px;
+}
+
+.about-h3-row h3 {
+    font-size: 1.1rem;
+    color: #5b78d2;
+}
+
+.about-main-row {
+    display: flex;
+    gap: 2rem;
+    flex-direction: row-reverse;
+}
+
+.about-left-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+    flex: 1 1 0;
+}
+
+.profile-image {
+    width: 200px;
+    height: 200px;
+    border-radius: 30%;
+    object-fit: cover;
+    border: 2px solid #ffffff;
+    background: #fff;
+}
+
+.button-pair {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+}
+
+.about-right-container {
+    flex: 2 1 0;
+}
+
+.about-right-container pre {
+    background: #22304a;
+    color: #b8e1ff;
+    padding: 2rem;
+    border-radius: 10px;
+    font-family: 'Fira Mono', Consolas, monospace;
+    white-space: pre-wrap;
+}
+
+.about-right-container {}
+
+@media (max-width: 900px) {
+    .about-main-row {
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .about-left-container {
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .about-right-container {
+        width: 100%;
+        align-items: center;
+        padding: 1em 0.5rem;
+    }
 }

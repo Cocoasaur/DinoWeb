@@ -51,54 +51,46 @@
             </div>
         </div>
 
-        <div class="about" id="about">
+        <section class="about" id="about">
             <div class="about-heading-container">
                 <h2>// About Me</h2>
                 <div class="about-h3-row">
                     <h3 id="h1">// welcomeMessage</h3>
                     <h3 id="h2">// skillsLanguages</h3>
                 </div>
-                <div class="about-left-container">
-                    <div class="inner-left-left-container">
+
+                <div class="about-main-row">
+                    <div class="about-left-container">
+                        <img src="Assets/My_Images/Cocoasaur.png" alt="Portrait of JL Arquesola"
+                            class="profile-image" />
+
+                        <div class="button-pair">
+                            <button class="button" onclick="location.href='#projects'">viewProjects()</button>
+                            <button class="button" onclick="location.href='#contact'">getInTouch()</button>
+                        </div>
+                    </div>
+
+                    <div class="about-right-container">
                         <pre>
-1   def welcomeMessage():
+1 def welcomeMessage():
 2       shortIntroduction = """ 
 3           Hello! I'm JL Arquesola.
 4 
 5           A computer science student and junior graphic designer.
 6 
-7           With a passion for creativity and problem-solving. I'm constantly exploring new
-8           technologies and honing my skills in programming and design.
-9           Eager to learn and grow, I embrace challenges."""
-10          
-11      print("shortIntroduction")
-12 
-13 welcomeMessage()
-                </pre>
+7           With a passion for creativity and problem-solving.         
+8           I'm constantly exploring new technologies 
+9           and honing my skills in programming and design.
+10          Eager to learn and grow, and embrace challenges."""
+11      
+12          print("shortIntroduction")
+13
+14 welcomeMessage()    </pre>
                     </div>
-                    <div class="inner-right-left-container">
-                        <h4>me_profile.jpg</h4>
-                        <div class="Short-Introduction">
-                            <img src="Assets/My_Images/Cocoasaur.png" alt="img" class="home-image">
-                        </div>
-                    </div>
-                </div>
-
-
-                <div class="about-right-container">
-                    <div class="language-container">
-                        <div class="container"></div>
-
-                        <div class="container1"> </div>
-
-                    </div>
-                </div>
-                <div class="button-pair">
-                    <button class="button" onclick="location.href='#projects'">viewProjects()</button>
-                    <button class="button" onclick="location.href='#contact'">getInTouch()</button>
                 </div>
             </div>
-        </div>
+        </section>
+
 
     </main>
     <script src="index.js"></script>
