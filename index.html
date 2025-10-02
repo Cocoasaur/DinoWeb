@@ -4,96 +4,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Test</title>
-    <link rel="stylesheet" href="style.css">
+    <title>DinoWeb</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 
 <body>
-    <div class="topcontainer">
-        <div class="left-container">
-            <h1>&lt;DinoBit/&gt;</h1>
-        </div>
-        <div class="right-container">
-            <nav class="desktop-only">
-                <ul class="nav-list">
-                    <li class="nav-item button0"><a class="nav-link" href="#home">[Home]</a></li>
-                    <li class="nav-item button1"><a class="nav-link" href="#about">[About]</a></li>
-                    <li class="nav-item button2"><a class="nav-link" href="#projects">[Projects]</a></li>
-                    <li class="nav-item button3"><a class="nav-link" href="#contact">[Contact]</a></li>
-                </ul>
-            </nav>
-            <nav class="mobile-only">
-                <ul class="nav-list">
-                    <li class="nav-item button0"><a class="nav-link" href="#home">[Home]</a></li>
-                    <li class="nav-item button1"><a class="nav-link" href="#about">[About]</a></li>
-                    <li class="nav-item button2"><a class="nav-link" href="#projects">[Projects]</a></li>
-                    <li class="nav-item button3"><a class="nav-link" href="#contact">[Contact]</a></li>
-                </ul>
-            </nav>
-        </div>
-        <button class="hamburger" id="hamburgerBtn" aria-label="Menu">
-            <span></span>
-            <span></span>
-            <span></span>
-        </button>
-    </div>
+    <nav class="top-nav">
+        <h3>DinoWeb</h3>
+        <ul>
+            <li><a href="#home">Home</a></li>
+            <li><a href="#about">About</a></li>
+            <li><a href="#projects">Projects</a></li>
+            <li><a href="#contact">Contact</a></li>
+        </ul>
+    </nav>
 
-    <main>
-        <div class="home" id="home">
-            <div class="home-container">
-                <h2>JL Arquesola</h2>
-                <h4>Junior Developer</h4>
+    <section id="home">
+        <h2>Home</h2>
+        <p>Welcome to the homepage!</p>
+    </section>
 
-                <div class="button-pair">
-                    <button class="button" onclick="location.href='#projects'">View Projects()</button>
-                    <button class="button" onclick="location.href='#contact'">Get In Touch()</button>
-                </div>
-            </div>
-        </div>
+    <section id="about">
+        <h2>About</h2>
+        <p>Information about us.</p>
+    </section>
 
-        <section class="about" id="about">
-            <div class="about-heading-container">
-                <h2>// About Me</h2>
-                <div class="about-h3-row">
-                    <h3 id="h1">// welcomeMessage</h3>
-                    <h3 id="h2">// skillsLanguages</h3>
-                </div>
+    <section id="projects">
+        <h2>Projects</h2>
+        <p>Here are some of our projects.</p>
+    </section>
 
-                <div class="about-main-row">
-                    <div class="about-left-container">
-                        <img src="Assets/My_Images/Cocoasaur.png" alt="Portrait of JL Arquesola"
-                            class="profile-image" />
-
-                        <div class="button-pair">
-                            <button class="button" onclick="location.href='#projects'">viewProjects()</button>
-                            <button class="button" onclick="location.href='#contact'">getInTouch()</button>
-                        </div>
-                    </div>
-
-                    <div class="about-right-container">
-                        <pre>
-1 def welcomeMessage():
-2       shortIntroduction = """ 
-3           Hello! I'm JL Arquesola.
-4 
-5           A computer science student and junior graphic designer.
-6 
-7           With a passion for creativity and problem-solving.         
-8           I'm constantly exploring new technologies 
-9           and honing my skills in programming and design.
-10          Eager to learn and grow, and embrace challenges."""
-11      
-12          print("shortIntroduction")
-13
-14 welcomeMessage()    </pre>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-
-    </main>
-    <script src="index.js"></script>
+    <section id="contact">
+        <h2>Contact</h2>
+        <p>Get in touch with us.</p>
+    </section>
 </body>
 
 </html>
