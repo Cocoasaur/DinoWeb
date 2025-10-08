@@ -1,55 +1,1233 @@
- body {
-     font-family: sans-serif;
-     text-align: center;
-     margin: 0;
-     padding: 20px;
-     background-color: #f4f4f4;
- }
+html {
+    scroll-behavior: smooth;
+    scroll-snap-type: y mandatory;
+    scrollbar-gutter: stable;
+    /* always reserve space for scrollbar */
+}
 
- .top-nav {
-     display: flex;
-     align-items: center;
-     justify-content: space-between;
-     background-color: #fff;
-     border-radius: 24px;
-     padding: 10px 25px;
-     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-     margin: 10px auto;
-     max-width: fit-content;
-     position: sticky;
-     top: 30px;
-     z-index: 1000;
- }
+body {
+    margin: 0;
+    padding: 0;
+    font-family: sans-serif;
+    text-align: center;
+    background-color: #f4f4f4;
+    overflow-y: auto;
+}
 
- .top-nav h3 {
-     margin: 0;
-     margin-right: 100px;
- }
+/* Top Navigation */
+.top-nav {
+    position: fixed;
+    top: 20px;
+    /* space above nav */
+    left: 50%;
+    transform: translateX(-50%);
+    /* center horizontally */
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: #fff;
+    border-radius: 24px;
+    padding: 10px 25px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    max-width: 900px;
+    /* not full width */
+    width: calc(50% - 80px);
+    /* responsive with side space */
+}
 
- .top-nav ul {
-     list-style: none;
-     margin: 0;
-     padding: 0;
-     display: flex;
- }
+.top-nav h3 {
+    margin: 0;
+    margin-right: 60px;
+}
 
- .top-nav ul li a {
-     display: block;
-     padding: 10px 20px;
-     text-decoration: none;
-     color: #333;
-     font-weight: 500;
-     border-radius: 18px;
-     transition: background-color 0.3s, color 0.3s;
- }
+.top-nav ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+}
 
- .top-nav ul li a:hover {
-     background-color: #007bff;
-     color: #fff;
- }
+.top-nav ul li a {
+    display: block;
+    padding: 10px 20px;
+    text-decoration: none;
+    color: #333;
+    font-weight: 500;
+    border-radius: 18px;
+    transition: background-color 0.3s, color 0.3s;
+}
 
- section {
-     padding: 40px 20px;
-     margin-top: 20px;
-     text-align: left;
- }
+.top-nav ul li a:hover {
+    background-color: #007bff;
+    color: #fff;
+}
+
+/* Sections */
+section#home {
+    min-height: 100vh;
+    scroll-snap-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding-top: 35px;
+    /* offset for fixed nav */
+    margin: 0;
+}
+
+section:not(#home) {
+    padding: 120px 20px 90px;
+    text-align: left;
+    min-height: 65vh;
+    scroll-snap-align: start;
+    display: block;
+}
+
+/* Home Section */
+.home-container {
+    background: #ffffff;
+    border-radius: 18px;
+    box-shadow: 0 2px 16px rgba(0, 0, 0, 0.15);
+    max-width: 1200px;
+    width: 60%;
+    margin: 60px auto;
+    padding: 30px 32px 32px;
+    border: 1px solid #ffffff;
+    position: relative;
+}
+
+/* Base header styling */
+.home-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    font-family: 'Fira Mono', monospace;
+    font-size: 1rem;
+    color: #000;
+}
+
+/* Default the filename font opacity */
+.home-filename {
+    opacity: 1;
+}
+
+/* Shared flex layout for status containers */
+.status,
+.home-status {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* Yellow status dot */
+.home-status-dot {
+    width: 10px;
+    height: 10px;
+    background: #ead143;
+    border-radius: 50%;
+}
+
+.home-content h1 {
+    font-size: 3rem;
+    font-weight: bold;
+    margin-bottom: 10px;
+    color: #000000;
+    text-align: center;
+}
+
+.home-content p {
+    font-size: 1.5rem;
+    color: #2b2b2b;
+    margin-bottom: 32px;
+    letter-spacing: 1px;
+    text-align: center;
+}
+
+#typing-effect {
+    border-right: 3px solid #333;
+    animation: blink-caret 0.75s step-end infinite;
+}
+
+@keyframes blink-caret {
+
+    from,
+    to {
+        border-color: transparent;
+    }
+
+    50% {
+        border-color: #333;
+    }
+}
+
+.home-buttons {
+    display: flex;
+    gap: 18px;
+    justify-content: center;
+    margin-bottom: 32px;
+}
+
+.btn {
+    padding: 12px 32px;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    font-weight: 500;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+    display: inline-block;
+}
+
+.btn-primary {
+    background: #388bff;
+    color: #fff;
+}
+
+.btn-primary:hover {
+    background: #256ad7;
+}
+
+.btn-secondary {
+    background: #ff0000;
+    color: #ffffff;
+}
+
+.btn-secondary:hover {
+    background: #b10000;
+    color: #fff;
+}
+
+.home-icons {
+    display: flex;
+    gap: 32px;
+    justify-content: center;
+    margin-top: 16px;
+}
+
+.home-icons span {
+    display: inline-block;
+    width: 32px;
+    height: 32px;
+    opacity: 0.8;
+    background-size: contain;
+    background-repeat: no-repeat;
+    transition: opacity 0.2s;
+}
+
+.icon-github {
+    background-image: url('https://cdn.jsdelivr.net/gh/devicons/devicon/icons/github/github-original.svg');
+}
+
+.icon-linkedin {
+    background-image: url('https://cdn.jsdelivr.net/gh/devicons/devicon/icons/linkedin/linkedin-original.svg');
+}
+
+.icon-mail {
+    background-image: url('https://cdn.jsdelivr.net/gh/devicons/devicon/icons/google/google-original.svg');
+}
+
+.home-icons a:hover span {
+    opacity: 1;
+}
+
+/* About Section */
+.about-container {
+    background: #ffffff;
+    border-radius: 18px;
+    box-shadow: 0 2px 16px rgba(0, 0, 0, 0.10);
+    max-width: 1200px;
+    width: 70%;
+    margin: -20px auto 0;
+    padding: 32px 32px 32px;
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+/* Base flex alignment for header and status */
+.about-header,
+.about-status {
+    display: flex;
+    align-items: center;
+}
+
+/* Header layout and typography */
+.about-header {
+    justify-content: space-between;
+    margin-bottom: 16px;
+    font-family: 'Fira Mono', monospace;
+    font-size: 1rem;
+    color: #000;
+}
+
+/* Status container spacing */
+.about-status {
+    gap: 6px;
+}
+
+/* Filename simply inherits header styles */
+.about-filename {
+    opacity: 1;
+    /* no additional rules needed—inherits font and color from .about-header */
+}
+
+/* Yellow status dot (same as home) */
+.about-status-dot {
+    width: 10px;
+    height: 10px;
+    background: #ead143;
+    border-radius: 50%;
+}
+
+
+.about-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 32px;
+}
+
+.about-story {
+    flex: 1;
+    text-align: left;
+    background: #1a1f2b;
+    padding: 10px 20px 30px;
+    border-radius: 12px;
+}
+
+.about-story h2 {
+    font-family: 'Fira Mono', monospace;
+    font-size: 1.4rem;
+    margin-bottom: 8px;
+    color: #7ec3fa;
+}
+
+.about-story p {
+    font-size: 1.1rem;
+    color: #bfc7d5;
+    margin: 0;
+}
+
+.indent-one {
+    text-indent: 2em;
+    /* adjust as needed */
+    margin-top: 0;
+    margin-bottom: 1rem;
+}
+
+.indent-two {
+    text-indent: 2em;
+    /* same or different value if you want */
+    margin: 0;
+}
+
+.indent-three {
+    text-indent: 2em;
+    /* same or different value if you want */
+    margin: 0;
+}
+
+.profile-card {
+    background: #1a1f2b;
+    border-radius: 12px;
+    padding: 18px;
+    box-shadow: 0 1px 8px rgba(0, 0, 0, 0.10);
+    min-width: 280px;
+    min-height: 295px;
+    text-align: center;
+}
+
+.profile-filename {
+    font-family: 'Fira Mono', monospace;
+    font-size: 1rem;
+    color: #bfc7d5;
+    opacity: 0.8;
+    margin-bottom: 8px;
+    display: block;
+}
+
+.profile-image {
+    width: 250px;
+    height: 250px;
+    border-radius: 12px;
+    overflow: hidden;
+    margin: 0 auto 1px auto;
+    background: #1a1f2b;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.profile-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 12px;
+}
+
+.profile-status {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 5px;
+}
+
+.profile-dot {
+    width: 12px;
+    height: 12px;
+    background: #dfea43;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.profile-status span:last-child {
+    color: #eae243;
+    font-size: 0.95rem;
+    font-family: 'Fira Mono', monospace;
+}
+
+.skills-list {
+    margin-top: 24px;
+    background: #1a1f2b;
+    border-radius: 12px;
+    padding: 24px 18px;
+    box-shadow: 0 1px 8px rgba(0, 0, 0, 0.08);
+}
+
+.skills-list h3 {
+    font-family: 'Fira Mono', monospace;
+    font-size: 1.2rem;
+    color: #7ec3fa;
+    margin-bottom: 18px;
+    text-align: left;
+    margin-top: 5px;
+}
+
+.skill {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.skill span {
+    min-width: 110px;
+    font-family: 'Fira Mono', monospace;
+    font-size: 1rem;
+    color: #fff;
+}
+
+.skill-bar {
+    flex: 1;
+    height: 12px;
+    background: #3f4759;
+    border-radius: 8px;
+    overflow: hidden;
+    margin: 0 8px;
+}
+
+.skill-fill {
+    height: 100%;
+    border-radius: 8px;
+    transition: width 0.6s;
+}
+
+.skill-percent {
+    font-family: 'Fira Mono', monospace;
+    font-size: 0.95rem;
+    color: #bfc7d5;
+    min-width: 40px;
+    text-align: right;
+}
+
+/* Projects Section */
+/* Container */
+.projects-container {
+    background: #ffffff;
+    border-radius: 18px;
+    box-shadow: 0 2px 16px rgba(0, 0, 0, 0.10);
+    max-width: 1200px;
+    width: 80%;
+    margin: -20px auto 0;
+    padding: 28px 28px 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+/* Section header (title + subheader row) */
+.projects-header,
+.projects-status {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* Header layout and typography */
+.projects-header {
+    justify-content: space-between;
+    margin-bottom: 16px;
+    font-family: 'Fira Mono', monospace;
+    font-size: 1rem;
+    color: #000;
+}
+
+/* Status container spacing */
+.projects-status {
+    gap: 6px;
+}
+
+/* Filename + status (consistent with About) */
+.projects-filename {
+    opacity: 1;
+    /* no additional rules needed—inherits font and color from .projects-header */
+}
+
+.projects-status-dot {
+    width: 10px;
+    height: 10px;
+    background: #ead143;
+    border-radius: 50%;
+}
+
+.status-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+    background: #7f8c8d;
+    /* default */
+}
+
+/* Status color mapping */
+.status-dot[data-status="completed"] {
+    background: #2ecc71;
+}
+
+/* green */
+.status-dot[data-status="in-progress"] {
+    background: #f1c40f;
+}
+
+/* yellow */
+.status-dot[data-status="paused"] {
+    background: #e67e22;
+}
+
+/* orange */
+.status-dot[data-status="under-maintenance"] {
+    background: #e74c3c;
+}
+
+/* red */
+
+/* Controls */
+.projects-controls {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+#project-search {
+    flex: 1 1 280px;
+    padding: 10px 14px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-family: 'Fira Mono', monospace;
+    outline: none;
+    transition: border 0.2s;
+}
+
+#project-search:focus {
+    border-color: #7ec3fa;
+}
+
+.active-filters {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.filter-chip {
+    background: #eef6ff;
+    color: #2573c2;
+    border: 1px solid #cfe6ff;
+    border-radius: 999px;
+    padding: 6px 10px;
+    font-size: 0.85rem;
+    font-family: 'Fira Mono', monospace;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.filter-chip button {
+    border: none;
+    background: transparent;
+    color: #2573c2;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+/* Grid */
+.projects-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 22px;
+}
+
+/* Card */
+.project-card {
+    background: #1a1f2b;
+    border-radius: 12px;
+    padding: 16px;
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    min-height: 420px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.project-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+}
+
+/* Card image */
+/* Image Size for each project card might be 300 px × 260 px */
+.project-image {
+    width: 100%;
+    height: 260px;
+    border-radius: 8px;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.project-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Title + status */
+.project-card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 12px;
+}
+
+.project-title {
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: #7ec3fa;
+}
+
+.project-card-status {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.85rem;
+    color: #cfd6e6;
+}
+
+.project-card-status .status-dot {
+    width: 8px;
+    height: 8px;
+}
+
+/* Description */
+.project-desc {
+    font-size: 0.95rem;
+    color: #bfc7d5;
+    margin: 8px 1px;
+
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    line-clamp: 2;
+    /* standard property */
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+    line-height: 1.4;
+}
+
+/* Project tags */
+.project-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: auto;
+}
+
+/* Individual tag */
+.project-tag {
+    background: #2c3446;
+    color: #7ec3fa;
+    font-size: 0.8rem;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-family: 'Fira Mono', monospace;
+    cursor: pointer;
+}
+
+/* "+ N more" tag with tooltip */
+.project-tag.more-tag {
+    background: #444c5e;
+    color: #ffda6a;
+    font-style: italic;
+    position: relative;
+    cursor: default;
+    /* change to pointer if you want it clickable */
+}
+
+/* Tooltip container */
+.project-tag.more-tag .tooltip-box {
+    display: none;
+    position: absolute;
+    bottom: 135%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1a1f2b;
+    border: 1px solid #7ec3fa;
+    border-radius: 6px;
+    padding: 8px;
+    z-index: 20;
+    min-width: 120px;
+    max-width: 240px;
+    flex-wrap: wrap;
+    gap: 6px;
+    justify-content: center;
+}
+
+/* Show on hover */
+.project-tag.more-tag:hover .tooltip-box {
+    display: flex;
+}
+
+/* Individual hidden tags */
+.tooltip-tag {
+    background: #2c3446;
+    color: #7ec3fa;
+    font-size: 0.75rem;
+    padding: 4px 6px;
+    border-radius: 4px;
+    white-space: nowrap;
+}
+
+/* Actions: details + favorite */
+.project-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 12px;
+}
+
+.project-btn {
+    background: #7ec3fa;
+    color: #1a1f2b;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.project-btn:hover {
+    background: #5aaee0;
+}
+
+.favorite {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 8px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.2s;
+}
+
+.favorite:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: scale(1.05);
+}
+
+.star-btn {
+    background: none;
+    border: none;
+    font-size: 1.3rem;
+    color: #ccc;
+    transition: color 0.2s, text-shadow 0.2s;
+    line-height: 1;
+    padding: 0;
+}
+
+.star-btn:hover {
+    transform: scale(1.12);
+}
+
+.star-btn.liked {
+    color: #ffd700;
+    text-shadow:
+        0 0 4px rgba(255, 215, 0, 0.8),
+        0 0 8px rgba(255, 215, 0, 0.6),
+        0 0 12px rgba(255, 215, 0, 0.4);
+}
+
+.like-count {
+    font-size: 0.9rem;
+    color: #fff;
+}
+
+/* Modal */
+/*Modal container backdrop*/
+.project-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: #ffffff;
+    border-radius: 12px;
+    max-width: 980px;
+    width: 92%;
+    max-height: 90%;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    /* ensures children clip to rounded corners */
+}
+
+.modal-scroll {
+    padding: 24px;
+    overflow-y: auto;
+    max-height: 90vh;
+    /* scrollable area */
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+/* Close button */
+.modal-close {
+    position: absolute;
+    top: 16px;
+    /* small offset from the top edge */
+    left: 16px;
+    /* small offset from the left edge */
+    width: 44px;
+    height: 44px;
+    border: none;
+    border-radius: 50%;
+    background: #333333;
+    color: #f0f0f0;
+    font-size: 1.6rem;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    transition: background 0.25s ease, transform 0.2s ease, box-shadow 0.25s ease;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    z-index: 2000;
+}
+
+.modal-close:hover {
+    background: #e63946;
+    color: #fff;
+    transform: scale(1.08);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+.modal-close:active {
+    transform: scale(0.95);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    /* align top instead of center */
+    gap: 12px;
+}
+
+.modal-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #1a1f2b;
+    margin-top: 50px;
+    margin-bottom: 10px;
+}
+
+.modal-status {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.95rem;
+    color: #555;
+}
+
+.modal-status .status-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+}
+
+.modal-tags {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    /* 3 tags per row */
+    gap: 6px;
+    margin: 15px 0 8px;
+}
+
+.modal-tag {
+    background: #2c3446;
+    color: #7ec3fa;
+    font-size: 0.8rem;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-family: 'Fira Mono', monospace;
+}
+
+.modal-body {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-top: 12px;
+}
+
+.modal-description-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.modal-description-title {
+    font-size: 2rem;
+    /* slightly larger than body text */
+    font-weight: 700;
+    /* bold */
+    color: #1a1f2b;
+    margin: 0;
+    /* remove default h3 margin */
+}
+
+.modal-description {
+    font-size: 1rem;
+    color: #2b2b2b;
+    line-height: 1.6;
+}
+
+.modal-image {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+}
+
+.modal-image img {
+    max-width: 100%;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+}
+
+.modal-footer {
+    margin-top: 20px;
+    display: flex;
+    justify-content: flex-start;
+}
+
+/* GitHub button */
+/* GitHub button (blue, rectangular, icon + text) */
+.github-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #ffffff;
+    /* Bootstrap-like blue */
+    color: #000000;
+    padding: 10px 16px;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: background 0.2s, transform 0.2s;
+    border: #000 solid 1px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+}
+
+.github-btn img {
+    width: 23px;
+    height: 23px;
+}
+
+.github-btn:hover {
+    background: #e7e7e7;
+    transform: translateY(-2px);
+    transform: scale(1.02);
+}
+
+/* Update logs container */
+.modal-logs {
+    margin-top: 0px;
+}
+
+.modal-logs h3 {
+    font-size: 1.1rem;
+    margin-bottom: 8px;
+    color: #1a1f2b;
+}
+
+.logs-container {
+    background: #f8f9fa;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 12px 16px;
+    max-height: 200px;
+    max-width: 430px;
+    overflow-y: auto;
+}
+
+.logs-list {
+    list-style: disc;
+    padding-left: 20px;
+    margin: 0;
+    color: #444;
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+/* Responsive */
+@media (max-width: 860px) {
+    .modal-body {
+        grid-template-columns: 1fr;
+    }
+
+    .modal-image {
+        justify-content: center;
+    }
+}
+
+/* Lock background when modal is open */
+/*
+body.modal-open {
+    overflow: hidden;
+    position: fixed;
+    width: 100%;
+}
+    */
+/* Greyed-out scrollbar when modal is open */
+/* When modal is open, lock scroll but keep scrollbar visible and styled */
+html.modal-open {
+    overflow: hidden;
+    /* disables scrolling */
+}
+
+/* WebKit browsers (Chrome, Edge, Safari) */
+html.modal-open::-webkit-scrollbar {
+    width: 12px;
+    /* same width as normal */
+    background-color: #ff0000;
+    /* track background */
+}
+
+html.modal-open::-webkit-scrollbar-thumb {
+    background-color: #c0c0c0;
+    /* grey thumb to look disabled */
+    border-radius: 6px;
+}
+
+html.modal-open::-webkit-scrollbar-thumb:hover {
+    background-color: #b0b0b0;
+    /* slightly darker grey */
+}
+
+/* Firefox */
+html.modal-open {
+    scrollbar-color: #c0c0c0 #f0f0f0;
+    /* thumb | track */
+    scrollbar-width: thin;
+}
+
+.contact-container {
+    background: #ffffff;
+    border-radius: 18px;
+    box-shadow: 0 2px 16px rgba(0, 0, 0, 0.1);
+    max-width: 1000px;
+    width: 80%;
+    margin: -20px auto 0;
+    padding: 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.contact-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: 'Fira Mono', monospace;
+    font-size: 1rem;
+    color: #000;
+}
+
+.contact-status {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    /* space between dot and text */
+}
+
+.contact-status-dot {
+    width: 10px;
+    height: 10px;
+    background: #ead143;
+    /* green = active */
+    border-radius: 50%;
+    flex-shrink: 0;
+    /* prevent collapsing */
+}
+
+.contact-body h2 {
+    font-family: 'Fira Mono', monospace;
+    font-size: 1.4rem;
+    margin-bottom: 20px;
+    color: #7ec3fa;
+}
+
+.contact-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px;
+    margin-bottom: 32px;
+}
+
+.contact-card {
+    background: #1a1f2b;
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    box-shadow: 0 1px 8px rgba(0, 0, 0, 0.1);
+}
+
+.contact-card h3 {
+    font-family: 'Fira Mono', monospace;
+    font-size: 1rem;
+    color: #7ec3fa;
+    margin-bottom: 8px;
+}
+
+.contact-card p {
+    font-size: 0.95rem;
+    color: #bfc7d5;
+    margin: 0;
+}
+
+.contact-card a {
+    color: #388bff;
+    text-decoration: none;
+}
+
+.contact-card a:hover {
+    text-decoration: underline;
+}
+
+/* Contact Form Wrap (card style) */
+/* Ensure the form wrapper behaves like a card and stays inside the container */
+.contact-form-wrap {
+    background: #1a1f2b;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 1px 8px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    /* make wrapper span full width of container */
+    box-sizing: border-box;
+    /* include padding in width */
+}
+
+/* Contact Form */
+.contact-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.contact-form .form-group {
+    display: flex;
+    flex-direction: column;
+    text-align: left;
+}
+
+.contact-form label {
+    font-family: 'Fira Mono', monospace;
+    font-size: 1.2rem;
+    margin-bottom: 6px;
+    color: #7ec3fa;
+    /* match section accent */
+}
+
+textarea {
+    resize: none;
+    /* disable native */
+    position: relative;
+}
+
+textarea::after {
+    content: "";
+    position: absolute;
+    right: 6px;
+    bottom: 6px;
+    width: 20px;
+    height: 20px;
+    cursor: ns-resize;
+    /* vertical resize cursor */
+}
+
+/* Make sure inputs and textarea never overflow */
+.contact-form input,
+.contact-form textarea {
+
+    font-size: 1.2rem;
+    border-radius: 12px;
+    min-height: 50px;
+    width: 100%;
+    /* force full width inside wrapper */
+    max-width: 100%;
+    /* prevent overflow */
+    box-sizing: border-box;
+    /* include padding/border in width */
+    background: #fff;
+    resize: vertical;
+    /* allow vertical resize only */
+}
+
+.contact-form input:focus,
+.contact-form textarea:focus {
+    border-color: #7ec3fa;
+    outline: none;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .contact-grid {
+        grid-template-columns: 1fr;
+    }
+}
