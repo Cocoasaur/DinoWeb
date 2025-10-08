@@ -1,0 +1,6 @@
+This Assets folder contains supporting files for the website, including:
+- Images used in project cards, previews, and modal displays
+- Icons for status indicators, GitHub links, and UI elements
+- Other static resources (e.g., logos, backgrounds) required for consistent styling
+
+All files in this directory are referenced by the HTML, CSS, and JavaScript to ensure proper rendering of the portfolio site.
