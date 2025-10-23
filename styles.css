@@ -2,38 +2,74 @@ html {
     scroll-behavior: smooth;
     scroll-snap-type: y mandatory;
     scrollbar-gutter: stable;
-    /* always reserve space for scrollbar */
+    /* reserve scrollbar space */
 }
 
 body {
     margin: 0;
     padding: 0;
-    font-family: sans-serif;
+    font-family: 'Fira Mono', monospace;
     text-align: center;
-    background-color: #f4f4f4;
+    background-color: #06244e;
+    /* deep navy */
+    color: #1a1f2b;
+    /* readable on white */
     overflow-y: auto;
 }
 
-/* Top Navigation */
+/* Neumorphic tokens / variables */
+:root {
+    --bg: #06244e;
+    --surface: #ffffff;
+    /* Dark-only shadows for a cleaner look on navy */
+    --shadow-outer: rgba(0, 0, 0, 0.28);
+    /* raised shadow */
+    --shadow-outer-sm: rgba(0, 0, 0, 0.22);
+    /* small raised */
+    --shadow-inset: rgba(0, 0, 0, 0.28);
+    /* pressed shadow */
+
+    /* raised (outer) */
+    --soft-shadow: 8px 8px 16px var(--shadow-outer);
+    --soft-shadow-sm: 4px 4px 8px var(--shadow-outer-sm);
+
+    /* pressed (inset) balanced */
+    --soft-inset: inset 4px 4px 8px var(--shadow-inset);
+
+    --accent-blue: #388bff;
+    /* VS Code blue */
+    --accent-blue-hover: #256ad7;
+    --accent-cyan: #7ec3fa;
+    /* cyan highlights */
+    --accent-purple: #c678dd;
+    /* JetBrains purple */
+    --accent-orange: #ff8c42;
+    /* demo-like orange */
+    --text-primary: #0d1933;
+    /* dark text on white */
+    --text-muted: #555;
+    /* secondary text */
+    --border-soft: #e9eef5;
+    /* soft border for white */
+}
+
+/* Top Navigation (raised pill, inner inset edge on links) */
 .top-nav {
     position: fixed;
     top: 20px;
-    /* space above nav */
     left: 50%;
     transform: translateX(-50%);
-    /* center horizontally */
     display: flex;
     align-items: center;
     justify-content: space-between;
-    background-color: #fff;
+    background: var(--surface);
     border-radius: 24px;
     padding: 10px 25px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    box-shadow: var(--soft-shadow);
     z-index: 1000;
     max-width: 900px;
-    /* not full width */
     width: calc(50% - 80px);
-    /* responsive with side space */
+    color: var(--text-primary);
 }
 
 .top-nav h3 {
@@ -46,21 +82,55 @@ body {
     margin: 0;
     padding: 0;
     display: flex;
+    gap: 8px;
 }
 
+/* base link chip */
 .top-nav ul li a {
     display: block;
-    padding: 10px 20px;
+    padding: 10px 18px;
     text-decoration: none;
-    color: #333;
-    font-weight: 500;
-    border-radius: 18px;
-    transition: background-color 0.3s, color 0.3s;
+    color: var(--text-dark);
+    border-radius: 16px;
+    transition: background 220ms ease, color 220ms ease, transform 120ms ease;
+    box-shadow: var(--soft-inset);
+    /* pressed look */
 }
 
-.top-nav ul li a:hover {
-    background-color: #007bff;
+/* different hover colors for each link in order:
+   1 = Home -> Red
+   2 = About -> Yellow
+   3 = Projects -> Green
+   4 = Contact -> Blue
+*/
+.top-nav ul li:nth-child(1) a:hover {
+    background: #e74c3c;
     color: #fff;
+}
+
+/* red */
+.top-nav ul li:nth-child(2) a:hover {
+    background: #f1c40f;
+    color: #0b0b0b;
+}
+
+/* yellow (dark text) */
+.top-nav ul li:nth-child(3) a:hover {
+    background: #2ecc71;
+    color: #0b0b0b;
+}
+
+/* green (dark text) */
+.top-nav ul li:nth-child(4) a:hover {
+    background: var(--accent-blue);
+    color: #fff;
+}
+
+/* blue */
+
+/* Slight lift on hover for affordance */
+.top-nav ul li a:hover {
+    transform: translateY(-2px);
 }
 
 /* Sections */
@@ -71,48 +141,43 @@ section#home {
     justify-content: center;
     align-items: center;
     padding-top: 35px;
-    /* offset for fixed nav */
     margin: 0;
 }
 
 section:not(#home) {
-    padding: 120px 20px 90px;
+    padding: 120px 20px 10px;
     text-align: left;
     min-height: 65vh;
     scroll-snap-align: start;
-    display: block;
 }
 
-/* Home Section */
+/* Home container (raised) */
 .home-container {
-    background: #ffffff;
+    background: var(--surface);
     border-radius: 18px;
-    box-shadow: 0 2px 16px rgba(0, 0, 0, 0.15);
+    box-shadow: var(--soft-shadow);
     max-width: 1200px;
     width: 60%;
     margin: 60px auto;
     padding: 30px 32px 32px;
-    border: 1px solid #ffffff;
+    border: 1px solid var(--border-soft);
     position: relative;
 }
 
-/* Base header styling */
+/* Header (inline status) */
 .home-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 24px;
-    font-family: 'Fira Mono', monospace;
     font-size: 1rem;
-    color: #000;
+    color: var(--text-primary);
 }
 
-/* Default the filename font opacity */
 .home-filename {
     opacity: 1;
 }
 
-/* Shared flex layout for status containers */
 .status,
 .home-status {
     display: flex;
@@ -120,25 +185,25 @@ section:not(#home) {
     gap: 6px;
 }
 
-/* Yellow status dot */
 .home-status-dot {
     width: 10px;
     height: 10px;
     background: #ead143;
     border-radius: 50%;
+    box-shadow: var(--soft-inset);
 }
 
 .home-content h1 {
     font-size: 3rem;
     font-weight: bold;
     margin-bottom: 10px;
-    color: #000000;
+    color: var(--text-primary);
     text-align: center;
 }
 
 .home-content p {
     font-size: 1.5rem;
-    color: #2b2b2b;
+    color: var(--text-muted);
     margin-bottom: 32px;
     letter-spacing: 1px;
     text-align: center;
@@ -168,35 +233,44 @@ section:not(#home) {
     margin-bottom: 32px;
 }
 
+/* Buttons (raised) */
 .btn {
     padding: 12px 32px;
-    border-radius: 8px;
+    border-radius: 16px;
     font-size: 1.1rem;
     font-weight: 500;
-    text-decoration: none;
     border: none;
     cursor: pointer;
-    transition: background 0.2s, color 0.2s;
+    transition: background 0.2s, color 0.2s, box-shadow 0.25s, transform 0.12s;
     display: inline-block;
+    box-shadow: var(--soft-shadow-sm);
 }
 
 .btn-primary {
-    background: #388bff;
+    background: var(--accent-blue);
     color: #fff;
 }
 
 .btn-primary:hover {
-    background: #256ad7;
+    background: var(--accent-blue-hover);
 }
 
 .btn-secondary {
-    background: #ff0000;
-    color: #ffffff;
+    background: var(--accent-purple);
+    color: #fff;
 }
 
 .btn-secondary:hover {
-    background: #b10000;
+    background: #a855c1;
+}
+
+.btn-highlight {
+    background: var(--accent-orange);
     color: #fff;
+}
+
+.btn-highlight:hover {
+    background: #e6762f;
 }
 
 .home-icons {
@@ -210,10 +284,11 @@ section:not(#home) {
     display: inline-block;
     width: 32px;
     height: 32px;
-    opacity: 0.8;
+    opacity: 0.85;
     background-size: contain;
     background-repeat: no-repeat;
     transition: opacity 0.2s;
+    filter: drop-shadow(1px 1px 2px rgba(0, 0, 0, 0.2));
 }
 
 .icon-github {
@@ -232,56 +307,49 @@ section:not(#home) {
     opacity: 1;
 }
 
-/* About Section */
+/* About container (raised) */
 .about-container {
-    background: #ffffff;
+    background: var(--surface);
     border-radius: 18px;
-    box-shadow: 0 2px 16px rgba(0, 0, 0, 0.10);
+    box-shadow: var(--soft-shadow);
     max-width: 1200px;
     width: 70%;
     margin: -20px auto 0;
-    padding: 32px 32px 32px;
-    color: #fff;
+    padding: 32px;
+    color: var(--text-primary);
     display: flex;
     flex-direction: column;
     gap: 5px;
 }
 
-/* Base flex alignment for header and status */
 .about-header,
 .about-status {
     display: flex;
     align-items: center;
 }
 
-/* Header layout and typography */
 .about-header {
     justify-content: space-between;
     margin-bottom: 16px;
-    font-family: 'Fira Mono', monospace;
     font-size: 1rem;
-    color: #000;
+    color: var(--text-primary);
 }
 
-/* Status container spacing */
 .about-status {
     gap: 6px;
 }
 
-/* Filename simply inherits header styles */
 .about-filename {
     opacity: 1;
-    /* no additional rules needed—inherits font and color from .about-header */
 }
 
-/* Yellow status dot (same as home) */
 .about-status-dot {
     width: 10px;
     height: 10px;
     background: #ead143;
     border-radius: 50%;
+    box-shadow: var(--soft-inset);
 }
-
 
 .about-row {
     display: flex;
@@ -290,75 +358,75 @@ section:not(#home) {
     gap: 32px;
 }
 
+/* Inner story block (raised small) */
 .about-story {
     flex: 1;
     text-align: left;
-    background: #1a1f2b;
+    background: var(--surface);
     padding: 10px 20px 30px;
-    border-radius: 12px;
+    border-radius: 16px;
+    box-shadow: var(--soft-shadow-sm);
 }
 
 .about-story h2 {
-    font-family: 'Fira Mono', monospace;
     font-size: 1.4rem;
     margin-bottom: 8px;
-    color: #7ec3fa;
+    color: var(--accent-cyan);
 }
 
 .about-story p {
-    font-size: 1.1rem;
-    color: #bfc7d5;
+    font-size: 1rem;
+    color: var(--text-muted);
     margin: 0;
 }
 
 .indent-one {
     text-indent: 2em;
-    /* adjust as needed */
     margin-top: 0;
     margin-bottom: 1rem;
 }
 
 .indent-two {
     text-indent: 2em;
-    /* same or different value if you want */
     margin: 0;
 }
 
 .indent-three {
     text-indent: 2em;
-    /* same or different value if you want */
     margin: 0;
 }
 
+/* Profile card (raised small) */
 .profile-card {
-    background: #1a1f2b;
-    border-radius: 12px;
+    background: var(--surface);
+    border-radius: 16px;
     padding: 18px;
-    box-shadow: 0 1px 8px rgba(0, 0, 0, 0.10);
+    box-shadow: var(--soft-shadow-sm);
     min-width: 280px;
     min-height: 295px;
     text-align: center;
 }
 
 .profile-filename {
-    font-family: 'Fira Mono', monospace;
     font-size: 1rem;
-    color: #bfc7d5;
-    opacity: 0.8;
+    color: #7f8a9b;
+    opacity: 0.85;
     margin-bottom: 8px;
     display: block;
 }
 
+/* Profile image (inset) */
 .profile-image {
     width: 250px;
     height: 250px;
     border-radius: 12px;
     overflow: hidden;
     margin: 0 auto 1px auto;
-    background: #1a1f2b;
+    background: var(--surface);
     display: flex;
     align-items: center;
     justify-content: center;
+    box-shadow: var(--soft-inset);
 }
 
 .profile-image img {
@@ -368,6 +436,7 @@ section:not(#home) {
     border-radius: 12px;
 }
 
+/* Status under image */
 .profile-status {
     display: flex;
     align-items: center;
@@ -381,27 +450,27 @@ section:not(#home) {
     height: 12px;
     background: #dfea43;
     border-radius: 50%;
+    box-shadow: var(--soft-inset);
     display: inline-block;
 }
 
 .profile-status span:last-child {
-    color: #eae243;
+    color: #b7b93f;
     font-size: 0.95rem;
-    font-family: 'Fira Mono', monospace;
 }
 
+/* Skills list (raised small) */
 .skills-list {
     margin-top: 24px;
-    background: #1a1f2b;
-    border-radius: 12px;
+    background: var(--surface);
+    border-radius: 16px;
     padding: 24px 18px;
-    box-shadow: 0 1px 8px rgba(0, 0, 0, 0.08);
+    box-shadow: var(--soft-shadow-sm);
 }
 
 .skills-list h3 {
-    font-family: 'Fira Mono', monospace;
     font-size: 1.2rem;
-    color: #7ec3fa;
+    color: var(--accent-cyan);
     margin-bottom: 18px;
     text-align: left;
     margin-top: 5px;
@@ -416,18 +485,19 @@ section:not(#home) {
 
 .skill span {
     min-width: 110px;
-    font-family: 'Fira Mono', monospace;
     font-size: 1rem;
-    color: #fff;
+    color: var(--text-primary);
 }
 
+/* Skill bar (inset track) */
 .skill-bar {
     flex: 1;
     height: 12px;
-    background: #3f4759;
+    background: #eef2f7;
     border-radius: 8px;
     overflow: hidden;
     margin: 0 8px;
+    box-shadow: var(--soft-inset);
 }
 
 .skill-fill {
@@ -437,19 +507,17 @@ section:not(#home) {
 }
 
 .skill-percent {
-    font-family: 'Fira Mono', monospace;
     font-size: 0.95rem;
-    color: #bfc7d5;
+    color: #7f8a9b;
     min-width: 40px;
     text-align: right;
 }
 
-/* Projects Section */
-/* Container */
+/* Projects container (raised) */
 .projects-container {
-    background: #ffffff;
+    background: var(--surface);
     border-radius: 18px;
-    box-shadow: 0 2px 16px rgba(0, 0, 0, 0.10);
+    box-shadow: var(--soft-shadow);
     max-width: 1200px;
     width: 80%;
     margin: -20px auto 0;
@@ -459,7 +527,6 @@ section:not(#home) {
     gap: 18px;
 }
 
-/* Section header (title + subheader row) */
 .projects-header,
 .projects-status {
     display: flex;
@@ -467,24 +534,15 @@ section:not(#home) {
     gap: 6px;
 }
 
-/* Header layout and typography */
 .projects-header {
     justify-content: space-between;
     margin-bottom: 16px;
-    font-family: 'Fira Mono', monospace;
     font-size: 1rem;
-    color: #000;
+    color: var(--text-primary);
 }
 
-/* Status container spacing */
-.projects-status {
-    gap: 6px;
-}
-
-/* Filename + status (consistent with About) */
 .projects-filename {
     opacity: 1;
-    /* no additional rules needed—inherits font and color from .projects-header */
 }
 
 .projects-status-dot {
@@ -492,38 +550,34 @@ section:not(#home) {
     height: 10px;
     background: #ead143;
     border-radius: 50%;
+    box-shadow: var(--soft-inset);
 }
 
+/* Status dot mapping (inset for consistency) */
 .status-dot {
     width: 10px;
     height: 10px;
     border-radius: 50%;
     display: inline-block;
     background: #7f8c8d;
-    /* default */
+    box-shadow: var(--soft-inset);
 }
 
-/* Status color mapping */
 .status-dot[data-status="completed"] {
     background: #2ecc71;
 }
 
-/* green */
 .status-dot[data-status="in-progress"] {
     background: #f1c40f;
 }
 
-/* yellow */
 .status-dot[data-status="paused"] {
     background: #e67e22;
 }
 
-/* orange */
 .status-dot[data-status="under-maintenance"] {
     background: #e74c3c;
 }
-
-/* red */
 
 /* Controls */
 .projects-controls {
@@ -533,19 +587,23 @@ section:not(#home) {
     flex-wrap: wrap;
 }
 
+/* Search (inset) */
 #project-search {
     flex: 1 1 280px;
     padding: 10px 14px;
-    border: 1px solid #ddd;
-    border-radius: 8px;
+    border: 1px solid var(--border-soft);
+    border-radius: 12px;
     font-size: 1rem;
-    font-family: 'Fira Mono', monospace;
     outline: none;
-    transition: border 0.2s;
+    transition: border 0.2s, box-shadow 0.2s;
+    background: var(--surface);
+    color: var(--text-primary);
+    box-shadow: var(--soft-inset);
 }
 
 #project-search:focus {
-    border-color: #7ec3fa;
+    border-color: var(--accent-cyan);
+    box-shadow: var(--soft-inset);
 }
 
 .active-filters {
@@ -556,15 +614,15 @@ section:not(#home) {
 
 .filter-chip {
     background: #eef6ff;
-    color: #2573c2;
+    color: #000000;
     border: 1px solid #cfe6ff;
     border-radius: 999px;
     padding: 6px 10px;
     font-size: 0.85rem;
-    font-family: 'Fira Mono', monospace;
     display: inline-flex;
     align-items: center;
     gap: 6px;
+    box-shadow: var(--soft-shadow-sm);
 }
 
 .filter-chip button {
@@ -575,39 +633,40 @@ section:not(#home) {
     font-size: 0.9rem;
 }
 
-/* Grid */
+/* Grid and cards */
 .projects-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: 22px;
 }
 
-/* Card */
+/* Project card (raised small) */
 .project-card {
-    background: #1a1f2b;
-    border-radius: 12px;
+    background: var(--surface);
+    border-radius: 16px;
     padding: 16px;
-    color: #fff;
+    color: var(--text-primary);
     display: flex;
     flex-direction: column;
     min-height: 420px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+    box-shadow: var(--soft-shadow-sm);
     transition: transform 0.2s, box-shadow 0.2s;
 }
 
 .project-card:hover {
     transform: translateY(-3px);
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+    box-shadow: var(--soft-shadow);
 }
 
-/* Card image */
-/* Image Size for each project card might be 300 px × 260 px */
+/* Card image (inset) */
 .project-image {
     width: 100%;
     height: 260px;
-    border-radius: 8px;
+    border-radius: 12px;
     overflow: hidden;
     flex-shrink: 0;
+    box-shadow: var(--soft-inset);
+    background: #f6f9ff;
 }
 
 .project-image img {
@@ -616,7 +675,7 @@ section:not(#home) {
     object-fit: cover;
 }
 
-/* Title + status */
+/* Title + status row */
 .project-card-top {
     display: flex;
     justify-content: space-between;
@@ -627,7 +686,7 @@ section:not(#home) {
 .project-title {
     font-size: 1.15rem;
     font-weight: 600;
-    color: #7ec3fa;
+    color: #000000;
 }
 
 .project-card-status {
@@ -635,7 +694,7 @@ section:not(#home) {
     align-items: center;
     gap: 6px;
     font-size: 0.85rem;
-    color: #cfd6e6;
+    color: #7f8a9b;
 }
 
 .project-card-status .status-dot {
@@ -646,21 +705,19 @@ section:not(#home) {
 /* Description */
 .project-desc {
     font-size: 0.95rem;
-    color: #bfc7d5;
+    color: #667085;
     margin: 8px 1px;
-
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     line-clamp: 2;
-    /* standard property */
+    /* future */
     overflow: hidden;
     text-overflow: ellipsis;
-
     line-height: 1.4;
 }
 
-/* Project tags */
+/* Tags (raised small chips) */
 .project-tags {
     display: flex;
     flex-wrap: wrap;
@@ -668,37 +725,32 @@ section:not(#home) {
     margin-top: auto;
 }
 
-/* Individual tag */
 .project-tag {
-    background: #2c3446;
-    color: #7ec3fa;
+    background: #325280;
+    color: var(--accent-cyan);
     font-size: 0.8rem;
     padding: 4px 8px;
-    border-radius: 6px;
-    font-family: 'Fira Mono', monospace;
+    border-radius: 8px;
     cursor: pointer;
 }
 
-/* "+ N more" tag with tooltip */
 .project-tag.more-tag {
-    background: #444c5e;
+    background: #f3f6fb;
     color: #ffda6a;
     font-style: italic;
     position: relative;
     cursor: default;
-    /* change to pointer if you want it clickable */
 }
 
-/* Tooltip container */
 .project-tag.more-tag .tooltip-box {
     display: none;
     position: absolute;
     bottom: 135%;
     left: 50%;
     transform: translateX(-50%);
-    background: #1a1f2b;
-    border: 1px solid #7ec3fa;
-    border-radius: 6px;
+    background: var(--surface);
+    border: 1px solid var(--accent-cyan);
+    border-radius: 8px;
     padding: 8px;
     z-index: 20;
     min-width: 120px;
@@ -706,24 +758,24 @@ section:not(#home) {
     flex-wrap: wrap;
     gap: 6px;
     justify-content: center;
+    box-shadow: var(--soft-shadow-sm);
 }
 
-/* Show on hover */
 .project-tag.more-tag:hover .tooltip-box {
     display: flex;
 }
 
-/* Individual hidden tags */
 .tooltip-tag {
-    background: #2c3446;
-    color: #7ec3fa;
+    background: #f0f4fa;
+    color: var(--accent-cyan);
     font-size: 0.75rem;
     padding: 4px 6px;
-    border-radius: 4px;
+    border-radius: 6px;
     white-space: nowrap;
+    box-shadow: var(--soft-shadow-sm);
 }
 
-/* Actions: details + favorite */
+/* Actions */
 .project-actions {
     display: flex;
     justify-content: space-between;
@@ -732,15 +784,16 @@ section:not(#home) {
 }
 
 .project-btn {
-    background: #7ec3fa;
-    color: #1a1f2b;
+    background: var(--accent-cyan);
+    color: #0b1730;
     padding: 8px 12px;
-    border-radius: 6px;
+    border-radius: 12px;
     font-size: 0.9rem;
     font-weight: 600;
     border: none;
     cursor: pointer;
-    transition: background 0.2s;
+    transition: background 0.2s, box-shadow 0.2s, transform 0.12s;
+    box-shadow: var(--soft-shadow-sm);
 }
 
 .project-btn:hover {
@@ -752,13 +805,14 @@ section:not(#home) {
     align-items: center;
     gap: 6px;
     padding: 4px 8px;
-    border-radius: 6px;
+    border-radius: 10px;
     cursor: pointer;
-    transition: background 0.2s, transform 0.2s;
+    transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
+    box-shadow: var(--soft-shadow-sm);
 }
 
 .favorite:hover {
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(0, 0, 0, 0.04);
     transform: scale(1.05);
 }
 
@@ -766,8 +820,8 @@ section:not(#home) {
     background: none;
     border: none;
     font-size: 1.3rem;
-    color: #ccc;
-    transition: color 0.2s, text-shadow 0.2s;
+    color: #9aa4b2;
+    transition: color 0.2s, text-shadow 0.2s, transform 0.2s;
     line-height: 1;
     padding: 0;
 }
@@ -786,24 +840,24 @@ section:not(#home) {
 
 .like-count {
     font-size: 0.9rem;
-    color: #fff;
+    color: #4b5563;
 }
 
-/* Modal */
-/*Modal container backdrop*/
+/* Modal backdrop */
 .project-modal {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.7);
+    background: rgba(6, 36, 78, 0.75);
     display: none;
     align-items: center;
     justify-content: center;
     z-index: 1000;
 }
 
+/* Modal content (raised) */
 .modal-content {
-    background: #ffffff;
-    border-radius: 12px;
+    background: var(--surface);
+    border-radius: 16px;
     max-width: 980px;
     width: 92%;
     max-height: 90%;
@@ -811,32 +865,29 @@ section:not(#home) {
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    /* ensures children clip to rounded corners */
+    box-shadow: var(--soft-shadow);
 }
 
 .modal-scroll {
     padding: 24px;
     overflow-y: auto;
     max-height: 90vh;
-    /* scrollable area */
     display: flex;
     flex-direction: column;
     gap: 16px;
 }
 
-/* Close button */
+/* Close button (raised small) */
 .modal-close {
     position: absolute;
     top: 16px;
-    /* small offset from the top edge */
     left: 16px;
-    /* small offset from the left edge */
     width: 44px;
     height: 44px;
     border: none;
     border-radius: 50%;
-    background: #333333;
-    color: #f0f0f0;
+    background: #e9eef5;
+    color: var(--text-primary);
     font-size: 1.6rem;
     font-weight: bold;
     cursor: pointer;
@@ -844,35 +895,32 @@ section:not(#home) {
     align-items: center;
     justify-content: center;
     line-height: 1;
-    transition: background 0.25s ease, transform 0.2s ease, box-shadow 0.25s ease;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    transition: background 0.25s, transform 0.2s, box-shadow 0.25s;
+    box-shadow: var(--soft-shadow-sm);
     z-index: 2000;
 }
 
 .modal-close:hover {
-    background: #e63946;
-    color: #fff;
-    transform: scale(1.08);
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    background: #dbe3ee;
+    transform: scale(1.25);
 }
 
 .modal-close:active {
     transform: scale(0.95);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
 }
 
+/* Modal header & tags (raised small chips) */
 .modal-header {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    /* align top instead of center */
     gap: 12px;
 }
 
 .modal-title {
-    font-size: 2.5rem;
+    font-size: 2.2rem;
     font-weight: 700;
-    color: #1a1f2b;
+    color: var(--text-primary);
     margin-top: 50px;
     margin-bottom: 10px;
 }
@@ -882,32 +930,33 @@ section:not(#home) {
     align-items: center;
     gap: 6px;
     font-size: 0.95rem;
-    color: #555;
+    color: #667085;
 }
 
 .modal-status .status-dot {
     width: 10px;
     height: 10px;
     border-radius: 50%;
+    box-shadow: var(--soft-inset);
 }
 
 .modal-tags {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
-    /* 3 tags per row */
     gap: 6px;
     margin: 15px 0 8px;
 }
 
 .modal-tag {
-    background: #2c3446;
-    color: #7ec3fa;
+    background: #f0f4fa;
+    color: var(--accent-cyan);
     font-size: 0.8rem;
     padding: 4px 8px;
-    border-radius: 6px;
-    font-family: 'Fira Mono', monospace;
+    border-radius: 8px;
+    box-shadow: var(--soft-shadow-sm);
 }
 
+/* Modal body */
 .modal-body {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -922,18 +971,15 @@ section:not(#home) {
 }
 
 .modal-description-title {
-    font-size: 2rem;
-    /* slightly larger than body text */
+    font-size: 1.6rem;
     font-weight: 700;
-    /* bold */
-    color: #1a1f2b;
+    color: var(--text-primary);
     margin: 0;
-    /* remove default h3 margin */
 }
 
 .modal-description {
     font-size: 1rem;
-    color: #2b2b2b;
+    color: #3f4759;
     line-height: 1.6;
 }
 
@@ -945,33 +991,32 @@ section:not(#home) {
 
 .modal-image img {
     max-width: 100%;
-    border-radius: 8px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+    border-radius: 12px;
+    box-shadow: var(--soft-shadow-sm);
+    background: #f6f9ff;
 }
 
+/* Modal footer & button */
 .modal-footer {
     margin-top: 20px;
     display: flex;
     justify-content: flex-start;
 }
 
-/* GitHub button */
-/* GitHub button (blue, rectangular, icon + text) */
 .github-btn {
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    background: #ffffff;
-    /* Bootstrap-like blue */
-    color: #000000;
+    background: var(--surface);
+    color: var(--text-primary);
     padding: 10px 16px;
-    border-radius: 6px;
+    border-radius: 12px;
     font-size: 0.95rem;
     font-weight: 600;
     text-decoration: none;
-    transition: background 0.2s, transform 0.2s;
-    border: #000 solid 1px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+    transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
+    border: 1px solid var(--border-soft);
+    box-shadow: var(--soft-shadow-sm);
 }
 
 .github-btn img {
@@ -980,30 +1025,30 @@ section:not(#home) {
 }
 
 .github-btn:hover {
-    background: #e7e7e7;
-    transform: translateY(-2px);
-    transform: scale(1.02);
+    background: #f6f9ff;
+    transform: translateY(-1px) scale(1.02);
 }
 
-/* Update logs container */
+/* Update logs (inset list box) */
 .modal-logs {
-    margin-top: 0px;
+    margin-top: 0;
 }
 
 .modal-logs h3 {
     font-size: 1.1rem;
     margin-bottom: 8px;
-    color: #1a1f2b;
+    color: var(--text-primary);
 }
 
 .logs-container {
-    background: #f8f9fa;
-    border: 1px solid #ddd;
-    border-radius: 6px;
+    background: #f8fbff;
+    border: 1px solid var(--border-soft);
+    border-radius: 12px;
     padding: 12px 16px;
     max-height: 200px;
     max-width: 430px;
     overflow-y: auto;
+    box-shadow: var(--soft-inset);
 }
 
 .logs-list {
@@ -1015,7 +1060,7 @@ section:not(#home) {
     line-height: 1.5;
 }
 
-/* Responsive */
+/* Responsive modal */
 @media (max-width: 860px) {
     .modal-body {
         grid-template-columns: 1fr;
@@ -1027,50 +1072,38 @@ section:not(#home) {
 }
 
 /* Lock background when modal is open */
-/*
-body.modal-open {
-    overflow: hidden;
-    position: fixed;
-    width: 100%;
-}
-    */
-/* Greyed-out scrollbar when modal is open */
-/* When modal is open, lock scroll but keep scrollbar visible and styled */
 html.modal-open {
     overflow: hidden;
-    /* disables scrolling */
 }
 
-/* WebKit browsers (Chrome, Edge, Safari) */
-html.modal-open::-webkit-scrollbar {
+/* Scrollbar styling (navy track, light thumb) */
+html::-webkit-scrollbar {
     width: 12px;
-    /* same width as normal */
-    background-color: #ff0000;
-    /* track background */
 }
 
-html.modal-open::-webkit-scrollbar-thumb {
-    background-color: #c0c0c0;
-    /* grey thumb to look disabled */
+html::-webkit-scrollbar-track {
+    background: #0a2f69;
+}
+
+html::-webkit-scrollbar-thumb {
+    background: #aec4e9;
     border-radius: 6px;
 }
 
-html.modal-open::-webkit-scrollbar-thumb:hover {
-    background-color: #b0b0b0;
-    /* slightly darker grey */
+html::-webkit-scrollbar-thumb:hover {
+    background: #9db8e5;
 }
 
-/* Firefox */
-html.modal-open {
-    scrollbar-color: #c0c0c0 #f0f0f0;
-    /* thumb | track */
+html {
+    scrollbar-color: #aec4e9 #0a2f69;
     scrollbar-width: thin;
 }
 
+/* Contact container (raised) */
 .contact-container {
-    background: #ffffff;
+    background: var(--surface);
     border-radius: 18px;
-    box-shadow: 0 2px 16px rgba(0, 0, 0, 0.1);
+    box-shadow: var(--soft-shadow);
     max-width: 1000px;
     width: 80%;
     margin: -20px auto 0;
@@ -1078,41 +1111,39 @@ html.modal-open {
     display: flex;
     flex-direction: column;
     gap: 24px;
+    color: var(--text-primary);
 }
 
 .contact-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    font-family: 'Fira Mono', monospace;
     font-size: 1rem;
-    color: #000;
+    color: var(--text-primary);
 }
 
 .contact-status {
     display: flex;
     align-items: center;
     gap: 6px;
-    /* space between dot and text */
 }
 
 .contact-status-dot {
     width: 10px;
     height: 10px;
     background: #ead143;
-    /* green = active */
     border-radius: 50%;
     flex-shrink: 0;
-    /* prevent collapsing */
+    box-shadow: var(--soft-inset);
 }
 
 .contact-body h2 {
-    font-family: 'Fira Mono', monospace;
     font-size: 1.4rem;
     margin-bottom: 20px;
-    color: #7ec3fa;
+    color: var(--accent-cyan);
 }
 
+/* Contact grid (cards pressed/raised mix) */
 .contact-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -1120,29 +1151,30 @@ html.modal-open {
     margin-bottom: 32px;
 }
 
+/* Info card (raised small) */
 .contact-card {
-    background: #1a1f2b;
-    border-radius: 12px;
+    background: var(--surface);
+    border-radius: 16px;
     padding: 20px;
     text-align: center;
-    box-shadow: 0 1px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: var(--soft-shadow-sm);
 }
 
 .contact-card h3 {
-    font-family: 'Fira Mono', monospace;
     font-size: 1rem;
-    color: #7ec3fa;
+    color: var(--accent-cyan);
     margin-bottom: 8px;
+    margin-top: 3px;
 }
 
 .contact-card p {
     font-size: 0.95rem;
-    color: #bfc7d5;
+    color: var(--text-muted);
     margin: 0;
 }
 
 .contact-card a {
-    color: #388bff;
+    color: var(--accent-blue);
     text-decoration: none;
 }
 
@@ -1150,20 +1182,17 @@ html.modal-open {
     text-decoration: underline;
 }
 
-/* Contact Form Wrap (card style) */
-/* Ensure the form wrapper behaves like a card and stays inside the container */
+/* Contact form wrapper (raised small) */
 .contact-form-wrap {
-    background: #1a1f2b;
-    border-radius: 12px;
+    background: var(--surface);
+    border-radius: 16px;
     padding: 24px;
-    box-shadow: 0 1px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: var(--soft-shadow-sm);
     width: 100%;
-    /* make wrapper span full width of container */
     box-sizing: border-box;
-    /* include padding in width */
 }
 
-/* Contact Form */
+/* Contact form (inputs inset) */
 .contact-form {
     display: flex;
     flex-direction: column;
@@ -1177,57 +1206,59 @@ html.modal-open {
 }
 
 .contact-form label {
-    font-family: 'Fira Mono', monospace;
-    font-size: 1.2rem;
+    font-size: 1.05rem;
     margin-bottom: 6px;
-    color: #7ec3fa;
-    /* match section accent */
+    color: var(--accent-cyan);
 }
 
-textarea {
-    resize: none;
-    /* disable native */
-    position: relative;
-}
-
-textarea::after {
-    content: "";
-    position: absolute;
-    right: 6px;
-    bottom: 6px;
-    width: 20px;
-    height: 20px;
-    cursor: ns-resize;
-    /* vertical resize cursor */
-}
-
-/* Make sure inputs and textarea never overflow */
+/* Inputs and textarea (inset) */
 .contact-form input,
 .contact-form textarea {
-
-    font-size: 1.2rem;
+    font-size: 1rem;
     border-radius: 12px;
     min-height: 50px;
     width: 100%;
-    /* force full width inside wrapper */
     max-width: 100%;
-    /* prevent overflow */
     box-sizing: border-box;
-    /* include padding/border in width */
-    background: #fff;
+    background: #f8fbff;
+    color: var(--text-primary);
+    border: 1px solid var(--border-soft);
     resize: vertical;
-    /* allow vertical resize only */
+    box-shadow: var(--soft-inset);
+    padding: 10px 12px;
 }
 
 .contact-form input:focus,
 .contact-form textarea:focus {
-    border-color: #7ec3fa;
+    border-color: var(--accent-cyan);
     outline: none;
 }
 
-/* Responsive */
+/* Responsive contact grid */
 @media (max-width: 768px) {
     .contact-grid {
         grid-template-columns: 1fr;
     }
+}
+
+/* Footer: visible, readable, fixed gap from bottom on short pages */
+.footer {
+    background: transparent;
+    color: #cfd8e3;
+    padding: 28px 20px;
+    text-align: center;
+    font-size: 0.95rem;
+    z-index: 1;
+    margin-top: 48px;
+    margin-bottom: 10px;
+}
+
+/* Make footer stand out slightly on navy background with subtle card */
+.footer {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.01));
+    border-radius: 12px;
+    box-shadow: 4px 4px 18px rgba(0, 0, 0, 0.28);
+    width: calc(100% - 48px);
+    max-width: 100%;
+    margin: 40px auto;
 }
