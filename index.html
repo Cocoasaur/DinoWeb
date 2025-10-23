@@ -278,12 +278,14 @@
                     <form class="contact-form">
                         <div class="form-group">
                             <label for="name">Name</label>
-                            <input id="name" type="text" placeholder="Your Name" required>
+                            <input id="name" name="name" type="text" placeholder="Your Name" required
+                                aria-label="Your name" autocomplete="name">
                         </div>
 
                         <div class="form-group">
                             <label for="email">Email</label>
-                            <input id="email" type="email" placeholder="Your Email" required>
+                            <input id="email" name="email" type="email" placeholder="Your Email" required
+                                aria-label="Your email" autocomplete="email">
                         </div>
 
                         <div class="form-group">
@@ -291,15 +293,14 @@
                             <textarea id="message" rows="4" placeholder="Write your message..." required></textarea>
                         </div>
 
-                        <button type="submit" class="btn btn-primary">sendMessage()</button>
+                        <button type="submit" class="btn btn-primary">Send Message</button>
                     </form>
                 </div>
             </div>
         </div>
+        <footer class="footer">
+            <p>&copy; 2025 DinoWeb. All rights reserved.</p>
     </section>
-
-    <footer class="footer">
-        <p>&copy; 2025 DinoWeb. All rights reserved.</p>
 
 </body>
 <script src="script.js"></script>
