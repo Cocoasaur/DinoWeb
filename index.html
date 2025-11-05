@@ -63,14 +63,16 @@
                     <h2>aboutMe</h2>
                     <p class="indent-one">
                         Fueled by curiosity and a love for solving puzzles, I see every challenge as an open canvas
-                        waiting for bold ideas and clever solutions. Technology is my playground, I am constantly
+                        waiting for bold ideas and clever solutions.
+                        Technology is my playground, I am constantly
                         experimenting with new tools, refining my craft in programming and design, and finding fresh
                         ways to blend logic with imagination.<br><br>
                     </p>
 
                     <p class="indent-two">
                         For me, growth is not just about learning new skills, it is about stretching boundaries,
-                        embracing the unknown, and turning obstacles into opportunities. Whether I am sketching out a
+                        embracing the unknown, and turning obstacles into opportunities.
+                        Whether I am sketching out a
                         design, debugging a tricky line of code, or exploring the next wave of innovation, I bring both
                         creativity and determination to the table.<br><br>
                     </p>
@@ -93,46 +95,92 @@
                 </div>
             </div>
 
-            <div class="skills-list">
-                <h3>skillsGauge</h3>
-                <div class="skill" data-skill="75" data-color="#e34c26">
-                    <span>HTML</span>
-                    <div class="skill-bar">
-                        <div class="skill-fill"></div>
+            <div class="skills-container">
+                <div class="skills-list">
+                    <h3>skillsGauge</h3>
+                    <div class="skills-list-content">
+                        <div class="skill" data-skill="75" data-color="#e34c26">
+                            <span>HTML</span>
+                            <div class="skill-bar">
+                                <div class="skill-fill"></div>
+                            </div>
+                            <span class="skill-percent"></span>
+                        </div>
+
+                        <div class="skill" data-skill="70" data-color="#264de4">
+                            <span>CSS</span>
+                            <div class="skill-bar">
+                                <div class="skill-fill"></div>
+                            </div>
+                            <span class="skill-percent"></span>
+                        </div>
+
+                        <div class="skill" data-skill="55" data-color="#f0db4f">
+                            <span>JavaScript</span>
+                            <div class="skill-bar">
+                                <div class="skill-fill"></div>
+                            </div>
+                            <span class="skill-percent"></span>
+                        </div>
+
+                        <div class="skill" data-skill="60" data-color="#3776ab">
+                            <span>Python</span>
+                            <div class="skill-bar">
+                                <div class="skill-fill"></div>
+                            </div>
+                            <span class="skill-percent"></span>
+                        </div>
+
+                        <div class="skill" data-skill="53" data-color="#b07219">
+                            <span>Java</span>
+                            <div class="skill-bar">
+                                <div class="skill-fill"></div>
+                            </div>
+                            <span class="skill-percent"></span>
+                        </div>
+
+                        <div class="skill" data-skill="83" data-color="#b07219">
+                            <span>Jabai</span>
+                            <div class="skill-bar">
+                                <div class="skill-fill"></div>
+                            </div>
+                            <span class="skill-percent"></span>
+                        </div>
+
+                        <div class="skill" data-skill="90" data-color="#3776ab">
+                            <span>Baksan</span>
+                            <div class="skill-bar">
+                                <div class="skill-fill"></div>
+                            </div>
+                            <span class="skill-percent"></span>
+                        </div>
+
+                        <div class="skill" data-skill="85" data-color="#3776ab">
+                            <span>BSACOL</span>
+                            <div class="skill-bar">
+                                <div class="skill-fill"></div>
+                            </div>
+                            <span class="skill-percent"></span>
+                        </div>
                     </div>
-                    <span class="skill-percent"></span>
                 </div>
 
-                <div class="skill" data-skill="70" data-color="#264de4">
-                    <span>CSS</span>
-                    <div class="skill-bar">
-                        <div class="skill-fill"></div>
+                <div class="technical-skills">
+                    <h3>technicalSkills</h3>
+                    <div class="tech-grid">
+                        <div class="tech-item">Git & GitHub</div>
+                        <div class="tech-item">RESTful APIs</div>
+                        <div class="tech-item">Database Design</div>
+                        <div class="tech-item">Responsive Design</div>
+                        <div class="tech-item">Agile Development</div>
+                        <div class="tech-item">Testing & Debugging</div>
+                        <div class="tech-item">Cloud Services (AWS)</div>
+                        <div class="tech-item">DevOps & CI/CD</div>
+                        <div class="tech-item">Agile Development</div>
+                        <div class="tech-item">Testing & Debugging</div>
+                        <div class="tech-item">Cloud Services (AWS)</div>
+                        <div class="tech-item">DevOps & CI/CD</div>
                     </div>
-                    <span class="skill-percent"></span>
-                </div>
-
-                <div class="skill" data-skill="55" data-color="#f0db4f">
-                    <span>JavaScript</span>
-                    <div class="skill-bar">
-                        <div class="skill-fill"></div>
-                    </div>
-                    <span class="skill-percent"></span>
-                </div>
-
-                <div class="skill" data-skill="60" data-color="#3776ab">
-                    <span>Python</span>
-                    <div class="skill-bar">
-                        <div class="skill-fill"></div>
-                    </div>
-                    <span class="skill-percent"></span>
-                </div>
-
-                <div class="skill" data-skill="53" data-color="#b07219">
-                    <span>Java</span>
-                    <div class="skill-bar">
-                        <div class="skill-fill"></div>
-                    </div>
-                    <span class="skill-percent"></span>
                 </div>
             </div>
     </section>
@@ -147,26 +195,28 @@
                 </div>
             </div>
 
-            <!-- Search + active filter tags -->
             <div class="projects-controls">
                 <input type="text" id="project-search" placeholder="Search project by tag or keyword..."
                     aria-label="Search projects">
+                <select class="project-filter" aria-label="Filter projects by status">
+                    <option value="all">All Statuses</option>
+                    <option value="completed">Completed</option>
+                    <option value="in-progress">In Progress</option>
+                    <option value="paused">Paused</option>
+                    <option value="under-maintenance">Under Maintenance</option>
+                </select>
                 <div class="active-filters" id="active-filters"></div>
             </div>
 
-            <!-- Grid -->
             <div class="projects-grid" id="projects-grid"></div>
         </div>
 
-        <!-- Card template -->
         <template id="project-card-template">
             <div class="project-card">
-                <!-- Project image -->
                 <div class="project-image">
                     <img src="" alt="Project preview">
                 </div>
 
-                <!-- Title + status -->
                 <div class="project-card-top">
                     <div class="project-title"></div>
                     <div class="project-card-status">
@@ -175,13 +225,10 @@
                     </div>
                 </div>
 
-                <!-- Description -->
                 <div class="project-desc"></div>
 
-                <!-- Tags -->
                 <div class="project-tags"></div>
 
-                <!-- Actions -->
                 <div class="project-actions">
                     <button class="project-btn" type="button">View details</button>
                     <div class="favorite">
@@ -192,12 +239,10 @@
             </div>
         </template>
 
-        <!-- Modal root -->
         <div class="project-modal" id="project-modal" aria-hidden="true" role="dialog" aria-modal="true">
             <div class="modal-content" role="document">
                 <button class="modal-close" id="modal-close" aria-label="Close modal">✕</button>
                 <div class="modal-scroll">
-                    <!-- Header -->
                     <div class="modal-header">
                         <div>
                             <h2 class="modal-title"></h2>
@@ -209,7 +254,6 @@
                         </div>
                     </div>
 
-                    <!-- Body -->
                     <div class="modal-body">
                         <div class="modal-image">
                             <img src="" alt="Project sample image">
@@ -220,7 +264,6 @@
                         </div>
                     </div>
 
-                    <!-- Update logs -->
                     <div class="modal-logs">
                         <h3>Update Logs</h3>
                         <div class="logs-container">
@@ -228,7 +271,6 @@
                         </div>
                     </div>
 
-                    <!-- Footer -->
                     <div class="modal-footer">
                         <a href="#" target="_blank" rel="noopener" class="github-btn" aria-label="View Repository">
                             <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/github/github-original.svg"
@@ -243,7 +285,6 @@
 
     <section id="contact">
         <div class="contact-container">
-            <!-- Header -->
             <div class="contact-header">
                 <span class="contact-filename">contact.dino</span>
                 <div class="contact-status">
@@ -252,28 +293,27 @@
                 </div>
             </div>
 
-            <!-- Body -->
             <div class="contact-body">
-                <h2>getInTouch</h2>
+                <div class="contact-info">
+                    <h2>getInTouch</h2>
 
-                <!-- Contact Info Cards -->
-                <div class="contact-grid">
-                    <div class="contact-card">
-                        <h3>Email</h3>
-                        <p><a href="mailto:john@example.com">john@example.com</a></p>
-                    </div>
-                    <div class="contact-card">
-                        <h3>LinkedIn</h3>
-                        <p><a href="https://linkedin.com/in/yourprofile" target="_blank"
-                                rel="noopener">linkedin.com/in/yourprofile</a></p>
-                    </div>
-                    <div class="contact-card">
-                        <h3>Phone</h3>
-                        <p>(123) 456‑7890</p>
+                    <div class="contact-grid">
+                        <div class="contact-card">
+                            <h3>Email</h3>
+                            <p><a href="mailto:john@example.com">john@example.com</a></p>
+                        </div>
+                        <div class="contact-card">
+                            <h3>LinkedIn</h3>
+                            <p><a href="https://linkedin.com/in/yourprofile" target="_blank"
+                                    rel="noopener">linkedin.com/in/yourprofile</a></p>
+                        </div>
+                        <div class="contact-card">
+                            <h3>Phone</h3>
+                            <p>(123) 456‑7890</p>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Contact Form (now inside the same container flow) -->
                 <div class="contact-form-wrap">
                     <form class="contact-form">
                         <div class="form-group">
@@ -299,7 +339,8 @@
             </div>
         </div>
         <footer class="footer">
-            <p>&copy; 2025 DinoWeb. All rights reserved.</p>
+            <p>&copy;
+                2025 DinoWeb. All rights reserved.</p>
     </section>
 
 </body>
