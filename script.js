@@ -1,6 +1,19 @@
+/**
+ * Main function to initialize all parts of the page once the DOM is loaded.
+ */
 document.addEventListener("DOMContentLoaded", function () {
-    // Typing effect (unchanged)
+    initTypingEffect();
+    initSkills();
+    initProjects();
+});
+
+/**
+ * Initializes the typing effect in the hero section.
+ */
+function initTypingEffect() {
     const typingEffect = document.getElementById("typing-effect");
+    if (!typingEffect) return; // Exit if element not found
+
     const text = "Computer Science Student";
     const typingSpeed = 100;
     const deletingSpeed = 50;
@@ -10,8 +23,6 @@ document.addEventListener("DOMContentLoaded", function () {
     let isDeleting = false;
 
     function type() {
-        const currentLength = typingEffect?.textContent.length || 0;
-
         if (isDeleting) {
             typingEffect.textContent = text.substring(0, charIndex--);
         } else {
@@ -30,38 +41,48 @@ document.addEventListener("DOMContentLoaded", function () {
             setTimeout(type, speed);
         }
     }
-    if (typingEffect) type();
-});
 
-document.addEventListener("DOMContentLoaded", () => {
-    // Skills (unchanged)
+    type();
+}
+
+/**
+ * Initializes the animated skill bars.
+ */
+function initSkills() {
     document.querySelectorAll(".skill").forEach(skill => {
         const value = skill.getAttribute("data-skill");
         const color = skill.getAttribute("data-color") || "#388bff";
         const fill = skill.querySelector(".skill-fill");
         const percent = skill.querySelector(".skill-percent");
 
-        fill.style.width = value + "%";
-        fill.style.backgroundColor = color;
-        percent.textContent = value + "%";
+        if (fill && percent) {
+            fill.style.width = value + "%";
+            fill.style.backgroundColor = color;
+            percent.textContent = value + "%";
+        }
     });
-});
-
-function loadLikes() {
-    const saved = localStorage.getItem("projectLikes");
-    return saved ? JSON.parse(saved) : {};
 }
 
-function saveLikes(likesObj) {
-    localStorage.setItem("projectLikes", JSON.stringify(likesObj));
-}
+/**
+ * Initializes the entire projects section, including
+ * data, rendering, filtering, and modal logic.
+ */
+function initProjects() {
 
-document.addEventListener("DOMContentLoaded", () => {
-    /* DATA (Template-friendly) */
+    function loadLikes() {
+        const saved = localStorage.getItem("projectLikes");
+        return saved ? JSON.parse(saved) : {};
+    }
+
+    function saveLikes(likesObj) {
+        localStorage.setItem("projectLikes", JSON.stringify(likesObj));
+    }
+
+    const savedLikes = loadLikes();
+    /* DATA (Template-friendly). */
     /* Key = completed, in-progress, paused, under-maintenance */
     /* Text Values = Updated / Completed, In Progress, Paused, Under Maintenance */
     /* Logs = Format: "YYYY-MM-DD" -m */
-    const savedLikes = loadLikes();
     const projects = [
         {
             id: "ecommerce",
@@ -74,7 +95,6 @@ document.addEventListener("DOMContentLoaded", () => {
             repo: "https://github.com/yourname/ecommerce",
             likes: savedLikes["ecommerce"]?.count || 0,
             liked: savedLikes["ecommerce"]?.liked || false,
-
             logs: [
                 "2025-09-15: Initial setup with React + Node.js",
                 "2025-09-20: Added authentication and JWT support",
@@ -93,9 +113,7 @@ document.addEventListener("DOMContentLoaded", () => {
             repo: "https://github.com/yourname/taskapp",
             likes: savedLikes["taskmanagement"]?.count || 0,
             liked: savedLikes["taskmanagement"]?.liked || false,
-
             logs: []
-
         },
         {
             id: "weatherdashboard",
@@ -108,9 +126,7 @@ document.addEventListener("DOMContentLoaded", () => {
             repo: "https://github.com/yourname/weather-dashboard",
             likes: savedLikes["weatherdashboard"]?.count || 0,
             liked: savedLikes["weatherdashboard"]?.liked || false,
-
             logs: []
-
         },
         {
             id: "mehdashboard",
@@ -123,9 +139,7 @@ document.addEventListener("DOMContentLoaded", () => {
             repo: "https://github.com/yourname/weather-dashboard",
             likes: savedLikes["mehdashboard"]?.count || 0,
             liked: savedLikes["mehdashboard"]?.liked || false,
-
             logs: []
-
         },
         {
             id: "mememanagement",
@@ -138,22 +152,23 @@ document.addEventListener("DOMContentLoaded", () => {
             repo: "https://github.com/yourname/taskapp",
             likes: savedLikes["mememanagement"]?.count || 0,
             liked: savedLikes["mememanagement"]?.liked || false,
-
             logs: []
-
         }
     ];
-
-    /* Utilities */
-    // If you rely on CSS data-status mapping, you don't need inline color logic.
-    // Keep this only if you want to set colors via JS style overrides (not recommended here).
-    // const statusColorKey = { ... }. Not used when using data-status in CSS
 
     const grid = document.getElementById("projects-grid");
     const searchInput = document.getElementById("project-search");
     const activeFilters = document.getElementById("active-filters");
-
+    const filterSelect = document.querySelector('.project-filter');
+    const headerStatusDot = document.querySelector(".projects-status .status-dot");
     const modalRoot = document.getElementById("project-modal");
+
+    // Exit if crucial elements are missing
+    if (!grid || !searchInput || !filterSelect || !modalRoot) {
+        console.warn("Project script exiting: crucial elements not found.");
+        return;
+    }
+
     const modalClose = document.getElementById("modal-close");
     const modalTitle = modalRoot.querySelector(".modal-title");
     const modalStatusDot = modalRoot.querySelector(".modal-status .status-dot");
@@ -161,36 +176,38 @@ document.addEventListener("DOMContentLoaded", () => {
     const modalDesc = modalRoot.querySelector(".modal-description");
     const modalImg = modalRoot.querySelector(".modal-image img");
     const modalRepo = modalRoot.querySelector(".github-btn");
+    const modalTagsWrap = modalRoot.querySelector(".modal-tags");
+    const logsList = modalRoot.querySelector(".logs-list");
+    const modalScroll = modalRoot.querySelector(".modal-scroll");
 
     let tagFilters = new Set();
+    let emptyState; // will hold our dynamic message element
+    let scrollPosition = 0;
 
-    /* Render Card (Template) */
+    /**
+     * Creates a project card DOM element from a project object.
+     */
     function createProjectCard(project) {
         const tpl = document.getElementById("project-card-template");
         const node = tpl.content.firstElementChild.cloneNode(true);
 
-        // Title, desc
         node.querySelector(".project-title").textContent = project.title;
         node.querySelector(".project-desc").textContent = project.desc;
 
-        // Status via data-status (CSS handles colors)
         const statusDot = node.querySelector(".project-card-status .status-dot");
         const statusText = node.querySelector(".project-card-status-text");
         statusDot.setAttribute("data-status", project.status.key);
         statusText.textContent = project.status.text;
         statusText.classList.add("status-text");
 
-        // Image
         const imgEl = node.querySelector(".project-image img");
         if (imgEl) {
             imgEl.src = project.image || "";
             imgEl.alt = project.title + " preview";
         }
 
-        // Tags (limit + "+N more")
         const tagsWrap = node.querySelector(".project-tags");
         tagsWrap.innerHTML = "";
-
         const maxVisible = 3;
         const tags = project.tags;
 
@@ -199,13 +216,11 @@ document.addEventListener("DOMContentLoaded", () => {
             span.className = "project-tag";
             span.textContent = tag;
             tagsWrap.appendChild(span);
-
-            // Tag click to add to active filters
             span.addEventListener("click", (e) => {
                 e.stopPropagation();
                 tagFilters.add(tag);
                 renderActiveFilters();
-                renderProjects();
+                renderProjects(); // Re-render projects when tag is added
             });
         });
 
@@ -215,10 +230,8 @@ document.addEventListener("DOMContentLoaded", () => {
             moreTag.className = "project-tag more-tag";
             moreTag.textContent = `+${moreCount} more`;
 
-            // Tooltip container
             const tooltipBox = document.createElement("div");
             tooltipBox.className = "tooltip-box";
-
             tags.slice(maxVisible).forEach(t => {
                 const hiddenTag = document.createElement("span");
                 hiddenTag.className = "tooltip-tag";
@@ -230,99 +243,120 @@ document.addEventListener("DOMContentLoaded", () => {
             tagsWrap.appendChild(moreTag);
         }
 
-
-        // Actions: likes
         const likeCountEl = node.querySelector(".like-count");
         const starBtn = node.querySelector(".star-btn");
-
         if (likeCountEl && starBtn) {
             likeCountEl.textContent = project.likes;
             starBtn.textContent = project.liked ? "🌟" : "⭐";
 
             starBtn.addEventListener("click", (e) => {
                 e.stopPropagation();
+                project.liked = !project.liked;
+                project.likes += project.liked ? 1 : -1;
+                project.likes = Math.max(0, project.likes); // Prevent negative likes
 
-                if (project.liked) {
-                    project.likes = Math.max(0, project.likes - 1);
-                    project.liked = false;
-                    starBtn.textContent = "⭐";
-                } else {
-                    project.likes += 1;
-                    project.liked = true;
-                    starBtn.textContent = "🌟";
-                }
-
+                starBtn.textContent = project.liked ? "🌟" : "⭐";
                 likeCountEl.textContent = project.likes;
 
-                // Save to localStorage
                 const saved = loadLikes();
                 saved[project.id] = { count: project.likes, liked: project.liked };
                 saveLikes(saved);
             });
         }
 
-        // View details button opens modal
         node.querySelector(".project-btn").addEventListener("click", (e) => {
             e.stopPropagation();
             openModal(project);
         });
 
-        // Card click opens modal unless clicking actionable elements
         node.addEventListener("click", (e) => {
             const target = e.target;
-            const isAction = target.classList.contains("project-btn") ||
-                target.classList.contains("project-tag") ||
-                target.classList.contains("star-btn");
+            const isAction = target.closest(".project-btn, .project-tag, .star-btn");
             if (!isAction) openModal(project);
         });
 
         return node;
     }
 
-    /* Render Active Filters */
+    /**
+     * Renders the active tag filters as chips.
+     */
     function renderActiveFilters() {
         activeFilters.innerHTML = "";
         tagFilters.forEach(tag => {
             const chip = document.createElement("span");
             chip.className = "filter-chip";
-            chip.innerHTML = `${tag} <button type="button" aria-label="Remove ${tag} filter">✕</button>`;
+            chip.innerHTML = `${tag} <button type="button" aria-label="Remove filter ${tag}">✕</button>`;
+
             chip.querySelector("button").addEventListener("click", () => {
                 tagFilters.delete(tag);
                 renderActiveFilters();
-                renderProjects();
+                renderProjects(); // Re-render projects when tag is removed
             });
+
             activeFilters.appendChild(chip);
         });
     }
 
-    /* Render Projects */
-    function renderProjects() {
-        const q = (searchInput.value || "").toLowerCase();
-        grid.innerHTML = "";
+    /**
+     * Creates or returns the 'empty state' message element.
+     */
+    function ensureEmptyState() {
+        if (emptyState) return emptyState;
 
-        const filtered = projects.filter(p => {
-            const matchesText =
-                p.title.toLowerCase().includes(q) ||
-                p.desc.toLowerCase().includes(q) ||
-                p.extended.toLowerCase().includes(q) ||
-                p.tags.some(tag => tag.toLowerCase().includes(q));
+        emptyState = document.createElement("div");
+        emptyState.className = "projects-empty";
+        emptyState.style.textAlign = "center";
+        emptyState.style.padding = "40px";
+        emptyState.style.color = "#555";
+        emptyState.style.fontSize = "1rem";
+        emptyState.innerHTML = `<p>No matching projects or tags found.</p>`;
 
-            const matchesTags =
-                tagFilters.size === 0 || [...tagFilters].every(t => p.tags.includes(t));
-
-            return matchesText && matchesTags;
-        });
-
-        filtered.forEach(p => grid.appendChild(createProjectCard(p)));
+        grid.parentNode.insertBefore(emptyState, grid.nextSibling);
+        return emptyState;
     }
 
-    /* Modal (Template-like population) */
-    let scrollPosition = 0;
+    /**
+     * Renders the project grid based on ALL current filters.
+     */
+    function renderProjects() {
+        const q = (searchInput.value || "").toLowerCase();
+        const statusFilter = filterSelect.value;
 
+        grid.innerHTML = "";
+
+        const filteredProjects = projects.filter(p => {
+            // Stage 1: Filter by Status
+            const matchesStatus = (statusFilter === 'all') || (p.status.key === statusFilter);
+            if (!matchesStatus) return false;
+
+            // Stage 2: Filter by Tags
+            const matchesTags = (tagFilters.size === 0) || [...tagFilters].every(t => p.tags.includes(t));
+            if (!matchesTags) return false;
+
+            // Stage 3: Filter by Search Query
+            const matchesText = !q ||
+                p.title.toLowerCase().includes(q) ||
+                p.desc.toLowerCase().includes(q) ||
+                p.tags.some(tag => tag.toLowerCase().includes(q));
+
+            return matchesText; // Must pass all filters
+        });
+
+        // Render cards
+        filteredProjects.forEach(p => grid.appendChild(createProjectCard(p)));
+
+        // Toggle empty state
+        const empty = ensureEmptyState();
+        empty.style.display = filteredProjects.length === 0 ? "block" : "none";
+    }
+
+    /**
+     * Opens and populates the project details modal.
+     */
     function openModal(project) {
         scrollPosition = window.scrollY;
 
-        // Populate modal content
         modalTitle.textContent = project.title;
         modalStatusDot.setAttribute("data-status", project.status.key);
         modalStatusText.textContent = project.status.text;
@@ -332,8 +366,6 @@ document.addEventListener("DOMContentLoaded", () => {
         modalImg.alt = project.title + " sample image";
         modalRepo.href = project.repo || "#";
 
-        // Populate tags
-        const modalTagsWrap = modalRoot.querySelector(".modal-tags");
         modalTagsWrap.innerHTML = "";
         project.tags.forEach(tag => {
             const span = document.createElement("span");
@@ -342,8 +374,6 @@ document.addEventListener("DOMContentLoaded", () => {
             modalTagsWrap.appendChild(span);
         });
 
-        // Populate logs
-        const logsList = modalRoot.querySelector(".logs-list");
         logsList.innerHTML = "";
         if (project.logs && project.logs.length) {
             project.logs.forEach(log => {
@@ -355,50 +385,46 @@ document.addEventListener("DOMContentLoaded", () => {
             logsList.innerHTML = "<li>No updates yet.</li>";
         }
 
-        // Show modal
         modalRoot.style.display = "flex";
         modalRoot.setAttribute("aria-hidden", "false");
+        modalClose.focus(); // For accessibility
 
-        // Reset modal scroll to top
-        const modalScroll = modalRoot.querySelector(".modal-scroll");
         if (modalScroll) modalScroll.scrollTop = 0;
-
-        // Lock background scroll
         document.documentElement.classList.add("modal-open");
     }
 
+    /**
+     * Closes the project details modal and restores scroll.
+     */
     function closeModal() {
         modalRoot.style.display = "none";
         modalRoot.setAttribute("aria-hidden", "true");
-
-        // Unlock background scroll
         document.documentElement.classList.remove("modal-open");
 
-        // temporarily disable smooth scroll
         const html = document.documentElement;
         html.style.scrollBehavior = "auto";
-
-        // restore scroll instantly
         window.scrollTo(0, scrollPosition);
-
-        // re‑enable smooth scroll
         html.style.scrollBehavior = "";
     }
 
-    /* Event bindings */
+    // Modal listeners
     modalClose.addEventListener("click", closeModal);
     modalRoot.addEventListener("click", (e) => {
-        if (e.target === modalRoot) closeModal(); // click backdrop to close
+        if (e.target === modalRoot) closeModal();
     });
     document.addEventListener("keydown", (e) => {
         if (e.key === "Escape") closeModal();
     });
 
-    /* Init */
-    renderProjects();
+    // Filter listeners
     searchInput.addEventListener("input", renderProjects);
+    filterSelect.addEventListener('change', renderProjects);
 
-    /* Header status */
-    const headerStatusDot = document.querySelector(".projects-status .status-dot");
-    headerStatusDot.dataset.status = "updated"; //or in-progress, paused, blocked
-});
+    // Set header status dot
+    if (headerStatusDot) {
+        headerStatusDot.dataset.status = "updated";
+    }
+
+    // Initial render
+    renderProjects();
+}
