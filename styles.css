@@ -65,6 +65,7 @@ body {
     --profile-image-shadow: inset -1px -3px 3px rgba(0, 0, 0, 0.28);
 
     /* Projects Section */
+    --projects-status-dot-shadow: inset -1px -3px 3px rgba(0, 0, 0, 0.28);
     --project-card-bg: #263a63;
     --project-container-shadow: 8px 8px 16px rgba(0, 0, 0, 0.28);
     --project-card-shadow: 1px 2px 16px rgba(0, 0, 0, 0.699);
@@ -72,6 +73,7 @@ body {
     --project-search-shadow: inset -1px -3px 3px rgba(0, 0, 0, 0.28);
     --project-tag-bg: #325280;
     --project-tag-color: #7ec3fa;
+    --project-tag-more-tag-shadow: inset -1px -3px 3px rgba(0, 0, 0, 0.28);
 
     /* Status Colors */
     --status-completed: #2ecc71;
@@ -97,7 +99,7 @@ body {
     --surface: var(--surface-white);
 
     /* Additional colors needed */
-    --project-modal-backdrop: rgba(6, 36, 78, 0.75);
+    --project-modal-backdrop: rgba(4, 30, 66, 0.75);
     --tooltip-bg: #f0f4fa;
     --status-text: #b7b93f;
     --skill-track: #eef2f7;
@@ -219,11 +221,11 @@ section {
 }
 
 .top-nav ul li a:hover {
-    transform: translateY(-2px);
+    transform: translateY(-1px) scale(1.05);
 }
 
 section#home {
-    min-height: 100vh;
+    min-height: 110vh;
     display: grid;
     /* reliable centering without flex quirks */
     place-items: center;
@@ -276,7 +278,7 @@ section:not(#home) {
 .home-status-dot {
     width: 10px;
     height: 10px;
-    background: #ead143;
+    background: #e74c3c;
     border-radius: 50%;
     box-shadow: var(--home-status-shadow);
 }
@@ -341,6 +343,7 @@ section:not(#home) {
 
 .btn-primary:hover {
     background: var(--btn-primary-hover);
+    transform: scale(1.02);
 }
 
 .btn-secondary {
@@ -350,6 +353,7 @@ section:not(#home) {
 
 .btn-secondary:hover {
     background: var(--btn-secondary-hover);
+    transform: scale(1.02);
 }
 
 .btn-highlight {
@@ -563,7 +567,7 @@ section:not(#home) {
     padding: 24px 18px;
     box-shadow: var(--soft-shadow-sm);
     border: 1px solid var(--vscode-border);
-    width: 450px;
+    width: 500px;
     /* Set fixed width for skills gauge */
     flex: 0 0 auto;
     /* Prevent flex growing/shrinking */
@@ -586,12 +590,12 @@ section:not(#home) {
 .skill {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 1px;
     margin-bottom: 12px;
 }
 
 .skill span {
-    min-width: 110px;
+    min-width: 100px;
     font-size: 1rem;
     color: var(--vscode-text);
 }
@@ -602,7 +606,7 @@ section:not(#home) {
     background: #eef2f7;
     border-radius: 8px;
     overflow: hidden;
-    margin: 0 8px;
+    margin: 0;
     box-shadow: var(--vscode-shadow-in);
 }
 
@@ -615,7 +619,7 @@ section:not(#home) {
 .skill-percent {
     font-size: 0.95rem;
     color: #7f8a9b;
-    min-width: 40px;
+    min-width: 10px;
     text-align: right;
 }
 
@@ -626,17 +630,17 @@ section:not(#home) {
 }
 
 .skills-list-content::-webkit-scrollbar {
-    width: 8px;
+    width: 10px;
 }
 
 .skills-list-content::-webkit-scrollbar-track {
     background: var(--vscode-bg);
-    border-radius: 4px;
+    border-radius: 5px;
 }
 
 .skills-list-content::-webkit-scrollbar-thumb {
     background: var(--scrollbar-thumb);
-    border-radius: 4px;
+    border-radius: 5px;
 }
 
 .skills-list-content::-webkit-scrollbar-thumb:hover {
@@ -734,9 +738,9 @@ section:not(#home) {
 .projects-status-dot {
     width: 10px;
     height: 10px;
-    background: #ead143;
+    background: #e74c3c;
     border-radius: 50%;
-    box-shadow: var(--soft-inset);
+    box-shadow: var(--projects-status-dot-shadow);
 }
 
 .status-dot {
@@ -961,6 +965,7 @@ section:not(#home) {
 .project-tag.more-tag {
     background: #0aa763;
     color: #ffffff;
+    box-shadow: var(--project-tag-more-tag-shadow);
     font-style: italic;
     position: relative;
     cursor: default;
@@ -1083,33 +1088,35 @@ section:not(#home) {
     border-radius: 16px;
     max-width: 980px;
     width: 92%;
-    max-height: 90%;
+    height: 90vh;
+    /* consistent modal height */
     position: relative;
     display: flex;
     flex-direction: column;
-    overflow: hidden;
     box-shadow: var(--soft-shadow);
+    padding: 24px;
+    overflow: hidden;
+    /* prevent modal itself from scrolling */
 }
 
+/* Remove modal-scroll behavior; header/body/footer stay fixed */
 .modal-scroll {
-    padding: 24px;
-    overflow-y: auto;
-    max-height: 90vh;
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
+    padding: 0;
+    overflow: visible;
+    max-height: none;
+    display: contents;
 }
 
 .modal-close {
     position: absolute;
     top: 16px;
-    left: 16px;
+    right: 16px;
     width: 44px;
     height: 44px;
     border: none;
     border-radius: 50%;
-    background: #e9eef5;
-    color: var(--text-primary);
+    background: #d20804;
+    color: var(--surface-white);
     font-size: 1.6rem;
     font-weight: bold;
     cursor: pointer;
@@ -1123,7 +1130,7 @@ section:not(#home) {
 }
 
 .modal-close:hover {
-    background: #dbe3ee;
+    background: #b80300;
     transform: scale(1.25);
 }
 
@@ -1131,25 +1138,26 @@ section:not(#home) {
     transform: scale(0.95);
 }
 
+/* Heading line with title + status on the left, close on the right */
 .modal-header {
     display: flex;
     justify-content: space-between;
-    align-items: flex-start;
+    align-items: center;
     gap: 12px;
+    margin-bottom: 8px;
 }
 
 .modal-title {
-    font-size: 2.2rem;
+    font-size: 2rem;
     font-weight: 700;
     color: var(--text-primary);
-    margin-top: 50px;
-    margin-bottom: 10px;
+    margin: 0;
 }
 
 .modal-status {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
     font-size: 0.95rem;
     color: #667085;
 }
@@ -1161,11 +1169,12 @@ section:not(#home) {
     box-shadow: var(--soft-inset);
 }
 
+/* Tags directly under heading, then divider */
 .modal-tags {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
+    display: flex;
+    flex-wrap: wrap;
     gap: 6px;
-    margin: 15px 0 8px;
+    margin: 4px 0 10px;
 }
 
 .modal-tag {
@@ -1177,11 +1186,43 @@ section:not(#home) {
     box-shadow: var(--soft-shadow-sm);
 }
 
+.modal-divider {
+    border: none;
+    border-bottom: 1px solid var(--border-light);
+    margin: 8px 0 16px;
+}
+
+/* Two-column body; image constrained like the sample screenshot */
 .modal-body {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 24px;
-    margin-top: 12px;
+    margin: 0;
+    flex: 1;
+    /* body grows to fill space */
+    overflow: hidden;
+}
+
+.modal-image {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 220px;
+    /* rectangular banner height */
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 12px;
+}
+
+.modal-image img {
+    width: 100%;
+    height: 390px;
+    object-fit: cover;
+    /* crop neatly to rectangle */
+    border-radius: 12px;
+    box-shadow: var(--soft-shadow-sm);
+    background: #f6f9ff;
 }
 
 .modal-description-wrap {
@@ -1203,21 +1244,62 @@ section:not(#home) {
     line-height: 1.6;
 }
 
-.modal-image {
+/* Project Progress (logs) — scrollable but smaller */
+.modal-logs {
+    margin: 0;
     display: flex;
-    justify-content: center;
-    align-items: flex-start;
+    flex-direction: column;
+    width: 480px;
+    max-height: 160px;
+    /* reduced overall height */
+    flex: 0 0 auto;
+    /* prevent it from stretching */
 }
 
-.modal-image img {
-    max-width: 100%;
-    border-radius: 12px;
+.modal-logs h3 {
+    font-size: 1rem;
+    /* slightly smaller heading */
+    margin-bottom: 5px;
+    color: var(--text-primary);
+    position: sticky;
+    top: 0;
+    background: var(--surface);
+    padding: 2px 0;
+}
+
+.logs-container {
+    background: #f8fbff;
+    border: 1px solid var(--border-soft);
+    border-radius: 10px;
+    padding: 8px;
+    max-height: 120px;
+    /* smaller scroll area */
+    overflow-y: auto;
+    /* scroll only logs */
+    box-shadow: var(--soft-inset);
+}
+
+.logs-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.logs-list li {
+    background: #ffffff;
+    border: 1px solid var(--border-light);
+    border-radius: 6px;
+    padding: 6px 10px;
+    margin-bottom: 6px;
+    font-size: 0.85rem;
+    /* slightly smaller text */
+    color: #444;
+    line-height: 1.3;
     box-shadow: var(--soft-shadow-sm);
-    background: #f6f9ff;
 }
 
 .modal-footer {
-    margin-top: 20px;
+    margin-top: 16px;
     display: flex;
     justify-content: flex-start;
 }
@@ -1234,7 +1316,7 @@ section:not(#home) {
     font-weight: 600;
     text-decoration: none;
     transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
-    border: 1px solid var(--border-soft);
+    border: 1px solid var(--about-container-bg);
     box-shadow: var(--soft-shadow-sm);
 }
 
@@ -1248,42 +1330,13 @@ section:not(#home) {
     transform: translateY(-1px) scale(1.02);
 }
 
-.modal-logs {
-    margin-top: 0;
-}
-
-.modal-logs h3 {
-    font-size: 1.1rem;
-    margin-bottom: 8px;
-    color: var(--text-primary);
-}
-
-.logs-container {
-    background: #f8fbff;
-    border: 1px solid var(--border-soft);
-    border-radius: 12px;
-    padding: 12px 16px;
-    max-height: 200px;
-    max-width: 430px;
-    overflow-y: auto;
-    box-shadow: var(--soft-inset);
-}
-
-.logs-list {
-    list-style: disc;
-    padding-left: 20px;
-    margin: 0;
-    color: #444;
-    font-size: 0.9rem;
-    line-height: 1.5;
-}
-
 @media (max-width: 860px) {
     .modal-body {
         grid-template-columns: 1fr;
     }
 
     .modal-image {
+        max-height: 180px;
         justify-content: center;
     }
 }
@@ -1312,8 +1365,9 @@ html::-webkit-scrollbar-thumb:hover {
 
 html {
     scrollbar-color: #aec4e9 #0a2f69;
-    scrollbar-width: thin;
+    scrollbar-width: 10px;
 }
+
 
 .contact-container {
     background: var(--surface);
@@ -1474,5 +1528,6 @@ html {
     box-shadow: 4px 4px 18px rgba(0, 0, 0, 0.28);
     width: calc(100% - 48px);
     max-width: 100%;
-    margin: 40px auto;
+    margin-top: 50px;
+    margin-bottom: 10px;
 }
