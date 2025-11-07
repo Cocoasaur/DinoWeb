@@ -307,9 +307,9 @@ function initProjects() {
         emptyState = document.createElement("div");
         emptyState.className = "projects-empty";
         emptyState.style.textAlign = "center";
-        emptyState.style.padding = "40px";
+        emptyState.style.padding = "80px";
         emptyState.style.color = "#555";
-        emptyState.style.fontSize = "1rem";
+        emptyState.style.fontSize = "1.5rem";
         emptyState.innerHTML = `<p>No matching projects or tags found.</p>`;
 
         grid.parentNode.insertBefore(emptyState, grid.nextSibling);
@@ -366,6 +366,7 @@ function initProjects() {
         modalImg.alt = project.title + " sample image";
         modalRepo.href = project.repo || "#";
 
+        // Tags under heading
         modalTagsWrap.innerHTML = "";
         project.tags.forEach(tag => {
             const span = document.createElement("span");
@@ -385,13 +386,14 @@ function initProjects() {
             logsList.innerHTML = "<li>No updates yet.</li>";
         }
 
+
         modalRoot.style.display = "flex";
         modalRoot.setAttribute("aria-hidden", "false");
-        modalClose.focus(); // For accessibility
+        modalClose.focus();
 
-        if (modalScroll) modalScroll.scrollTop = 0;
         document.documentElement.classList.add("modal-open");
     }
+
 
     /**
      * Closes the project details modal and restores scroll.
