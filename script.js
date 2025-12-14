@@ -1,4 +1,4 @@
-/**
+/*
  * Main function to initialize all parts of the page once the DOM is loaded.
  */
 document.addEventListener("DOMContentLoaded", function () {
@@ -7,7 +7,7 @@ document.addEventListener("DOMContentLoaded", function () {
     initProjects();
 });
 
-/**
+/*
  * Initializes the typing effect in the hero section.
  */
 function initTypingEffect() {
@@ -45,7 +45,7 @@ function initTypingEffect() {
     type();
 }
 
-/**
+/*
  * Initializes the animated skill bars.
  */
 function initSkills() {
@@ -63,7 +63,7 @@ function initSkills() {
     });
 }
 
-/**
+/*
  * Initializes the entire projects section, including
  * data, rendering, filtering, and modal logic.
  */
@@ -123,14 +123,14 @@ function initProjects() {
             likes: savedLikes["tipairlines"]?.count || 0,
             liked: savedLikes["tipairlines"]?.liked || false,
             logs: [
-                "2024-12-17: Repository has been set to private.",
-                "2024-12-16: Submitted final output.",
-                "2024-12-16: Final testing before submission.",
-                "2024-12-15: Updated README with project overview",
-                "2024-12-15: Designed database schema and created initial tables",
-                "2024-12-14: Implemented flight search and booking features",
-                "2024-12-12: Currently fixing checkout flow bugs",
-                "2024-12-08: Created project repository and initial planning"
+                "2025-12-17: Repository has been set to private.",
+                "2025-12-16: Submitted final output.",
+                "2025-12-16: Final testing before submission.",
+                "2025-12-15: Updated README with project overview",
+                "2025-12-15: Designed database schema and created initial tables",
+                "2025-12-14: Implemented flight search and booking features",
+                "2025-12-12: Currently fixing checkout flow bugs",
+                "2025-12-08: Created project repository and initial planning"
             ]
         },
     ];
@@ -142,7 +142,7 @@ function initProjects() {
     const headerStatusDot = document.querySelector(".projects-status .status-dot");
     const modalRoot = document.getElementById("project-modal");
 
-    // New: Background nodes to mark aria-hidden while modal is open
+    // Background nodes to mark aria-hidden while modal is open
     const backgroundNodes = document.querySelectorAll("header, main, footer");
 
     // Exit if crucial elements are missing
@@ -163,10 +163,10 @@ function initProjects() {
     const modalScroll = modalRoot.querySelector(".modal-scroll");
 
     let tagFilters = new Set();
-    let emptyState; // will hold our dynamic message element
+    let emptyState; // will hold dynamic message element
     let scrollPosition = 0;
 
-    /**
+    /*
      * Creates a project card DOM element from a project object.
      */
     function createProjectCard(project) {
@@ -255,7 +255,7 @@ function initProjects() {
         return node;
     }
 
-    /**
+    /*
      * Renders the active tag filters as chips.
      */
     function renderActiveFilters() {
@@ -275,7 +275,7 @@ function initProjects() {
         });
     }
 
-    /**
+    /*
      * Creates or returns the 'empty state' message element.
      */
     function ensureEmptyState() {
@@ -293,7 +293,7 @@ function initProjects() {
         return emptyState;
     }
 
-    /**
+    /*
      * Renders the project grid based on ALL current filters.
      */
     function renderProjects() {
@@ -381,7 +381,7 @@ function initProjects() {
         }
     }
 
-    /**
+    /*
      * Opens and populates the project details modal.
      */
     function openModal(project) {
@@ -403,7 +403,6 @@ function initProjects() {
         showModalImage(0);
         attachModalImageListeners();
 
-        // ensure repo link
         modalRepo.href = project.repo || "#";
 
         // Tags under heading
@@ -440,7 +439,6 @@ function initProjects() {
         detachModalImageListeners();
         modalImages = [];
         modalImageIndex = 0;
-        // clear modal image src to avoid lingering
         const imgEl = document.getElementById("modal-image-el");
         if (imgEl) imgEl.src = "";
         const counter = document.getElementById("modal-image-counter");
@@ -463,7 +461,6 @@ function initProjects() {
     modalClose.addEventListener("click", closeModal);
 
     // Backdrop click and Escape-to-close handlers removed so only the X button closes the modal.
-    // If you later want to re-enable Escape-to-close, add a keydown listener that calls closeModal().
 
     // Filter listeners
     searchInput.addEventListener("input", renderProjects);
