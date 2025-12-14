@@ -85,75 +85,54 @@ function initProjects() {
     /* Logs = Format: "YYYY-MM-DD" -m */
     const projects = [
         {
-            id: "ecommerce",
-            title: "E-Commerce Platform",
-            desc: "A full-stack e-commerce solution with React, Node.js, and MongoDB. I'm trying to fix this, I swear. but",
-            extended: "Implements authentication, product/catalog management, checkout flows, and payment integration. Designed for scalability and modular feature additions.",
-            tags: ["React", "Node.js", "MongoDB", "Stripe", "Express", "REST API", "JWT", "Docker"],
-            status: { key: "under-maintenance", text: "Under Maintenance" },
-            image: "Assets/Other_Images/Image_Placeholder.jpg",
-            repo: "https://github.com/yourname/ecommerce",
-            likes: savedLikes["ecommerce"]?.count || 0,
-            liked: savedLikes["ecommerce"]?.liked || false,
+            id: "tipairlines",
+            title: "TIP Airlines Booking System",
+            desc: "A Flight Booking Program and Flights Management Database.",
+            extended: "TIP Airlines is a comprehensive Flight Booking Program and Flights Management Database designed to simulate the core operations of an airline reservation system. Developed as our first computer programming group project during our first year, it represents both a milestone in our learning journey and a practical application of fundamental programming and database concepts.",
+            images: [
+                "Assets/Project_Images/TIP Airlines/TIP Airlines.png",
+                "Assets/Project_Images/TIP Airlines/TIP.png"
+            ],
+            tags: ["Python", "Group-Project", "Flight-Booking-System", "SQLite", "Database-Management", "First-Year-Project"],
+            status: { key: "completed", text: "Completed" },
+            repo: "https://github.com/FlimsyOwl12/Project_CompProg_DataBase.git",
+            likes: savedLikes["tipairlines"]?.count || 0,
+            liked: savedLikes["tipairlines"]?.liked || false,
             logs: [
-                "2025-09-15: Initial setup with React + Node.js",
-                "2025-09-20: Added authentication and JWT support",
-                "2025-09-25: Integrated Stripe payments",
-                "2025-10-01: Currently fixing checkout flow bugs"
+                "2024-12-17: Repository has been set to private.",
+                "2024-12-16: Submitted final output.",
+                "2024-12-16: Final testing before submission.",
+                "2024-12-15: Updated README with project overview",
+                "2024-12-15: Designed database schema and created initial tables",
+                "2024-12-14: Implemented flight search and booking features",
+                "2024-12-12: Currently fixing checkout flow bugs",
+                "2024-12-08: Created project repository and initial planning"
             ]
         },
         {
-            id: "taskmanagement",
-            title: "Task Management App",
-            desc: "Collaborative task management with real-time updates.",
-            extended: "Built with Vue.js, Express, and Socket.io. Supports team workspaces, live task updates, mentions, and role-based permissions.",
-            tags: ["Vue.js", "Express", "Socket.io", "MongoDB", "Express", "REST API", "Real-time", "idk", "jwt"],
-            status: { key: "under-maintenance", text: "Under Maintenance" },
-            image: "Assets/Other_Images/Image_Placeholder.jpg",
-            repo: "https://github.com/yourname/taskapp",
-            likes: savedLikes["taskmanagement"]?.count || 0,
-            liked: savedLikes["taskmanagement"]?.liked || false,
-            logs: []
+            id: "pastryshopmanagementsystem",
+            title: "Pastry Shop Management System",
+            desc: "Pastry Shop Management System streamlines pastry shop operations by handling product inventory, customer orders, and sales records in a simple, efficient way.",
+            extended: "Pastry Shop Management System streamlines pastry shop operations by handling product inventory, customer orders, and sales records in a simple, efficient way. It is a group project developed in our 2nd year, and was built with Java for the program logic and MySQL for database management, it provides a structured way to manage products, customers, and transactions.",
+            images: [
+                "Assets/Project_Images/Pastry Shop Management System/Pastry Shop Management System.png",
+            ],
+            tags: ["Java", "MySQL", "Database-Management", "Group-Project", "First-Year-Project"],
+            status: { key: "completed", text: "Completed" },
+            repo: "https://github.com/FlimsyOwl12/Project_CompProg_DataBase.git",
+            likes: savedLikes["tipairlines"]?.count || 0,
+            liked: savedLikes["tipairlines"]?.liked || false,
+            logs: [
+                "2024-12-17: Repository has been set to private.",
+                "2024-12-16: Submitted final output.",
+                "2024-12-16: Final testing before submission.",
+                "2024-12-15: Updated README with project overview",
+                "2024-12-15: Designed database schema and created initial tables",
+                "2024-12-14: Implemented flight search and booking features",
+                "2024-12-12: Currently fixing checkout flow bugs",
+                "2024-12-08: Created project repository and initial planning"
+            ]
         },
-        {
-            id: "weatherdashboard",
-            title: "Weather Dashboard",
-            desc: "Interactive dashboard with charts and forecasts.",
-            extended: "React + Chart.js with a clean UI. Uses external weather APIs, caching, and responsive chart layouts for mobile-friendly viewing.",
-            tags: ["React", "Chart.js", "API"],
-            status: { key: "under-maintenance", text: "Under Maintenance" },
-            image: "Assets/Other_Images/Image_Placeholder.jpg",
-            repo: "https://github.com/yourname/weather-dashboard",
-            likes: savedLikes["weatherdashboard"]?.count || 0,
-            liked: savedLikes["weatherdashboard"]?.liked || false,
-            logs: []
-        },
-        {
-            id: "mehdashboard",
-            title: "Meh Dashboard",
-            desc: "Interactive dashboard with charts and forecasts.",
-            extended: "React + Chart.js with a clean UI. Uses external weather APIs, caching, and responsive chart layouts for mobile-friendly viewing.",
-            tags: ["React", "Chart.js", "API"],
-            status: { key: "under-maintenance", text: "Under Maintenance" },
-            image: "Assets/Other_Images/Image_Placeholder.jpg",
-            repo: "https://github.com/yourname/weather-dashboard",
-            likes: savedLikes["mehdashboard"]?.count || 0,
-            liked: savedLikes["mehdashboard"]?.liked || false,
-            logs: []
-        },
-        {
-            id: "mememanagement",
-            title: "Meme Management App",
-            desc: "Collaborative task management with real-time updates.",
-            extended: "Built with Vue.js, Express, and Socket.io. Supports team workspaces, live task updates, mentions, and role-based permissions.",
-            tags: ["Vue.js", "Express", "Socket.io", "MongoDB"],
-            status: { key: "under-maintenance", text: "Under Maintenance" },
-            image: "Assets/Other_Images/Image_Placeholder.jpg",
-            repo: "https://github.com/yourname/taskapp",
-            likes: savedLikes["mememanagement"]?.count || 0,
-            liked: savedLikes["mememanagement"]?.liked || false,
-            logs: []
-        }
     ];
 
     const grid = document.getElementById("projects-grid");
@@ -162,6 +141,9 @@ function initProjects() {
     const filterSelect = document.querySelector('.project-filter');
     const headerStatusDot = document.querySelector(".projects-status .status-dot");
     const modalRoot = document.getElementById("project-modal");
+
+    // New: Background nodes to mark aria-hidden while modal is open
+    const backgroundNodes = document.querySelectorAll("header, main, footer");
 
     // Exit if crucial elements are missing
     if (!grid || !searchInput || !filterSelect || !modalRoot) {
@@ -202,7 +184,8 @@ function initProjects() {
 
         const imgEl = node.querySelector(".project-image img");
         if (imgEl) {
-            imgEl.src = project.image || "";
+            // use first image if images[] exists, fall back to singular image property
+            imgEl.src = (project.images && project.images[0]) || project.image || "";
             imgEl.alt = project.title + " preview";
         }
 
@@ -267,12 +250,6 @@ function initProjects() {
         node.querySelector(".project-btn").addEventListener("click", (e) => {
             e.stopPropagation();
             openModal(project);
-        });
-
-        node.addEventListener("click", (e) => {
-            const target = e.target;
-            const isAction = target.closest(".project-btn, .project-tag, .star-btn");
-            if (!isAction) openModal(project);
         });
 
         return node;
@@ -351,19 +328,82 @@ function initProjects() {
         empty.style.display = filteredProjects.length === 0 ? "block" : "none";
     }
 
+    // modal slideshow state
+    let modalImages = [];
+    let modalImageIndex = 0;
+    let modalKeyHandler = null;
+
+    function showModalImage(index) {
+        const imgEl = document.getElementById("modal-image-el");
+        const counter = document.getElementById("modal-image-counter");
+        const prevBtn = document.getElementById("modal-prev");
+        const nextBtn = document.getElementById("modal-next");
+        if (!imgEl) return;
+        modalImageIndex = (index + modalImages.length) % modalImages.length;
+        imgEl.src = modalImages[modalImageIndex] || "";
+        // update counter and arrows
+        if (counter) counter.textContent = `${modalImageIndex + 1} / ${modalImages.length}`;
+        if (modalImages.length <= 1) {
+            prevBtn?.classList.add("hidden");
+            nextBtn?.classList.add("hidden");
+            counter?.setAttribute("aria-hidden", "true");
+        } else {
+            prevBtn?.classList.remove("hidden");
+            nextBtn?.classList.remove("hidden");
+            counter?.setAttribute("aria-hidden", "false");
+        }
+    }
+
+    function prevModalImage(e) { if (e) e.stopPropagation(); showModalImage(modalImageIndex - 1); }
+    function nextModalImage(e) { if (e) e.stopPropagation(); showModalImage(modalImageIndex + 1); }
+
+    function attachModalImageListeners() {
+        const prevBtn = document.getElementById("modal-prev");
+        const nextBtn = document.getElementById("modal-next");
+        prevBtn?.addEventListener("click", prevModalImage);
+        nextBtn?.addEventListener("click", nextModalImage);
+        // keyboard navigation while modal open
+        modalKeyHandler = (ev) => {
+            if (ev.key === "ArrowLeft") prevModalImage(ev);
+            if (ev.key === "ArrowRight") nextModalImage(ev);
+        };
+        document.addEventListener("keydown", modalKeyHandler);
+    }
+
+    function detachModalImageListeners() {
+        const prevBtn = document.getElementById("modal-prev");
+        const nextBtn = document.getElementById("modal-next");
+        prevBtn?.removeEventListener("click", prevModalImage);
+        nextBtn?.removeEventListener("click", nextModalImage);
+        if (modalKeyHandler) {
+            document.removeEventListener("keydown", modalKeyHandler);
+            modalKeyHandler = null;
+        }
+    }
+
     /**
      * Opens and populates the project details modal.
      */
     function openModal(project) {
         scrollPosition = window.scrollY;
 
+        // Mark background for screen readers & add CSS class that prevents scrolling and interactions
+        backgroundNodes.forEach(node => node.setAttribute("aria-hidden", "true"));
+        document.documentElement.classList.add("modal-open");
+
         modalTitle.textContent = project.title;
         modalStatusDot.setAttribute("data-status", project.status.key);
         modalStatusText.textContent = project.status.text;
         modalStatusText.classList.add("status-text");
-        modalDesc.textContent = project.extended;
-        modalImg.src = project.image || "";
-        modalImg.alt = project.title + " sample image";
+        // description (preserve line breaks if needed)
+        modalDesc.innerHTML = String(project.extended || "");
+        // setup images array (prefer project.images)
+        modalImages = (project.images && project.images.slice()) || (project.image ? [project.image] : []);
+        // set modal image element and counter
+        showModalImage(0);
+        attachModalImageListeners();
+
+        // ensure repo link
         modalRepo.href = project.repo || "#";
 
         // Tags under heading
@@ -390,17 +430,27 @@ function initProjects() {
         modalRoot.style.display = "flex";
         modalRoot.setAttribute("aria-hidden", "false");
         modalClose.focus();
-
-        document.documentElement.classList.add("modal-open");
     }
-
 
     /**
      * Closes the project details modal and restores scroll.
      */
     function closeModal() {
+        // cleanup image listeners
+        detachModalImageListeners();
+        modalImages = [];
+        modalImageIndex = 0;
+        // clear modal image src to avoid lingering
+        const imgEl = document.getElementById("modal-image-el");
+        if (imgEl) imgEl.src = "";
+        const counter = document.getElementById("modal-image-counter");
+        if (counter) counter.textContent = "";
+
         modalRoot.style.display = "none";
         modalRoot.setAttribute("aria-hidden", "true");
+
+        // Remove aria hidden and CSS class to restore background interactions & scrolling
+        backgroundNodes.forEach(node => node.removeAttribute("aria-hidden"));
         document.documentElement.classList.remove("modal-open");
 
         const html = document.documentElement;
@@ -411,12 +461,9 @@ function initProjects() {
 
     // Modal listeners
     modalClose.addEventListener("click", closeModal);
-    modalRoot.addEventListener("click", (e) => {
-        if (e.target === modalRoot) closeModal();
-    });
-    document.addEventListener("keydown", (e) => {
-        if (e.key === "Escape") closeModal();
-    });
+
+    // Backdrop click and Escape-to-close handlers removed so only the X button closes the modal.
+    // If you later want to re-enable Escape-to-close, add a keydown listener that calls closeModal().
 
     // Filter listeners
     searchInput.addEventListener("input", renderProjects);
