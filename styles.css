@@ -413,7 +413,7 @@ section:not(#home) {
     box-shadow: var(--vscode-shadow-out);
     border-radius: 18px;
     max-width: 1200px;
-    width: 81%;
+    width: 80%;
     margin: -20px auto 0;
     padding: 32px;
     color: var(--text-primary);
@@ -502,7 +502,7 @@ section:not(#home) {
     border-radius: 16px;
     padding: 18px;
     box-shadow: var(--profile-card-shadow);
-    min-width: 280px;
+    min-width: 265px;
     min-height: 295px;
     text-align: center;
 }
