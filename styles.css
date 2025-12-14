@@ -413,7 +413,7 @@ section:not(#home) {
     box-shadow: var(--vscode-shadow-out);
     border-radius: 18px;
     max-width: 1200px;
-    width: 90%;
+    width: 81%;
     margin: -20px auto 0;
     padding: 32px;
     color: var(--text-primary);
@@ -705,9 +705,9 @@ section:not(#home) {
     box-shadow: var(--project-container-shadow);
     height: 650px;
     max-width: 1200px;
-    width: 90%;
+    width: 80%;
     margin: -20px auto 0;
-    padding: 28px 28px 32px;
+    padding: 32px;
     display: flex;
     flex-direction: column;
     gap: 18px;
@@ -1625,48 +1625,65 @@ footer {
 /* Top Navigation responsive adjustments */
 @media (max-width: 700px) {
     .top-nav {
-        flex-direction: row;
-        justify-content: space-between;
+        /* title above nav links */
+        flex-direction: column;
+        justify-content: center;
         align-items: center;
         padding: 10px 12px;
         width: calc(100% - 24px);
-        height: auto;
         left: 12px;
         right: 12px;
         transform: none;
         border-radius: 16px;
-        gap: 12px;
+        gap: 10px;
+        box-sizing: border-box;
     }
 
     .top-nav h3 {
+        /* center the title and remove large right margin */
         margin: 0;
+        margin-right: 0;
         flex: 0 0 auto;
-        white-space: nowrap;
+        width: 100%;
+        text-align: center;
+        font-size: 1.05rem;
     }
 
+    /* Make links a single row of four equal-width buttons */
     .top-nav ul {
         display: flex;
         flex-direction: row;
         gap: 8px;
         flex-wrap: nowrap;
-        justify-content: flex-end;
+        /* keep them on one line */
+        justify-content: center;
         align-items: center;
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-        scrollbar-width: thin;
+        width: 100%;
         margin: 0;
-        padding: 0;
+        padding: 6px 6px;
+        overflow: visible;
+        /* ensure no hidden items */
+        box-sizing: border-box;
     }
 
+    /* each list item takes equal space so all four buttons are visible */
     .top-nav ul li {
-        flex: 0 0 auto;
+        flex: 1 1 0;
+        min-width: 0;
     }
 
+    /* make anchor fill its li and be touch-friendly */
     .top-nav ul li a {
-        padding: 8px 16px;
-        font-size: 0.9rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        padding: 10px 10px;
+        font-size: 0.98rem;
         white-space: nowrap;
         border-radius: 12px;
+        box-shadow: var(--nav-link-shadow);
+        box-sizing: border-box;
     }
 }
 
