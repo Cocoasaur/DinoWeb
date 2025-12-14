@@ -502,7 +502,7 @@ section:not(#home) {
     border-radius: 16px;
     padding: 18px;
     box-shadow: var(--profile-card-shadow);
-    min-width: 265px;
+    min-width: 255px;
     min-height: 295px;
     text-align: center;
 }
