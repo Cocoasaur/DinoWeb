@@ -465,7 +465,6 @@ section:not(#home) {
     padding: 10px 20px 30px;
     border: 1px solid var(--about-container-border);
     border-radius: 16px;
-    box-shadow: var(--vscode-shadow-out);
 }
 
 .about-story h2 {
@@ -1701,13 +1700,13 @@ footer {
     .profile-card {
         width: 92%;
         max-width: 420px;
-        margin: 0 auto;
+        margin: 1 auto;
     }
 
     .about-story {
         width: 92%;
         max-width: 900px;
-        margin: 0 auto;
+        margin: 1 auto;
         text-align: left;
     }
 
