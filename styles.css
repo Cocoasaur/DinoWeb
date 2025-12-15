@@ -875,13 +875,13 @@ section:not(#home) {
     display: flex;
     flex-direction: column;
     min-height: 420px;
-    box-shadow: var(--project-card-shadow);
+    box-shadow: var(--soft-shadow);
     transition: transform 0.2s, box-shadow 0.2s;
 }
 
 .project-card:hover {
-    transform: scale(1.05);
-    box-shadow: var(--soft-shadow);
+    transform: scale(1.01);
+    box-shadow: var(--project-card-shadow);
 }
 
 .project-image {

@@ -79,6 +79,30 @@ function initProjects() {
     }
 
     const savedLikes = loadLikes();
+
+    /* helper: escape HTML to prevent XSS when inserting formatted text */
+    function escapeHtml(unsafe) {
+        return String(unsafe)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+
+    /* helper: convert plain text into paragraphs.
+       - Double newlines (\n\n) -> separate <p> blocks
+       - Single newline -> <br>
+    */
+    function formatParagraphs(text) {
+        if (!text) return "";
+        // normalize line endings
+        text = String(text).replace(/\r\n/g, "\n").replace(/\r/g, "\n");
+        // split by two-or-more newlines into paragraphs
+        const paras = text.split(/\n{2,}/).map(p => p.trim()).filter(Boolean);
+        return paras.map(p => "<p>" + escapeHtml(p).replace(/\n/g, "<br>") + "</p>").join("");
+    }
+
     /* DATA (Template-friendly). */
     /* Key = completed, in-progress, paused, under-maintenance */
     /* Text Values = Updated / Completed, In Progress, Paused, Under Maintenance */
@@ -88,7 +112,7 @@ function initProjects() {
             id: "tipairlines",
             title: "TIP Airlines Booking System",
             desc: "A Flight Booking Program and Flights Management Database.",
-            extended: "TIP Airlines is a comprehensive Flight Booking Program and Flights Management Database designed to simulate the core operations of an airline reservation system. Developed as our first computer programming group project during our first year, it represents both a milestone in our learning journey and a practical application of fundamental programming and database concepts.",
+            extended: "TIP Airlines is a comprehensive Flight Booking Program and Flights Management Database designed to simulate the core operations of an airline reservation system.\n\n Developed as our first computer programming group project during our first year, it represents both a milestone in our learning journey and a practical application of fundamental programming and database concepts.",
             images: [
                 "Assets/Project_Images/TIP Airlines/TIP Airlines.png",
                 "Assets/Project_Images/TIP Airlines/TIP.png"
@@ -113,7 +137,7 @@ function initProjects() {
             id: "pastryshopmanagementsystem",
             title: "Pastry Shop Management System",
             desc: "Pastry Shop Management System streamlines pastry shop operations by handling product inventory, customer orders, and sales records in a simple, efficient way.",
-            extended: "Pastry Shop Management System streamlines pastry shop operations by handling product inventory, customer orders, and sales records in a simple, efficient way. It is a group project developed in our 2nd year, and was built with Java for the program logic and MySQL for database management, it provides a structured way to manage products, customers, and transactions.",
+            extended: "Pastry Shop Management System streamlines pastry shop operations by handling product inventory, customer orders, and sales records in a simple, efficient way.\n\n It is a group project developed in our 2nd year, and was built with Java for the program logic and MySQL for database management, it provides a structured way to manage products, customers, and transactions.",
             images: [
                 "Assets/Project_Images/Pastry Shop Management System/Pastry Shop Management System.png",
             ],
@@ -224,27 +248,6 @@ function initProjects() {
 
             moreTag.appendChild(tooltipBox);
             tagsWrap.appendChild(moreTag);
-        }
-
-        const likeCountEl = node.querySelector(".like-count");
-        const starBtn = node.querySelector(".star-btn");
-        if (likeCountEl && starBtn) {
-            likeCountEl.textContent = project.likes;
-            starBtn.textContent = project.liked ? "🌟" : "⭐";
-
-            starBtn.addEventListener("click", (e) => {
-                e.stopPropagation();
-                project.liked = !project.liked;
-                project.likes += project.liked ? 1 : -1;
-                project.likes = Math.max(0, project.likes); // Prevent negative likes
-
-                starBtn.textContent = project.liked ? "🌟" : "⭐";
-                likeCountEl.textContent = project.likes;
-
-                const saved = loadLikes();
-                saved[project.id] = { count: project.likes, liked: project.liked };
-                saveLikes(saved);
-            });
         }
 
         node.querySelector(".project-btn").addEventListener("click", (e) => {
@@ -395,8 +398,8 @@ function initProjects() {
         modalStatusDot.setAttribute("data-status", project.status.key);
         modalStatusText.textContent = project.status.text;
         modalStatusText.classList.add("status-text");
-        // description (preserve line breaks if needed)
-        modalDesc.innerHTML = String(project.extended || "");
+        // description (preserve paragraphs and line breaks)
+        modalDesc.innerHTML = formatParagraphs(project.extended || "");
         // setup images array (prefer project.images)
         modalImages = (project.images && project.images.slice()) || (project.image ? [project.image] : []);
         // set modal image element and counter
