@@ -96,7 +96,8 @@ function initProjects() {
             id: "tipairlines",
             title: "TIP Airlines Booking System",
             desc: "A Flight Booking Program and Flights Management Database.",
-            extended: "TIP Airlines is a comprehensive Flight Booking Program and Flights Management Database designed to simulate the core operations of an airline reservation system.\n\nDeveloped as our first computer programming group project during our first year, it represents both a milestone in our learning journey and a practical application of fundamental programming and database concepts.",
+            extended: `TIP Airlines is a comprehensive Flight Booking Program and Flights Management Database designed to simulate the core operations of an airline reservation system.\n\n
+            Developed as our first computer programming group project during our first year, it represents both a milestone in our learning journey and a practical application of fundamental programming and database concepts.`,
             images: [
                 "Assets/Project_Images/TIP Airlines/TIP Airlines.png",
                 "Assets/Project_Images/TIP Airlines/TIP.png"
@@ -119,24 +120,51 @@ function initProjects() {
             id: "pastryshopmanagementsystem",
             title: "Pastry Shop Management System",
             desc: "Pastry Shop Management System streamlines pastry shop operations by handling product inventory, customer orders, and sales records in a simple, efficient way.",
-            extended: "Pastry Shop Management System streamlines pastry shop operations by handling product inventory, customer orders, and sales records in a simple, efficient way.\n\nIt is a group project developed in our 2nd year, and was built with Java for the program logic and MySQL for database management, it provides a structured way to manage products, customers, and transactions.",
+            extended: `Pastry Shop Management System streamlines pastry shop operations by handling product inventory, customer orders, and sales records in a simple, efficient way.\n\n
+            It is a group project developed in our 2nd year, and was built with Java for the program logic and MySQL for database management, it provides a structured way to manage products, customers, and transactions.`,
             images: [
-                "Assets/Project_Images/Pastry Shop Management System/Pastry Shop Management System.png",
+                "Assets/Project_Images/Pastry Shop Management System/Pastry Shop Management System.png"
             ],
             tags: ["Java", "MySQL", "Database-Management", "Group-Project", "Second-Year-Project"],
             status: { key: "completed", text: "Completed" },
             repo: "https://github.com/FlimsyOwl12/Project_CompProg_DataBase.git",
-            logs: [
-                "2025-12-17: Repository has been set to private.",
-                "2025-12-16: Submitted final output.",
-                "2025-12-16: Final testing before submission.",
-                "2025-12-15: Updated README with project overview",
-                "2025-12-15: Designed database schema and created initial tables",
-                "2025-12-14: Implemented product management features",
-                "2025-12-12: Currently fixing order processing bugs",
-                "2025-12-08: Created project repository and initial planning"
-            ]
+            logs: []
         },
+        {
+            id: "eartharcade",
+            title: "Earth Arcade",
+            desc: "Earth Arcade is a 2D progressive arcade game experience that combines all the fun mini-games with lessons in environmental awareness.",
+            extended: `Earth Arcade is a 2D progressive arcade game experience that combines all the fun mini-games with lessons in environmental awareness. Developed in GDscript with the Godot Engine during the GAME ON Hackathon, this 2D progressive arcade game blends fun mini-games with environmental awareness.\n\n 
+            Players advance through levels by performing eco-friendly actions, like proper waste disposal, planting, and cleaning oceans, turning smalls sustainable habits into engaging gameplay that highlights how everyday choices can make a big difference for our planet.\n\n
+            Team Members:\n • Gilo, Janwel - Project Lead\n • Andrada, Rey Jane - Full Stack Developer\n • Arquesola, John Jessienel - Full Stack Developer\n • Baja, Riza May - Front End/Graphics Designer\n • Solis, Charleign Kim - Front End/Graphics Designer`,
+            images: [
+                "Assets/Project_Images/Earth Arcade/Earth Arcade1.png",
+                "Assets/Project_Images/Earth Arcade/Earth Arcade2.png",
+                "Assets/Project_Images/Earth Arcade/Earth Arcade3.png",
+                "Assets/Project_Images/Earth Arcade/Earth Arcade4.png",
+                "Assets/Project_Images/Earth Arcade/Earth Arcade5.png",
+            ],
+            tags: ["Godot", "GDScript", "2D Game", "Group-Project", "Second-Year-Project", "GAME-ON Hackathon"],
+            status: { key: "paused", text: "Paused" },
+            repo: "https://github.com/FlimsyOwl12/GAME-ON-Hackathon-Earth-Arcade.git",
+            logs: []
+        },
+        {
+            id: "dinoweb",
+            title: "DinoWeb",
+            desc: "DinoWeb is my personal portfolio website showcasing my skills, projects, and other information.",
+            extended: `DinoWeb is my personal portfolio website showcasing my skills, projects, and other information. It is built using HTML, CSS, and JavaScript to highlight my work and experience in the field of computer science.\n\n
+            There is nothing much to see here as I built this website for learning purposes and to have an online presence.`,
+            images: [
+                "Assets/Project_Images/DinoWebsite/DinoWebsite1.png",
+                "Assets/Project_Images/DinoWebsite/DinoWebsite2.png",
+                "Assets/Project_Images/DinoWebsite/DinoWebsite3.png"
+            ],
+            tags: ["HTML", "CSS", "JavaScript", "Personal-Project", "Personal-Website"],
+            status: { key: "in-progress", text: "In Progress" },
+            repo: "#",
+            logs: []
+        }
     ];
 
     /* DOM elements */
