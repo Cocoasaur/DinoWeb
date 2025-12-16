@@ -1,3 +1,4 @@
+/* ===== BASE STYLES ===== */
 html {
     scroll-behavior: smooth;
     scroll-snap-type: y mandatory;
@@ -14,10 +15,12 @@ body {
     overflow-y: auto;
 }
 
+/* ===== CSS VARIABLES ===== */
 :root {
-    /* Colors */
+    /* Base Colors */
     --page-bg: #06244e;
     --surface-white: #ffffff;
+    --surface: var(--surface-white);
     --text-primary: #0d1933;
     --text-light: #fff;
     --text-muted: #555;
@@ -35,45 +38,49 @@ body {
     --nav-link-green-hover: #0aae4e;
     --nav-link-blue-hover: #1971ec;
 
-    /* Home Section */
-    --home-container-shadow: 8px 8px 16px rgba(0, 0, 0, 0.28);
-    --home-status-shadow: inset -1px -3px 3px rgba(0, 0, 0, 0.28);
-    --home-button-shadow: 4px 4px 8px rgba(0, 0, 0, 0.22);
-
     /* Buttons */
     --btn-primary: #388bff;
     --btn-primary-hover: #256ad7;
     --btn-secondary: #c678dd;
     --btn-secondary-hover: #a855c1;
-    --btn-highlight: #ff8c42;
-    --btn-highlight-hover: #e6762f;
 
-    /* About Section Updated Colors */
+    /* Shadows */
+    --home-container-shadow: 8px 8px 16px rgba(0, 0, 0, 0.28);
+    --home-status-shadow: inset -1px -3px 3px rgba(0, 0, 0, 0.28);
+    --home-button-shadow: 4px 4px 8px rgba(0, 0, 0, 0.22);
+    --about-container-shadow: 8px 8px 16px rgba(0, 0, 0, 0.28);
+    --about-card-shadow: 4px 4px 8px rgba(0, 0, 0, 0.22);
+    --about-status-shadow: inset -1px -3px 3px rgba(0, 0, 0, 0.28);
+    --profile-card-shadow: 4px 4px 8px rgba(0, 0, 0, 0.22);
+    --project-container-shadow: 8px 8px 16px rgba(0, 0, 0, 0.28);
+    --project-card-shadow: 1px 2px 16px rgba(0, 0, 0, 0.699);
+    --project-search-shadow: inset -1px -3px 3px rgba(0, 0, 0, 0.28);
+    --project-tag-more-tag-shadow: inset -1px -3px 3px rgba(0, 0, 0, 0.28);
+    --projects-status-dot-shadow: inset -1px -3px 3px rgba(0, 0, 0, 0.28);
+    --modal-shadow: 8px 8px 16px rgba(0, 0, 0, 0.28);
+    --modal-button-shadow: 4px 4px 8px rgba(0, 0, 0, 0.22);
+    --contact-container-shadow: 8px 8px 16px rgba(0, 0, 0, 0.28);
+    --contact-card-shadow: 4px 4px 8px rgba(0, 0, 0, 0.22);
+    --soft-shadow: 4px 4px 8px rgba(0, 0, 0, 0.22);
+    --soft-shadow-sm: 2px 2px 4px rgba(0, 0, 0, 0.15);
+    --soft-inset: inset -1px -3px 3px rgba(0, 0, 0, 0.28);
+
+    /* About Section Colors */
     --about-bg: #ffffff;
     --about-container-bg: #263a63;
     --about-container-border: #2a3447;
     --about-text: #ffffff;
-
-    /* About Section */
-    --about-container-shadow: 8px 8px 16px rgba(0, 0, 0, 0.28);
-    --about-card-shadow: 4px 4px 8px rgba(0, 0, 0, 0.22);
-    --about-status-shadow: inset -1px -3px 3px rgba(0, 0, 0, 0.28);
     --about-accent: #7ec3fa;
 
-    /* Profile Card */
-    --profile-card-shadow: 4px 4px 8px rgba(0, 0, 0, 0.22);
-    --profile-image-shadow: inset -1px -3px 3px rgba(0, 0, 0, 0.28);
-
-    /* Projects Section */
-    --projects-status-dot-shadow: inset -1px -3px 3px rgba(0, 0, 0, 0.28);
+    /* Project Section Colors */
     --project-card-bg: #263a63;
-    --project-container-shadow: 8px 8px 16px rgba(0, 0, 0, 0.28);
-    --project-card-shadow: 1px 2px 16px rgba(0, 0, 0, 0.699);
     --project-search-bg: var(--about-container-bg);
-    --project-search-shadow: inset -1px -3px 3px rgba(0, 0, 0, 0.28);
     --project-tag-bg: #325280;
     --project-tag-color: #7ec3fa;
-    --project-tag-more-tag-shadow: inset -1px -3px 3px rgba(0, 0, 0, 0.28);
+    --project-btn-bg: #388bff;
+    --project-btn-color: #ffffff;
+    --project-btn-hover-bg: #117dbc;
+    --project-btn-hover-color: #ffffff;
 
     /* Status Colors */
     --status-completed: #2ecc71;
@@ -81,55 +88,25 @@ body {
     --status-paused: #e67e22;
     --status-maintenance: #e74c3c;
 
-    /* Modal */
-    --modal-shadow: 8px 8px 16px rgba(0, 0, 0, 0.28);
-    --modal-button-shadow: 4px 4px 8px rgba(0, 0, 0, 0.22);
-
-    /* Contact Section */
-    --contact-container-shadow: 8px 8px 16px rgba(0, 0, 0, 0.28);
-    --contact-card-shadow: 4px 4px 8px rgba(0, 0, 0, 0.22);
-    --contact-input-shadow: inset -1px -3px 3px rgba(0, 0, 0, 0.28);
-
-    /* Scrollbar */
-    --scrollbar-track: #0a2f69;
-    --scrollbar-thumb: #aec4e9;
-    --scrollbar-thumb-hover: #9db8e5;
-
-    /* Update surface reference */
-    --surface: var(--surface-white);
-
-    /* Additional colors needed */
-    --project-modal-backdrop: rgba(4, 30, 66, 0.75);
-    --tooltip-bg: #f0f4fa;
-    --status-text: #b7b93f;
-    --skill-track: #eef2f7;
-    --filter-bg: #eef6ff;
-    --filter-border: #cfe6ff;
-    --filter-text: #2573c2;
-    --modal-close-bg: #e9eef5;
-    --modal-close-hover: #dbe3ee;
-
-    /* Project Button Colors */
-    --project-btn-bg: #388bff;
-    --project-btn-color: #ffffff;
-    --project-btn-hover-bg: #117dbc;
-    --project-btn-hover-color: #ffffff;
-
-    /* VS Code Night Blue Theme Colors */
+    /* VS Code Night Blue Theme */
     --vscode-bg: #1a1f2c;
     --vscode-surface: #252d3d;
     --vscode-accent: #7ec3fa;
     --vscode-text: #ffffff;
     --vscode-text-muted: #858585;
     --vscode-border: #323842;
+    --vscode-shadow-out: 8px 8px 16px rgba(0, 0, 0, 0.5), -8px -8px 16px rgba(255, 255, 255, 0.03);
+    --vscode-shadow-in: inset 4px 4px 8px rgba(0, 0, 0, 0.5), inset -4px -4px 8px rgba(255, 255, 255, 0.03);
 
-    /* VS Code Neumorphic Shadows */
-    --vscode-shadow-out: 8px 8px 16px rgba(0, 0, 0, 0.5),
-        -8px -8px 16px rgba(255, 255, 255, 0.03);
-    --vscode-shadow-in: inset 4px 4px 8px rgba(0, 0, 0, 0.5),
-        inset -4px -4px 8px rgba(255, 255, 255, 0.03);
+    /* Misc Colors */
+    --filter-bg: #eef6ff;
+    --filter-border: #cfe6ff;
+    --filter-text: #2573c2;
+    --status-text: #b7b93f;
+    --accent-cyan: #7ec3fa;
 }
 
+/* ===== LAYOUT ===== */
 main>section {
     padding: 120px 20px 10px;
     text-align: left;
@@ -144,6 +121,7 @@ main>section {
     padding: 32px;
 }
 
+/* ===== NAVIGATION ===== */
 .top-nav {
     position: fixed;
     top: 20px;
@@ -157,18 +135,14 @@ main>section {
     padding: 10px 16px;
     box-shadow: var(--nav-shadow);
     z-index: 1000;
-
-    /* Responsive sizing */
     width: min(600px, 90%);
     max-width: 600px;
     box-sizing: border-box;
     color: var(--text-primary);
 }
 
-
 .top-nav h3 {
-    margin: 0;
-    margin-right: 60px;
+    margin: 0 60px 0 0;
 }
 
 .top-nav ul {
@@ -178,11 +152,9 @@ main>section {
     display: flex;
     gap: 8px;
     flex-wrap: wrap;
-    /* allow wrapping */
     align-items: center;
     justify-content: flex-end;
 }
-
 
 .top-nav ul li a {
     display: block;
@@ -233,14 +205,13 @@ main>section {
     transform: translateY(-1px) scale(1.05);
 }
 
+/* ===== HOME SECTION ===== */
 section#home {
     min-height: 110vh;
     display: grid;
     place-items: center;
-    /* center both axes */
     margin: 0;
     padding: 0;
-    /* avoid offset artifacts */
     scroll-snap-align: center;
 }
 
@@ -259,7 +230,6 @@ section:not(#home) {
     width: 60%;
     margin: 60px auto;
     padding: 30px 32px 32px;
-    border: 1px solid var(--border-soft);
     position: relative;
 }
 
@@ -272,11 +242,6 @@ section:not(#home) {
     color: var(--text-primary);
 }
 
-.home-filename {
-    opacity: 1;
-}
-
-.status,
 .home-status {
     display: flex;
     align-items: center;
@@ -364,15 +329,6 @@ section:not(#home) {
     transform: scale(1.02);
 }
 
-.btn-highlight {
-    background: var(--accent-orange);
-    color: #fff;
-}
-
-.btn-highlight:hover {
-    background: #e6762f;
-}
-
 .home-icons {
     display: flex;
     gap: 32px;
@@ -407,6 +363,7 @@ section:not(#home) {
     opacity: 1;
 }
 
+/* ===== ABOUT SECTION ===== */
 .about-container {
     background: var(--about-bg);
     border: 1px solid var(--about-container-border);
@@ -422,25 +379,19 @@ section:not(#home) {
     gap: 5px;
 }
 
-.about-header,
-.about-status {
-    display: flex;
-    align-items: center;
-}
-
 .about-header {
+    display: flex;
     justify-content: space-between;
+    align-items: center;
     margin-bottom: 16px;
     font-size: 1rem;
     color: var(--text-primary);
 }
 
 .about-status {
+    display: flex;
+    align-items: center;
     gap: 6px;
-}
-
-.about-filename {
-    opacity: 1;
 }
 
 .about-status-dot {
@@ -476,25 +427,22 @@ section:not(#home) {
 .about-story p {
     font-size: 1rem;
     color: var(--vscode-text);
-    margin: 0;
+    margin: 0 0 1rem 0;
 }
 
 .indent-one {
     text-indent: 2em;
-    margin-top: 0;
-    margin-bottom: 1rem;
 }
 
 .indent-two {
     text-indent: 2em;
-    margin: 0;
 }
 
 .indent-three {
     text-indent: 2em;
-    margin: 0;
 }
 
+/* Profile Card */
 .profile-card {
     background: var(--about-container-bg);
     border: 1px solid var(--about-container-border);
@@ -509,7 +457,6 @@ section:not(#home) {
 .profile-filename {
     font-size: 1rem;
     color: var(--about-text);
-    opacity: 1;
     margin-bottom: 8px;
     display: block;
 }
@@ -557,29 +504,23 @@ section:not(#home) {
     font-size: 0.95rem;
 }
 
+/* Skills Section */
 .skills-container {
     display: flex;
     gap: 24px;
     margin-top: 24px;
     align-items: stretch;
-    /* Change from flex-start to stretch for equal height */
 }
 
 .skills-list {
-    margin-top: 0;
-    /* Changed from 24px to align with technical-skills */
     background: var(--about-container-bg);
-    border: 1px solid var(--about-container-border);
+    border: 1px solid var(--vscode-border);
     border-radius: 16px;
     padding: 24px 18px;
     box-shadow: var(--soft-shadow-sm);
-    border: 1px solid var(--vscode-border);
     width: 500px;
-    /* Set fixed width for skills gauge */
     flex: 0 0 auto;
-    /* Prevent flex growing/shrinking */
     height: 260px;
-    /* Set fixed height */
     display: flex;
     flex-direction: column;
 }
@@ -587,11 +528,9 @@ section:not(#home) {
 .skills-list h3 {
     font-size: 1.2rem;
     color: var(--vscode-accent);
-    margin-bottom: 18px;
+    margin: 5px 0 18px 0;
     text-align: left;
-    margin-top: 5px;
     flex-shrink: 0;
-    /* Prevent header from shrinking */
 }
 
 .skill {
@@ -614,7 +553,6 @@ section:not(#home) {
     background: #eef2f7;
     border-radius: 8px;
     overflow: hidden;
-    margin: 0;
     box-shadow: var(--vscode-shadow-in);
 }
 
@@ -640,15 +578,11 @@ section:not(#home) {
 .technical-skills {
     flex: 1;
     background: var(--about-container-bg);
-    border: 1px solid var(--about-container-border);
+    border: 1px solid var(--vscode-border);
     border-radius: 16px;
     padding: 24px 18px;
     box-shadow: var(--soft-shadow-sm);
-    border: 1px solid var(--vscode-border);
-    margin-top: 0;
-    /* Changed to match skills-list */
     height: 260px;
-    /* Match skills-list height */
     display: flex;
     flex-direction: column;
 }
@@ -656,11 +590,18 @@ section:not(#home) {
 .technical-skills h3 {
     font-size: 1.2rem;
     color: var(--vscode-accent);
-    margin-bottom: 18px;
+    margin: 5px 0 18px 0;
     text-align: left;
-    margin-top: 5px;
     flex-shrink: 0;
-    /* Prevent header from shrinking */
+}
+
+.tech-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-top: 5px;
+    overflow-y: auto;
+    padding-right: 8px;
 }
 
 .tech-item {
@@ -669,22 +610,10 @@ section:not(#home) {
     border-radius: 12px;
     text-align: center;
     padding: 10px 5px;
-    margin-bottom: 12px;
     color: var(--text-primary);
     font-size: 0.95rem;
     box-shadow: var(--soft-shadow-sm);
     transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.tech-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    /* Change from 2 to 3 columns */
-    gap: 12px;
-    margin-top: 5px;
-    overflow-y: auto;
-    padding-right: 8px;
-    /* Add padding for scrollbar */
 }
 
 .tech-item:hover {
@@ -698,6 +627,7 @@ section:not(#home) {
     scrollbar-color: rgba(255, 255, 255, 0.916) transparent;
 }
 
+/* ===== PROJECTS SECTION ===== */
 .projects-container {
     background: var(--surface);
     border-radius: 18px;
@@ -712,22 +642,19 @@ section:not(#home) {
     gap: 18px;
 }
 
-.projects-header,
-.projects-status {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-}
-
 .projects-header {
+    display: flex;
     justify-content: space-between;
+    align-items: center;
     margin-bottom: 16px;
     font-size: 1rem;
     color: var(--text-primary);
 }
 
-.projects-filename {
-    opacity: 1;
+.projects-status {
+    display: flex;
+    align-items: center;
+    gap: 6px;
 }
 
 .projects-status-dot {
@@ -763,17 +690,20 @@ section:not(#home) {
     background: #e74c3c;
 }
 
+/* Projects Controls - FIXED FOR MOBILE */
 .projects-controls {
     display: flex;
     gap: 12px;
     align-items: center;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
+    /* CHANGED FROM wrap TO nowrap - This fixes your mobile issue! */
 }
 
 #project-search {
-    flex: 1 1 280px;
+    flex: 1 1 auto;
+    min-width: 0;
     padding: 10px 14px;
-    border: 1px solid var(--border-soft);
+    border: 1px solid var(--border-light);
     border-radius: 12px;
     font-size: 1rem;
     outline: none;
@@ -786,7 +716,6 @@ section:not(#home) {
 #project-search::placeholder {
     color: #ffffff;
     opacity: 1;
-    /* ensure it’s fully opaque */
 }
 
 #project-search:focus {
@@ -795,22 +724,19 @@ section:not(#home) {
 }
 
 .project-filter {
-    flex: 0 0 200px;
-    /* fixed at 120px */
-    min-width: 0;
+    flex: 0 0 auto;
+    width: 140px;
+    min-width: 120px;
     padding: 10px 14px;
-    border: 1px solid var(--border-soft);
+    border: 1px solid var(--border-light);
     border-radius: 12px;
     font-size: 1rem;
     outline: none;
     background: var(--project-search-bg);
-    /* same as search bar */
     color: var(--text-light);
-    /* white text like search */
     box-shadow: var(--project-search-shadow);
     transition: border 0.2s, box-shadow 0.2s;
     appearance: none;
-    /* remove default arrow */
     -webkit-appearance: none;
     -moz-appearance: none;
     background-image: url("data:image/svg+xml;utf8,<svg fill='%23aec4e9' height='20' viewBox='0 0 24 24' width='20' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>");
@@ -851,16 +777,14 @@ section:not(#home) {
     font-size: 0.9rem;
 }
 
+/* Projects Grid */
 .projects-grid {
     display: flex;
-    /* horizontal layout */
     gap: 22px;
     overflow-x: auto;
     overflow-y: hidden;
     scroll-snap-type: x mandatory;
     padding: 24px;
-    padding-bottom: 24px;
-    /* space for scrollbar */
     border-radius: 24px;
     scrollbar-width: thick;
     scrollbar-color: rgba(94, 94, 94, 0.945) transparent;
@@ -933,8 +857,6 @@ section:not(#home) {
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
-    line-clamp: 2;
-    /* future */
     overflow: hidden;
     text-overflow: ellipsis;
     line-height: 1.4;
@@ -1024,50 +946,7 @@ section:not(#home) {
     transform: translateY(-1px);
 }
 
-.favorite {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 4px 8px;
-    border-radius: 10px;
-    cursor: pointer;
-    transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
-    box-shadow: var(--soft-shadow-sm);
-}
-
-.favorite:hover {
-    background: rgba(255, 255, 255, 0.486);
-    transform: scale(1.05);
-}
-
-.star-btn {
-    background: none;
-    border: none;
-    font-size: 1.3rem;
-    color: #ffffff;
-    transition: color 0.2s, text-shadow 0.2s, transform 0.2s;
-    line-height: 1;
-    padding: 0;
-}
-
-.star-btn:hover {
-    transform: scale(1.12);
-}
-
-.star-btn.liked {
-    color: #ffd700;
-    text-shadow:
-        0 0 4px rgba(255, 215, 0, 0.8),
-        0 0 8px rgba(255, 215, 0, 0.6),
-        0 0 12px rgba(255, 215, 0, 0.4);
-}
-
-.like-count {
-    font-size: 0.9rem;
-    color: #ffffff;
-}
-
-/* Modal Container */
+/* ===== PROJECT MODAL ===== */
 .project-modal {
     position: fixed;
     inset: 0;
@@ -1207,14 +1086,6 @@ section:not(#home) {
     position: relative;
 }
 
-/* modal image slideshow */
-.modal-image {
-    position: relative;
-    overflow: hidden;
-    border-radius: 12px;
-}
-
-/* arrow buttons */
 .image-nav {
     position: absolute;
     top: 50%;
@@ -1248,7 +1119,6 @@ section:not(#home) {
     right: 12px;
 }
 
-/* hide when not needed */
 .image-nav.hidden {
     display: none;
 }
@@ -1260,7 +1130,6 @@ section:not(#home) {
     display: block;
 }
 
-/* small counter in bottom-right */
 .image-counter {
     position: absolute;
     right: 12px;
@@ -1278,7 +1147,6 @@ section:not(#home) {
     display: flex;
     flex-direction: column;
     gap: 8px;
-    max-height: 100px;
 }
 
 .modal-logs h3 {
@@ -1289,7 +1157,7 @@ section:not(#home) {
 
 .logs-container {
     background: #f8fbff;
-    border: 1px solid var(--border-soft);
+    border: 1px solid var(--border-light);
     border-radius: 10px;
     padding: 8px;
     max-height: 330px;
@@ -1399,55 +1267,19 @@ section:not(#home) {
     background: #e1e1e1;
 }
 
-@media (max-width: 980px) {
-    .modal-left {
-        width: 360px;
-    }
-
-    .modal-image {
-        height: 320px;
-    }
-
-    .logs-container {
-        max-height: 180px;
-    }
-}
-
-@media (max-width: 860px) {
-    .modal-scroll-wrapper {
-        flex-direction: column;
-    }
-
-    .modal-left,
-    .modal-right {
-        width: 100%;
-    }
-
-    .modal-image {
-        height: 220px;
-    }
-
-    .logs-container {
-        max-height: 140px;
-    }
-}
-
-/* Modal open lock: hide scrollbar & prevent interactions with background */
+/* Modal open lock */
 html.modal-open {
     overflow: hidden;
     height: 100%;
     touch-action: none;
-    /* prevent touch scrolling */
 }
 
-/* Prevent pointer interactions and text selection for everything except the modal and its children */
 html.modal-open *:not(.project-modal):not(.project-modal *) {
     pointer-events: none !important;
     -webkit-user-select: none !important;
     user-select: none !important;
 }
 
-/* Allow interactions inside the modal */
 html.modal-open .project-modal,
 html.modal-open .project-modal * {
     pointer-events: auto !important;
@@ -1455,11 +1287,11 @@ html.modal-open .project-modal * {
     user-select: auto !important;
 }
 
-/* Ensure modal stacks above other elements */
 .project-modal {
     z-index: 3000;
 }
 
+/* ===== CONTACT SECTION ===== */
 .contact-container {
     background: var(--surface);
     border-radius: 18px;
@@ -1500,8 +1332,6 @@ html.modal-open .project-modal * {
 .contact-body h2 {
     font-size: 1.3rem;
     font-weight: 600;
-    font-style: normal;
-    /* remove italic */
     text-align: left;
     margin-top: 1px;
     color: var(--vscode-accent);
@@ -1523,36 +1353,28 @@ html.modal-open .project-modal * {
     margin-top: 24px;
 }
 
-/* Base card styling */
 .contact-card {
     border-radius: 16px;
     padding: 24px 20px;
     text-align: center;
     box-shadow: var(--contact-card-shadow);
     transition: background 0.3s, transform 0.2s, box-shadow 0.3s;
-    font-family: 'Segoe UI', 'Fira Sans', sans-serif;
 }
 
 .contact-card h3 {
     font-size: 1.1rem;
     font-weight: 600;
-    margin-top: 0;
-    margin-bottom: 6px;
+    margin: 0 0 6px 0;
     padding-top: 4px;
-    /* slight push upward */
-    font-style: normal;
     letter-spacing: 0.5px;
 }
 
 .contact-card p,
 .contact-card a {
     font-size: 1.2rem;
-    /* unified size */
     font-weight: 500;
-    /* unified weight */
     margin: 0;
     padding-top: 2px;
-    font-style: normal;
     line-height: 1.5;
     text-decoration: none;
     transition: color 0.2s;
@@ -1596,18 +1418,11 @@ html.modal-open .project-modal * {
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
 }
 
-@media (max-width: 768px) {
-    .contact-grid {
-        grid-template-columns: 1fr;
-    }
-}
-
+/* ===== FOOTER ===== */
 footer {
     scroll-snap-align: start;
     scroll-snap-stop: always;
-    /* prevents skipping */
     min-height: 50px;
-    /* ensures enough height to be a snap target */
     color: var(--text-light);
     padding: 28px 20px;
     text-align: center;
@@ -1621,10 +1436,9 @@ footer {
     z-index: 1;
 }
 
-/* Top Navigation responsive adjustments */
+/* ===== RESPONSIVE DESIGN ===== */
 @media (max-width: 700px) {
     .top-nav {
-        /* title above nav links */
         flex-direction: column;
         justify-content: center;
         align-items: center;
@@ -1639,45 +1453,36 @@ footer {
     }
 
     .top-nav h3 {
-        /* center the title and remove large right margin */
         margin: 0;
-        margin-right: 0;
-        flex: 0 0 auto;
         width: 100%;
         text-align: center;
         font-size: 1.05rem;
     }
 
-    /* Make links a single row of four equal-width buttons */
     .top-nav ul {
         display: flex;
         flex-direction: row;
         gap: 8px;
         flex-wrap: nowrap;
-        /* keep them on one line */
         justify-content: center;
         align-items: center;
         width: 100%;
         margin: 0;
-        padding: 6px 6px;
-        overflow: visible;
-        /* ensure no hidden items */
+        padding: 6px;
         box-sizing: border-box;
     }
 
-    /* each list item takes equal space so all four buttons are visible */
     .top-nav ul li {
         flex: 1 1 0;
         min-width: 0;
     }
 
-    /* make anchor fill its li and be touch-friendly */
     .top-nav ul li a {
         display: inline-flex;
         align-items: center;
         justify-content: center;
         width: 100%;
-        padding: 10px 10px;
+        padding: 10px;
         font-size: 0.98rem;
         white-space: nowrap;
         border-radius: 12px;
@@ -1686,13 +1491,68 @@ footer {
     }
 }
 
-/* Adjust about container padding and margin */
-/* Show profile image first, then the about text */
+@media (max-width: 768px) {
+    .contact-grid {
+        grid-template-columns: 1fr;
+    }
+
+    /* Keep search and filter side by side */
+    .projects-controls {
+        flex-wrap: nowrap;
+        gap: 8px;
+    }
+
+    #project-search {
+        flex: 1 1 auto;
+        min-width: 0;
+    }
+
+    .project-filter {
+        flex: 0 0 auto;
+        width: 110px;
+        min-width: 100px;
+        font-size: 0.9rem;
+        padding: 10px 8px;
+    }
+}
+
+@media (max-width: 860px) {
+    .modal-scroll-wrapper {
+        flex-direction: column;
+    }
+
+    .modal-left,
+    .modal-right {
+        width: 100%;
+    }
+
+    .modal-image {
+        height: 220px;
+    }
+
+    .logs-container {
+        max-height: 140px;
+    }
+}
+
+@media (max-width: 980px) {
+    .modal-left {
+        width: 360px;
+    }
+
+    .modal-image {
+        height: 320px;
+    }
+
+    .logs-container {
+        max-height: 180px;
+    }
+}
+
 @media (max-width: 1100px) {
     .about-row {
         display: flex;
         flex-direction: column-reverse;
-        /* profile-card will appear above about-story */
         gap: 18px;
         align-items: center;
     }

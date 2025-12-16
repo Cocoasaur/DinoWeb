@@ -1,5 +1,5 @@
 /*
- * Main function to initialize all parts of the page once the DOM is loaded.
+ * Main initialization - runs when DOM is fully loaded
  */
 document.addEventListener("DOMContentLoaded", function () {
     initTypingEffect();
@@ -8,11 +8,11 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 /*
- * Initializes the typing effect in the hero section.
+ * Typing effect animation for hero section
  */
 function initTypingEffect() {
     const typingEffect = document.getElementById("typing-effect");
-    if (!typingEffect) return; // Exit if element not found
+    if (!typingEffect) return;
 
     const text = "Computer Science Student";
     const typingSpeed = 100;
@@ -46,7 +46,7 @@ function initTypingEffect() {
 }
 
 /*
- * Initializes the animated skill bars.
+ * Initialize animated skill bars
  */
 function initSkills() {
     document.querySelectorAll(".skill").forEach(skill => {
@@ -64,23 +64,10 @@ function initSkills() {
 }
 
 /*
- * Initializes the entire projects section, including
- * data, rendering, filtering, and modal logic.
+ * Initialize projects section with data, filtering, and modal
  */
 function initProjects() {
-
-    function loadLikes() {
-        const saved = localStorage.getItem("projectLikes");
-        return saved ? JSON.parse(saved) : {};
-    }
-
-    function saveLikes(likesObj) {
-        localStorage.setItem("projectLikes", JSON.stringify(likesObj));
-    }
-
-    const savedLikes = loadLikes();
-
-    /* helper: escape HTML to prevent XSS when inserting formatted text */
+    /* Helper: Escape HTML to prevent XSS */
     function escapeHtml(unsafe) {
         return String(unsafe)
             .replace(/&/g, "&amp;")
@@ -90,29 +77,21 @@ function initProjects() {
             .replace(/'/g, "&#039;");
     }
 
-    /* helper: convert plain text into paragraphs.
-       - Double newlines (\n\n) -> separate <p> blocks
-       - Single newline -> <br>
-    */
+    /* Helper: Convert plain text into HTML paragraphs */
     function formatParagraphs(text) {
         if (!text) return "";
-        // normalize line endings
         text = String(text).replace(/\r\n/g, "\n").replace(/\r/g, "\n");
-        // split by two-or-more newlines into paragraphs
         const paras = text.split(/\n{2,}/).map(p => p.trim()).filter(Boolean);
         return paras.map(p => "<p>" + escapeHtml(p).replace(/\n/g, "<br>") + "</p>").join("");
     }
 
-    /* DATA (Template-friendly). */
-    /* Key = completed, in-progress, paused, under-maintenance */
-    /* Text Values = Updated / Completed, In Progress, Paused, Under Maintenance */
-    /* Logs = Format: "YYYY-MM-DD" -m */
+    /* Project data */
     const projects = [
         {
             id: "tipairlines",
             title: "TIP Airlines Booking System",
             desc: "A Flight Booking Program and Flights Management Database.",
-            extended: "TIP Airlines is a comprehensive Flight Booking Program and Flights Management Database designed to simulate the core operations of an airline reservation system.\n\n Developed as our first computer programming group project during our first year, it represents both a milestone in our learning journey and a practical application of fundamental programming and database concepts.",
+            extended: "TIP Airlines is a comprehensive Flight Booking Program and Flights Management Database designed to simulate the core operations of an airline reservation system.\n\nDeveloped as our first computer programming group project during our first year, it represents both a milestone in our learning journey and a practical application of fundamental programming and database concepts.",
             images: [
                 "Assets/Project_Images/TIP Airlines/TIP Airlines.png",
                 "Assets/Project_Images/TIP Airlines/TIP.png"
@@ -120,8 +99,6 @@ function initProjects() {
             tags: ["Python", "Group-Project", "Flight-Booking-System", "SQLite", "Database-Management", "First-Year-Project"],
             status: { key: "completed", text: "Completed" },
             repo: "https://github.com/FlimsyOwl12/Project_CompProg_DataBase.git",
-            likes: savedLikes["tipairlines"]?.count || 0,
-            liked: savedLikes["tipairlines"]?.liked || false,
             logs: [
                 "2024-12-17: Repository has been set to private.",
                 "2024-12-16: Submitted final output.",
@@ -137,39 +114,35 @@ function initProjects() {
             id: "pastryshopmanagementsystem",
             title: "Pastry Shop Management System",
             desc: "Pastry Shop Management System streamlines pastry shop operations by handling product inventory, customer orders, and sales records in a simple, efficient way.",
-            extended: "Pastry Shop Management System streamlines pastry shop operations by handling product inventory, customer orders, and sales records in a simple, efficient way.\n\n It is a group project developed in our 2nd year, and was built with Java for the program logic and MySQL for database management, it provides a structured way to manage products, customers, and transactions.",
+            extended: "Pastry Shop Management System streamlines pastry shop operations by handling product inventory, customer orders, and sales records in a simple, efficient way.\n\nIt is a group project developed in our 2nd year, and was built with Java for the program logic and MySQL for database management, it provides a structured way to manage products, customers, and transactions.",
             images: [
                 "Assets/Project_Images/Pastry Shop Management System/Pastry Shop Management System.png",
             ],
-            tags: ["Java", "MySQL", "Database-Management", "Group-Project", "First-Year-Project"],
+            tags: ["Java", "MySQL", "Database-Management", "Group-Project", "Second-Year-Project"],
             status: { key: "completed", text: "Completed" },
             repo: "https://github.com/FlimsyOwl12/Project_CompProg_DataBase.git",
-            likes: savedLikes["tipairlines"]?.count || 0,
-            liked: savedLikes["tipairlines"]?.liked || false,
             logs: [
                 "2025-12-17: Repository has been set to private.",
                 "2025-12-16: Submitted final output.",
                 "2025-12-16: Final testing before submission.",
                 "2025-12-15: Updated README with project overview",
                 "2025-12-15: Designed database schema and created initial tables",
-                "2025-12-14: Implemented flight search and booking features",
-                "2025-12-12: Currently fixing checkout flow bugs",
+                "2025-12-14: Implemented product management features",
+                "2025-12-12: Currently fixing order processing bugs",
                 "2025-12-08: Created project repository and initial planning"
             ]
         },
     ];
 
+    /* DOM elements */
     const grid = document.getElementById("projects-grid");
     const searchInput = document.getElementById("project-search");
     const activeFilters = document.getElementById("active-filters");
     const filterSelect = document.querySelector('.project-filter');
     const headerStatusDot = document.querySelector(".projects-status .status-dot");
     const modalRoot = document.getElementById("project-modal");
-
-    // Background nodes to mark aria-hidden while modal is open
     const backgroundNodes = document.querySelectorAll("header, main, footer");
 
-    // Exit if crucial elements are missing
     if (!grid || !searchInput || !filterSelect || !modalRoot) {
         console.warn("Project script exiting: crucial elements not found.");
         return;
@@ -180,18 +153,16 @@ function initProjects() {
     const modalStatusDot = modalRoot.querySelector(".modal-status .status-dot");
     const modalStatusText = modalRoot.querySelector(".modal-status-text");
     const modalDesc = modalRoot.querySelector(".modal-description");
-    const modalImg = modalRoot.querySelector(".modal-image img");
     const modalRepo = modalRoot.querySelector(".github-btn");
     const modalTagsWrap = modalRoot.querySelector(".modal-tags");
     const logsList = modalRoot.querySelector(".logs-list");
-    const modalScroll = modalRoot.querySelector(".modal-scroll");
 
     let tagFilters = new Set();
-    let emptyState; // will hold dynamic message element
+    let emptyState;
     let scrollPosition = 0;
 
     /*
-     * Creates a project card DOM element from a project object.
+     * Create a project card from project data
      */
     function createProjectCard(project) {
         const tpl = document.getElementById("project-card-template");
@@ -208,7 +179,6 @@ function initProjects() {
 
         const imgEl = node.querySelector(".project-image img");
         if (imgEl) {
-            // use first image if images[] exists, fall back to singular image property
             imgEl.src = (project.images && project.images[0]) || project.image || "";
             imgEl.alt = project.title + " preview";
         }
@@ -227,7 +197,7 @@ function initProjects() {
                 e.stopPropagation();
                 tagFilters.add(tag);
                 renderActiveFilters();
-                renderProjects(); // Re-render projects when tag is added
+                renderProjects();
             });
         });
 
@@ -259,7 +229,7 @@ function initProjects() {
     }
 
     /*
-     * Renders the active tag filters as chips.
+     * Render active tag filter chips
      */
     function renderActiveFilters() {
         activeFilters.innerHTML = "";
@@ -271,7 +241,7 @@ function initProjects() {
             chip.querySelector("button").addEventListener("click", () => {
                 tagFilters.delete(tag);
                 renderActiveFilters();
-                renderProjects(); // Re-render projects when tag is removed
+                renderProjects();
             });
 
             activeFilters.appendChild(chip);
@@ -279,7 +249,7 @@ function initProjects() {
     }
 
     /*
-     * Creates or returns the 'empty state' message element.
+     * Ensure empty state message exists
      */
     function ensureEmptyState() {
         if (emptyState) return emptyState;
@@ -297,7 +267,7 @@ function initProjects() {
     }
 
     /*
-     * Renders the project grid based on ALL current filters.
+     * Render project grid with all active filters
      */
     function renderProjects() {
         const q = (searchInput.value || "").toLowerCase();
@@ -306,32 +276,27 @@ function initProjects() {
         grid.innerHTML = "";
 
         const filteredProjects = projects.filter(p => {
-            // Stage 1: Filter by Status
             const matchesStatus = (statusFilter === 'all') || (p.status.key === statusFilter);
             if (!matchesStatus) return false;
 
-            // Stage 2: Filter by Tags
             const matchesTags = (tagFilters.size === 0) || [...tagFilters].every(t => p.tags.includes(t));
             if (!matchesTags) return false;
 
-            // Stage 3: Filter by Search Query
             const matchesText = !q ||
                 p.title.toLowerCase().includes(q) ||
                 p.desc.toLowerCase().includes(q) ||
                 p.tags.some(tag => tag.toLowerCase().includes(q));
 
-            return matchesText; // Must pass all filters
+            return matchesText;
         });
 
-        // Render cards
         filteredProjects.forEach(p => grid.appendChild(createProjectCard(p)));
 
-        // Toggle empty state
         const empty = ensureEmptyState();
         empty.style.display = filteredProjects.length === 0 ? "block" : "none";
     }
 
-    // modal slideshow state
+    /* Modal slideshow state */
     let modalImages = [];
     let modalImageIndex = 0;
     let modalKeyHandler = null;
@@ -341,11 +306,14 @@ function initProjects() {
         const counter = document.getElementById("modal-image-counter");
         const prevBtn = document.getElementById("modal-prev");
         const nextBtn = document.getElementById("modal-next");
+
         if (!imgEl) return;
+
         modalImageIndex = (index + modalImages.length) % modalImages.length;
         imgEl.src = modalImages[modalImageIndex] || "";
-        // update counter and arrows
+
         if (counter) counter.textContent = `${modalImageIndex + 1} / ${modalImages.length}`;
+
         if (modalImages.length <= 1) {
             prevBtn?.classList.add("hidden");
             nextBtn?.classList.add("hidden");
@@ -357,15 +325,22 @@ function initProjects() {
         }
     }
 
-    function prevModalImage(e) { if (e) e.stopPropagation(); showModalImage(modalImageIndex - 1); }
-    function nextModalImage(e) { if (e) e.stopPropagation(); showModalImage(modalImageIndex + 1); }
+    function prevModalImage(e) {
+        if (e) e.stopPropagation();
+        showModalImage(modalImageIndex - 1);
+    }
+
+    function nextModalImage(e) {
+        if (e) e.stopPropagation();
+        showModalImage(modalImageIndex + 1);
+    }
 
     function attachModalImageListeners() {
         const prevBtn = document.getElementById("modal-prev");
         const nextBtn = document.getElementById("modal-next");
         prevBtn?.addEventListener("click", prevModalImage);
         nextBtn?.addEventListener("click", nextModalImage);
-        // keyboard navigation while modal open
+
         modalKeyHandler = (ev) => {
             if (ev.key === "ArrowLeft") prevModalImage(ev);
             if (ev.key === "ArrowRight") nextModalImage(ev);
@@ -378,6 +353,7 @@ function initProjects() {
         const nextBtn = document.getElementById("modal-next");
         prevBtn?.removeEventListener("click", prevModalImage);
         nextBtn?.removeEventListener("click", nextModalImage);
+
         if (modalKeyHandler) {
             document.removeEventListener("keydown", modalKeyHandler);
             modalKeyHandler = null;
@@ -385,12 +361,11 @@ function initProjects() {
     }
 
     /*
-     * Opens and populates the project details modal.
+     * Open and populate project modal
      */
     function openModal(project) {
         scrollPosition = window.scrollY;
 
-        // Mark background for screen readers & add CSS class that prevents scrolling and interactions
         backgroundNodes.forEach(node => node.setAttribute("aria-hidden", "true"));
         document.documentElement.classList.add("modal-open");
 
@@ -398,17 +373,14 @@ function initProjects() {
         modalStatusDot.setAttribute("data-status", project.status.key);
         modalStatusText.textContent = project.status.text;
         modalStatusText.classList.add("status-text");
-        // description (preserve paragraphs and line breaks)
         modalDesc.innerHTML = formatParagraphs(project.extended || "");
-        // setup images array (prefer project.images)
+
         modalImages = (project.images && project.images.slice()) || (project.image ? [project.image] : []);
-        // set modal image element and counter
         showModalImage(0);
         attachModalImageListeners();
 
         modalRepo.href = project.repo || "#";
 
-        // Tags under heading
         modalTagsWrap.innerHTML = "";
         project.tags.forEach(tag => {
             const span = document.createElement("span");
@@ -428,29 +400,28 @@ function initProjects() {
             logsList.innerHTML = "<li>No updates yet.</li>";
         }
 
-
         modalRoot.style.display = "flex";
         modalRoot.setAttribute("aria-hidden", "false");
         modalClose.focus();
     }
 
-    /**
-     * Closes the project details modal and restores scroll.
+    /*
+     * Close modal and restore scroll position
      */
     function closeModal() {
-        // cleanup image listeners
         detachModalImageListeners();
         modalImages = [];
         modalImageIndex = 0;
+
         const imgEl = document.getElementById("modal-image-el");
         if (imgEl) imgEl.src = "";
+
         const counter = document.getElementById("modal-image-counter");
         if (counter) counter.textContent = "";
 
         modalRoot.style.display = "none";
         modalRoot.setAttribute("aria-hidden", "true");
 
-        // Remove aria hidden and CSS class to restore background interactions & scrolling
         backgroundNodes.forEach(node => node.removeAttribute("aria-hidden"));
         document.documentElement.classList.remove("modal-open");
 
@@ -460,20 +431,14 @@ function initProjects() {
         html.style.scrollBehavior = "";
     }
 
-    // Modal listeners
+    /* Event listeners */
     modalClose.addEventListener("click", closeModal);
-
-    // Backdrop click and Escape-to-close handlers removed so only the X button closes the modal.
-
-    // Filter listeners
     searchInput.addEventListener("input", renderProjects);
     filterSelect.addEventListener('change', renderProjects);
 
-    // Set header status dot
     if (headerStatusDot) {
         headerStatusDot.dataset.status = "updated";
     }
 
-    // Initial render
     renderProjects();
 }

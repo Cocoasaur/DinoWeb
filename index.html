@@ -28,7 +28,9 @@
             <article class="home-container">
                 <header class="home-header">
                     <span class="home-filename">welcome.dino</span>
-                    <span class="home-status"><span class="home-status-dot"></span>Completed</span>
+                    <span class="home-status">
+                        <span class="home-status-dot"></span>Completed
+                    </span>
                 </header>
 
                 <div class="home-content">
@@ -68,22 +70,23 @@
                 <div class="about-row">
                     <aside class="about-story">
                         <h2>About Me</h2>
-                        <p class="indent-one">Fueled by curiosity and a love for solving puzzles, I see every challenge
-                            as an open canvas
-                            waiting for bold ideas and clever solutions.
-                            Technology is my playground, I am constantly
-                            experimenting with new tools, refining my craft in programming and design, and finding fresh
-                            ways to blend logic with imagination.<br><br></p>
-                        <p class="indent-two">For me, growth is not just about learning new skills, it is about
-                            stretching boundaries,
-                            embracing the unknown, and turning obstacles into opportunities.
-                            Whether I am sketching out a
-                            design, debugging a tricky line of code, or exploring the next wave of innovation, I bring
-                            both
-                            creativity and determination to the table.<br><br></p>
-                        <p class="indent-three">I do not just chase challenges, I welcome them, because each one is a
-                            chance to create something
-                            meaningful, elegant, and lasting.</p>
+                        <p class="indent-one">
+                            Fueled by curiosity and a love for solving puzzles, I see every challenge
+                            as an open canvas waiting for bold ideas and clever solutions.
+                            Technology is my playground, I am constantly experimenting with new tools,
+                            refining my craft in programming and design, and finding fresh ways to
+                            blend logic with imagination.
+                        </p>
+                        <p class="indent-two">
+                            For me, growth is not just about learning new skills, it is about
+                            stretching boundaries, embracing the unknown, and turning obstacles into opportunities.
+                            Whether I am sketching out a design, debugging a tricky line of code, or exploring
+                            the next wave of innovation, I bring both creativity and determination to the table.
+                        </p>
+                        <p class="indent-three">
+                            I do not just chase challenges, I welcome them, because each one is a
+                            chance to create something meaningful, elegant, and lasting.
+                        </p>
                     </aside>
 
                     <figure class="profile-card">
@@ -109,7 +112,6 @@
                                 </div>
                                 <span class="skill-percent"></span>
                             </div>
-
                             <div class="skill" data-skill="70" data-color="#264de4">
                                 <span>CSS</span>
                                 <div class="skill-bar">
@@ -117,7 +119,6 @@
                                 </div>
                                 <span class="skill-percent"></span>
                             </div>
-
                             <div class="skill" data-skill="55" data-color="#f0db4f">
                                 <span>JavaScript</span>
                                 <div class="skill-bar">
@@ -125,7 +126,6 @@
                                 </div>
                                 <span class="skill-percent"></span>
                             </div>
-
                             <div class="skill" data-skill="60" data-color="#3776ab">
                                 <span>Python</span>
                                 <div class="skill-bar">
@@ -133,7 +133,6 @@
                                 </div>
                                 <span class="skill-percent"></span>
                             </div>
-
                             <div class="skill" data-skill="53" data-color="#b07219">
                                 <span>Java</span>
                                 <div class="skill-bar">
@@ -141,7 +140,6 @@
                                 </div>
                                 <span class="skill-percent"></span>
                             </div>
-
                         </div>
                     </div>
 
@@ -154,10 +152,8 @@
                             <div class="tech-item">Testing & Debugging</div>
                             <div class="tech-item">UI/UX Principles</div>
                             <div class="tech-item">Problem-Solving</div>
-
                         </div>
                     </div>
-
                 </div>
             </article>
         </section>
@@ -189,13 +185,12 @@
                 <div class="projects-grid" id="projects-grid"></div>
             </article>
 
-            <!-- Template and modal -->
+            <!-- Project card template -->
             <template id="project-card-template">
                 <div class="project-card">
                     <div class="project-image">
                         <img src="" alt="Project preview">
                     </div>
-
                     <div class="project-card-top">
                         <div class="project-title"></div>
                         <div class="project-card-status">
@@ -203,22 +198,15 @@
                             <span class="project-card-status-text"></span>
                         </div>
                     </div>
-
                     <div class="project-desc"></div>
-
                     <div class="project-tags"></div>
-
                     <div class="project-actions">
                         <button class="project-btn" type="button">View details</button>
-                        <div class="favorite">
-                            <button class="star-btn" type="button" aria-label="Favorite project">⭐</button>
-                            <span class="like-count">0</span>
-                        </div>
                     </div>
                 </div>
             </template>
 
-            <!-- Project Modal (header/tags) -->
+            <!-- Project modal -->
             <div class="project-modal" id="project-modal" aria-hidden="true" role="dialog" aria-modal="true">
                 <div class="modal-content" role="document">
                     <div class="modal-header">
@@ -229,24 +217,20 @@
                                 <span class="modal-status-text"></span>
                             </div>
                         </div>
-
                         <button class="modal-close" id="modal-close" aria-label="Close modal">✕</button>
                     </div>
 
-                    <div class="modal-tags" aria-hidden="false"></div>
+                    <div class="modal-tags"></div>
                     <hr class="modal-divider" />
 
-                    <!-- main area: left column (image + logs + repo) and right column (description) -->
                     <div class="modal-scroll-wrapper" role="region" aria-label="Project details">
-                        <!-- left column: image, logs, repo button -->
-                        <aside class="modal-left" aria-hidden="false">
-                            <div class="modal-image" aria-hidden="false">
+                        <aside class="modal-left">
+                            <div class="modal-image">
                                 <button type="button" class="image-nav left" id="modal-prev"
-                                    aria-label="Previous image">‹
-                                </button>
+                                    aria-label="Previous image">‹</button>
                                 <img src="" alt="Project sample image" id="modal-image-el">
-                                <button type="button" class="image-nav right" id="modal-next" aria-label="Next image">›
-                                </button>
+                                <button type="button" class="image-nav right" id="modal-next"
+                                    aria-label="Next image">›</button>
                                 <div class="image-counter" id="modal-image-counter" aria-hidden="true"></div>
                             </div>
 
@@ -267,11 +251,9 @@
                             </div>
                         </aside>
 
-                        <!-- right column: description occupies full right side and is scrollable -->
-                        <div class="modal-right" aria-hidden="false">
+                        <div class="modal-right">
                             <div class="modal-description-wrap" role="document">
                                 <h2 class="modal-description-title">Description</h2>
-
                                 <div class="modal-description" tabindex="0" role="region"
                                     aria-label="Project description"></div>
                             </div>
@@ -279,8 +261,6 @@
                     </div>
                 </div>
             </div>
-
-
         </section>
 
         <!-- Contact section -->
@@ -305,19 +285,16 @@
                             <div class="contact-card">
                                 <h3>LinkedIn</h3>
                                 <p><a href="https://www.linkedin.com/in/john-jessienel-arquesola-96231735b"
-                                        target="_blank" rel="noopener noreferrer">John Jessienel Arquesola</a>
-                                </p>
+                                        target="_blank" rel="noopener noreferrer">John Jessienel Arquesola</a></p>
                             </div>
                             <div class="contact-card">
                                 <h3>GitHub</h3>
                                 <p><a href="https://github.com/Cocoasaur" target="_blank"
-                                        rel="noopener noreferrer">Cocoasaur</a>
-                                </p>
+                                        rel="noopener noreferrer">Cocoasaur</a></p>
                             </div>
                         </div>
                     </address>
                 </div>
-
             </article>
         </section>
     </main>
