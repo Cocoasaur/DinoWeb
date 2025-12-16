@@ -1436,7 +1436,7 @@ footer {
     z-index: 1;
 }
 
-/* ===== RESPONSIVE DESIGN ===== */
+/* ===== RESPONSIVE ELEMENT ===== */
 @media (max-width: 700px) {
     .top-nav {
         flex-direction: column;
