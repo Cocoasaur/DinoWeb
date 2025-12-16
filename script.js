@@ -138,11 +138,11 @@ function initProjects() {
             Players advance through levels by performing eco-friendly actions, like proper waste disposal, planting, and cleaning oceans, turning smalls sustainable habits into engaging gameplay that highlights how everyday choices can make a big difference for our planet.\n\n
             Team Members:\n • Gilo, Janwel - Project Lead\n • Andrada, Rey Jane - Full Stack Developer\n • Arquesola, John Jessienel - Full Stack Developer\n • Baja, Riza May - Front End/Graphics Designer\n • Solis, Charleign Kim - Front End/Graphics Designer`,
             images: [
-                "Assets/Project_Images/Earth Arcade/Earth Arcade1.png",
-                "Assets/Project_Images/Earth Arcade/Earth Arcade2.png",
-                "Assets/Project_Images/Earth Arcade/Earth Arcade3.png",
-                "Assets/Project_Images/Earth Arcade/Earth Arcade4.png",
-                "Assets/Project_Images/Earth Arcade/Earth Arcade5.png",
+                "Assets/Project_Images/EarthArcade/EarthArcade1.png",
+                "Assets/Project_Images/EarthArcade/EarthArcade2.png",
+                "Assets/Project_Images/EarthArcade/EarthArcade3.png",
+                "Assets/Project_Images/EarthArcade/EarthArcade4.png",
+                "Assets/Project_Images/EarthArcade/EarthArcade5.png",
             ],
             tags: ["Godot", "GDScript", "2D Game", "Group-Project", "Second-Year-Project", "GAME-ON Hackathon"],
             status: { key: "paused", text: "Paused" },
