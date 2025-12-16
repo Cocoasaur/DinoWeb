@@ -78,6 +78,7 @@ function initProjects() {
     }
 
     /* Helper: Convert plain text into HTML paragraphs */
+    /* \n\n for paragraph */
     function formatParagraphs(text) {
         if (!text) return "";
         text = String(text).replace(/\r\n/g, "\n").replace(/\r/g, "\n");
@@ -86,6 +87,10 @@ function initProjects() {
     }
 
     /* Project data */
+    /* DATA (Template-friendly). */
+    /* Key = completed, in-progress, paused, under-maintenance */
+    /* Text Values = Updated / Completed, In Progress, Paused, Under Maintenance */
+    /* Logs = Format: "YYYY-MM-DD" -m */
     const projects = [
         {
             id: "tipairlines",
