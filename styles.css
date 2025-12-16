@@ -871,7 +871,7 @@ section:not(#home) {
 
 .project-tag {
     background: #ffbf57;
-    color: var(--accent-cyan);
+    color: #000;
     font-size: 0.8rem;
     padding: 4px 8px;
     border-radius: 8px;
@@ -894,7 +894,7 @@ section:not(#home) {
     left: 50%;
     transform: translateX(-50%);
     background: var(--surface);
-    border: 1px solid var(--accent-cyan);
+    border: 1px solid #000;
     border-radius: 8px;
     padding: 8px;
     z-index: 20;
@@ -1041,8 +1041,8 @@ section:not(#home) {
 }
 
 .modal-tag {
-    background: #f0f4fa;
-    color: var(--accent-cyan);
+    background: #bcdef4;
+    color: #000;
     font-size: 0.8rem;
     padding: 4px 8px;
     border-radius: 8px;
@@ -1160,7 +1160,7 @@ section:not(#home) {
     border: 1px solid var(--border-light);
     border-radius: 10px;
     padding: 8px;
-    max-height: 330px;
+    max-height: 100px;
     overflow-y: auto;
     box-shadow: var(--soft-inset);
 }
@@ -1523,7 +1523,7 @@ footer {
 
     .modal-left,
     .modal-right {
-        width: 100%;
+        max-width: 100%;
     }
 
     .modal-image {
