@@ -866,6 +866,7 @@ section:not(#home) {
     display: flex;
     flex-wrap: wrap;
     gap: 5px;
+    /* Added gap for better spacing */
     margin-top: auto;
 }
 

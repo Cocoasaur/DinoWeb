@@ -476,7 +476,7 @@ function initProjects() {
     renderProjects();
 }
 
-// Optional dis
+// Optional dis (forcing) of user interactions like right-click, text selection, and shortcuts
 document.addEventListener("DOMContentLoaded", () => {
     // Disable right-click
     // document.addEventListener("contextmenu", e => e.preventDefault());
