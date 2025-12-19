@@ -475,3 +475,25 @@ function initProjects() {
 
     renderProjects();
 }
+
+// Optional dis
+document.addEventListener("DOMContentLoaded", () => {
+    // Disable right-click
+    // document.addEventListener("contextmenu", e => e.preventDefault());
+
+    // Disable text selection
+    document.body.style.userSelect = "none";
+
+    // Block common shortcuts
+    document.addEventListener("keydown", e => {
+        if (e.ctrlKey && ["c", "u", "s"].includes(e.key.toLowerCase())) {
+            e.preventDefault();
+        }
+        if (e.key === "F12") {
+            e.preventDefault();
+        }
+    });
+
+    // Disable dragging
+    document.addEventListener("dragstart", e => e.preventDefault());
+});
