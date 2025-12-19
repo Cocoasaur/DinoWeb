@@ -865,7 +865,7 @@ section:not(#home) {
 .project-tags {
     display: flex;
     flex-wrap: wrap;
-    gap: 6px;
+    gap: 5px;
     margin-top: auto;
 }
 
