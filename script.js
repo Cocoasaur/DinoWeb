@@ -218,7 +218,7 @@ function initProjects() {
 
         const tagsWrap = node.querySelector(".project-tags");
         tagsWrap.innerHTML = "";
-        const maxVisible = 3;
+        const maxVisible = 2;
         const tags = project.tags;
 
         tags.slice(0, maxVisible).forEach(tag => {
