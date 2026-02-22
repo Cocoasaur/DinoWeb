@@ -6,257 +6,182 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DinoWeb</title>
     <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 
 <body>
-    <!-- Site-wide navigation -->
-    <header>
-        <nav class="top-nav" aria-label="Main navigation">
-            <h3 class="site-title">DinoWeb</h3>
-            <ul>
-                <li><a href="#home">Home</a></li>
-                <li><a href="#about">About</a></li>
-                <li><a href="#projects">Projects</a></li>
-                <li><a href="#contact">Contact</a></li>
-            </ul>
+    <canvas id="background-canvas"></canvas>
+    <header class="site-header">
+        <!-- Navigation -->
+        <nav class="navbar" aria-label="Primary">
+            <div class="nav-container">
+                <a href="#home" class="nav-logo">DinoWeb</a>
+                <ul class="nav-menu">
+                    <li><a href="#home" class="nav-link" data-nav="home">Home</a></li>
+                    <li><a href="#about" class="nav-link" data-nav="about">About</a></li>
+                    <li><a href="#projects" class="nav-link" data-nav="projects">Projects</a></li>
+                    <li><a href="#contact" class="nav-link" data-nav="contact">Contact</a></li>
+                </ul>
+                <button class="nav-toggle" aria-label="Toggle navigation">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+            </div>
         </nav>
     </header>
 
-    <!-- Hero / Intro section -->
-    <main>
-        <section id="home">
-            <article class="home-container">
-                <header class="home-header">
-                    <span class="home-filename">welcome.dino</span>
-                    <span class="home-status">
-                        <span class="home-status-dot"></span>Completed
-                    </span>
-                </header>
+    <main class="site-main">
 
-                <div class="home-content">
-                    <h2>JL Arquesola</h2>
-                    <p><span id="typing-effect"></span></p>
-                    <div class="home-buttons">
-                        <a href="#projects" class="btn btn-primary">View Projects</a>
-                        <a href="#contact" class="btn btn-secondary">Get In Touch</a>
-                    </div>
-                    <div class="home-icons">
-                        <a href="https://github.com/Cocoasaur" aria-label="GitHub profile">
-                            <span class="icon-github"></span>
-                        </a>
-                        <a href="https://www.linkedin.com/in/john-jessienel-arquesola-96231735b" target="_blank"
-                            rel="noopener noreferrer" aria-label="LinkedIn profile">
-                            <span class="icon-linkedin"></span>
-                        </a>
-                        <a href="mailto:cocoasaurj@gmail.com" aria-label="Email me">
-                            <span class="icon-mail"></span>
-                        </a>
+        <!-- Hero Section -->
+        <section id="home" class="hero">
+            <div class="hero-container">
+                <div class="hero-content">
+                    <p class="hero-greeting">Hi, I'm</p>
+                    <h1 class="hero-name">JL Arquesola</h1>
+                    <p class="hero-title"><span id="typing-text"></span><span class="cursor">|</span></p>
+                    <div class="hero-buttons">
+                        <a href="#projects" class="btn btn-primary">View My Work</a>
+                        <a href="#contact" class="btn btn-secondary">Get in Touch</a>
                     </div>
                 </div>
-            </article>
+            </div>
         </section>
 
-        <!-- About section -->
-        <section id="about">
-            <article class="about-container">
-                <header class="about-header">
-                    <span class="about-filename">about.dino</span>
-                    <div class="about-status">
-                        <span class="about-status-dot"></span>
-                        <span>Completed</span>
-                    </div>
-                </header>
-
-                <div class="about-row">
-                    <aside class="about-story">
-                        <h2>About Me</h2>
-                        <p class="indent-one">
-                            Fueled by curiosity and a love for solving puzzles, I see every challenge
-                            as an open canvas waiting for bold ideas and clever solutions.
-                            Technology is my playground, I am constantly experimenting with new tools,
-                            refining my craft in programming and design, and finding fresh ways to
-                            blend logic with imagination.
-                        </p>
-                        <p class="indent-two">
-                            For me, growth is not just about learning new skills, it is about
-                            stretching boundaries, embracing the unknown, and turning obstacles into opportunities.
-                            Whether I am sketching out a design, debugging a tricky line of code, or exploring
-                            the next wave of innovation, I bring both creativity and determination to the table.
-                        </p>
-                        <p class="indent-three">
-                            I do not just chase challenges, I welcome them, because each one is a
-                            chance to create something meaningful, elegant, and lasting.
-                        </p>
-                    </aside>
-
-                    <figure class="profile-card">
-                        <figcaption class="profile-filename">Dis is me.jpg</figcaption>
-                        <div class="profile-image">
-                            <img src="../Assets/My_Images/Cocoasaur.png" alt="Profile" />
-                        </div>
-                        <figcaption class="profile-status">
-                            <span class="profile-dot"></span>
-                            <span>Currently Doing Somethin</span>
-                        </figcaption>
-                    </figure>
+        <!-- About Section -->
+        <section id="about" class="about">
+            <div class="container">
+                <div class="section-header">
+                    <span class="section-label">Get to know me</span>
+                    <h2 class="section-title">About Me</h2>
                 </div>
 
-                <div class="skills-container">
-                    <div class="skills-list">
-                        <h3>Skills Gauge</h3>
-                        <div class="skills-list-content">
-                            <div class="skill" data-skill="75" data-color="#e34c26">
-                                <span>HTML</span>
-                                <div class="skill-bar">
-                                    <div class="skill-fill"></div>
-                                </div>
-                                <span class="skill-percent"></span>
+                <!-- Bento Box Grid Layout -->
+                <div class="bento-grid">
+                    <!-- Main Bio Card - Spans 2 columns -->
+                    <div class="bento-box bio-box">
+                        <h3 class="bento-title">About Me</h3>
+                        <div class="bento-content">
+                            <p class="indent">
+                                Fueled by curiosity and a love for solving puzzles, I see every challenge
+                                as an open canvas waiting for bold ideas and clever solutions.
+                                Technology is my playground, I'm constantly experimenting with new tools,
+                                refining my craft in programming and design, and finding fresh ways to
+                                blend logic with imagination.
+                            </p>
+                            <p class="indent">
+                                For me, growth isn't just about learning new skills, it's about
+                                stretching boundaries, embracing the unknown, and turning obstacles into opportunities.
+                                Whether I'm sketching out a design, debugging a tricky line of code, or exploring
+                                the next wave of innovation, I bring both creativity and determination to the table.
+                            </p>
+                            <p class="indent">
+                                I don't just chase challenges, I welcome them, because each one is a
+                                chance to create something meaningful, elegant, and lasting.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Image Card -->
+                    <div class="bento-box image-box">
+                        <div class="image-wrapper">
+                            <img src="../Assets//My_Images/Cocoasaur.png" alt="Portfolio Showcase">
+                            <div class="image-overlay"></div>
+                        </div>
+                    </div>
+
+                    <!-- Languages Card -->
+                    <div class="bento-box languages-box">
+                        <h3 class="bento-title">Languages</h3>
+                        <div class="skill-items">
+                            <div class="skill-item">
+                                <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/html5/html5-original.svg"
+                                    alt="HTML5">
+                                <span>HTML5</span>
                             </div>
-                            <div class="skill" data-skill="70" data-color="#264de4">
-                                <span>CSS</span>
-                                <div class="skill-bar">
-                                    <div class="skill-fill"></div>
-                                </div>
-                                <span class="skill-percent"></span>
+                            <div class="skill-item">
+                                <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/css3/css3-original.svg"
+                                    alt="CSS3">
+                                <span>CSS3</span>
                             </div>
-                            <div class="skill" data-skill="55" data-color="#f0db4f">
+                            <div class="skill-item">
+                                <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/javascript/javascript-original.svg"
+                                    alt="JavaScript">
                                 <span>JavaScript</span>
-                                <div class="skill-bar">
-                                    <div class="skill-fill"></div>
-                                </div>
-                                <span class="skill-percent"></span>
                             </div>
-                            <div class="skill" data-skill="60" data-color="#3776ab">
+                            <div class="skill-item">
+                                <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg"
+                                    alt="Python">
                                 <span>Python</span>
-                                <div class="skill-bar">
-                                    <div class="skill-fill"></div>
-                                </div>
-                                <span class="skill-percent"></span>
                             </div>
-                            <div class="skill" data-skill="53" data-color="#b07219">
+                            <div class="skill-item">
+                                <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/java/java-original.svg"
+                                    alt="Java">
                                 <span>Java</span>
-                                <div class="skill-bar">
-                                    <div class="skill-fill"></div>
-                                </div>
-                                <span class="skill-percent"></span>
                             </div>
                         </div>
                     </div>
 
-                    <div class="technical-skills">
-                        <h3>Technical Skills</h3>
-                        <div class="tech-grid">
-                            <div class="tech-item">Git & GitHub</div>
-                            <div class="tech-item">Responsive Design</div>
-                            <div class="tech-item">Agile Development</div>
-                            <div class="tech-item">Testing & Debugging</div>
-                            <div class="tech-item">UI/UX Principles</div>
-                            <div class="tech-item">Problem-Solving</div>
-                        </div>
-                    </div>
-                </div>
-            </article>
-        </section>
-
-        <!-- Projects section -->
-        <section id="projects">
-            <article class="projects-container">
-                <header class="projects-header">
-                    <span class="projects-filename">projects.dino</span>
-                    <div class="projects-status">
-                        <span class="projects-status-dot" data-status="updated"></span>
-                        <span>Completed</span>
-                    </div>
-                </header>
-
-                <!-- Projects controls; Search and Filter -->
-                <div class="projects-controls">
-                    <input type="search" id="project-search" placeholder="🔎Search project by tag or keyword..."
-                        aria-label="Search projects">
-                    <select id="project-filter" class="project-filter" aria-label="Filter projects by status">
-                        <option value="all">All Statuses</option>
-                        <option value="completed">Completed</option>
-                        <option value="in-progress">In Progress</option>
-                        <option value="paused">Paused</option>
-                        <option value="under-maintenance">Under Maintenance</option>
-                    </select>
-                    <div class="active-filters" id="active-filters"></div>
-                </div>
-
-                <div class="projects-grid" id="projects-grid"></div>
-            </article>
-
-            <!-- Project card template -->
-            <template id="project-card-template">
-                <div class="project-card">
-                    <div class="project-image">
-                        <img src="" alt="Project preview">
-                    </div>
-                    <div class="project-card-top">
-                        <div class="project-title"></div>
-                        <div class="project-card-status">
-                            <span class="status-dot"></span>
-                            <span class="project-card-status-text"></span>
-                        </div>
-                    </div>
-                    <div class="project-desc"></div>
-                    <div class="project-tags"></div>
-                    <div class="project-actions">
-                        <button class="project-btn" type="button">View details</button>
-                    </div>
-                </div>
-            </template>
-
-            <!-- Project modal -->
-            <div class="project-modal" id="project-modal" aria-hidden="true" role="dialog" aria-modal="true">
-                <div class="modal-content" role="document">
-                    <div class="modal-header">
-                        <div class="modal-heading">
-                            <h2 class="modal-title"></h2>
-                            <div class="modal-status">
-                                <span class="status-dot"></span>
-                                <span class="modal-status-text"></span>
+                    <!-- Tools & Technologies Card -->
+                    <div class="bento-box technical-skills-box">
+                        <h3 class="bento-title">Tools &amp; Technologies</h3>
+                        <div class="tool-items">
+                            <div class="tool-item">
+                                <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/figma/figma-original.svg"
+                                    alt="Figma">
+                                <span>Figma</span>
+                            </div>
+                            <div class="tool-item">
+                                <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/canva/canva-original.svg"
+                                    alt="Canva">
+                                <span>Canva</span>
+                            </div>
+                            <div class="tool-item">
+                                <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/vscode/vscode-original.svg"
+                                    alt="Visual Studio Code">
+                                <span>VS Code</span>
+                            </div>
+                            <div class="tool-item">
+                                <img src="https://i.logos-download.com/114435/32685-c5fcbc31d0e972267a451c178cedb404.svg/Google_Antigravity_Logo_2025_icon.svg"
+                                    alt="Google Antigravity">
+                                <span>Antigravity</span>
+                            </div>
+                            <div class="tool-item">
+                                <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/postman/postman-original.svg"
+                                    alt="Postman">
+                                <span>Postman</span>
+                            </div>
+                            <div class="tool-item">
+                                <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/git/git-original.svg"
+                                    alt="Git">
+                                <span>Git</span>
                             </div>
                         </div>
-                        <button class="modal-close" id="modal-close" aria-label="Close modal">✕</button>
                     </div>
 
-                    <div class="modal-tags"></div>
-                    <hr class="modal-divider" />
+                    <!-- Technical Skills Card -->
+                    <div class="bento-box technical-skills-box">
+                        <h3 class="bento-title">Technical Skills</h3>
+                        <div class="skill-tags">
+                            <span class="skill-tag">Responsive Design</span>
+                            <span class="skill-tag">Agile Development</span>
+                            <span class="skill-tag">Testing &amp; Debugging</span>
+                            <span class="skill-tag">UI/UX Principles</span>
+                            <span class="skill-tag">Version Control</span>
+                        </div>
+                    </div>
 
-                    <div class="modal-scroll-wrapper" role="region" aria-label="Project details">
-                        <aside class="modal-left">
-                            <div class="modal-image">
-                                <button type="button" class="image-nav left" id="modal-prev"
-                                    aria-label="Previous image">‹</button>
-                                <img src="" alt="Project sample image" id="modal-image-el">
-                                <button type="button" class="image-nav right" id="modal-next"
-                                    aria-label="Next image">›</button>
-                                <div class="image-counter" id="modal-image-counter" aria-hidden="true"></div>
+                    <!-- Availability Card -->
+                    <div class="bento-box availability-box">
+                        <div class="availability-content">
+                            <div class="availability-icon">
+                                <div class="availability-dot"></div>
                             </div>
-
-                            <div class="modal-logs" aria-live="polite">
-                                <h3>Update Logs</h3>
-                                <div class="logs-container" role="log" aria-label="Project update logs">
-                                    <ul class="logs-list"></ul>
-                                </div>
-                            </div>
-
-                            <div class="modal-footer">
-                                <a href="#" target="_blank" rel="noopener" class="github-btn"
-                                    aria-label="View Repository">
-                                    <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/github/github-original.svg"
-                                        alt="GitHub icon">
-                                    <span>View Repository</span>
-                                </a>
-                            </div>
-                        </aside>
-
-                        <div class="modal-right">
-                            <div class="modal-description-wrap" role="document">
-                                <h2 class="modal-description-title">Description</h2>
-                                <div class="modal-description" tabindex="0" role="region"
-                                    aria-label="Project description"></div>
+                            <div class="availability-text">
+                                <h4>Currently Doing Something</h4>
+                                <p>Busy with academics</p>
                             </div>
                         </div>
                     </div>
@@ -264,114 +189,292 @@
             </div>
         </section>
 
-        <!-- Contact section -->
-        <section id="contact">
-            <article class="contact-container">
-                <header class="contact-header">
-                    <span class="contact-filename">contact.dino</span>
-                    <div class="contact-status">
-                        <span class="contact-status-dot"></span>
-                        <span>In Progress</span>
+        <!-- Projects Section -->
+        <section id="projects" class="projects">
+            <div class="container">
+                <div class="section-header">
+                    <span class="section-label">What I've built</span>
+                    <h2 class="section-title">Featured Projects</h2>
+                </div>
+
+                <div class="projects-controls">
+                    <div class="search-wrapper">
+                        <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <path d="m21 21-4.35-4.35"></path>
+                        </svg>
+                        <input type="text" id="project-search" placeholder="Search projects..." class="search-input">
                     </div>
-                </header>
-
-                <!-- Contact cards -->
-                <div class="contact-body">
-                    <div class="contact-info">
-                        <h2>Get In Touch</h2>
-                        <div class="contact-grid">
-                            <!-- Email Card -->
-                            <a href="mailto:cocoasaurjl@gmail.com" class="contact-card" data-platform="email">
-                                <div class="contact-icon-wrapper">
-                                    <svg class="contact-icon" viewBox="0 0 24 24" fill="none"
-                                        xmlns="http://www.w3.org/2000/svg">
-                                        <path
-                                            d="M3 8L10.89 13.26C11.5302 13.6805 12.4698 13.6805 13.11 13.26L21 8M5 19H19C20.1046 19 21 18.1046 21 17V7C21 5.89543 20.1046 5 19 5H5C3.89543 5 3 5.89543 3 7V17C3 18.1046 3.89543 19 5 19Z"
-                                            stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                            stroke-linejoin="round" />
-                                    </svg>
-                                </div>
-                                <div class="contact-card-content">
-                                    <h3>Email</h3>
-                                    <p class="contact-handle">cocoasaurjl@gmail.com</p>
-                                </div>
-                                <div class="contact-arrow">
-                                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <path d="M7 17L17 7M17 7H7M17 7V17" stroke="currentColor" stroke-width="2"
-                                            stroke-linecap="round" stroke-linejoin="round" />
-                                    </svg>
-                                </div>
-                            </a>
-
-                            <!-- LinkedIn Card -->
-                            <a href="https://www.linkedin.com/in/john-jessienel-arquesola-96231735b" target="_blank"
-                                rel="noopener noreferrer" class="contact-card" data-platform="linkedin">
-                                <div class="contact-icon-wrapper">
-                                    <svg class="contact-icon" viewBox="0 0 24 24" fill="none"
-                                        xmlns="http://www.w3.org/2000/svg">
-                                        <path
-                                            d="M16 8C17.5913 8 19.1174 8.63214 20.2426 9.75736C21.3679 10.8826 22 12.4087 22 14V21H18V14C18 13.4696 17.7893 12.9609 17.4142 12.5858C17.0391 12.2107 16.5304 12 16 12C15.4696 12 14.9609 12.2107 14.5858 12.5858C14.2107 12.9609 14 13.4696 14 14V21H10V14C10 12.4087 10.6321 10.8826 11.7574 9.75736C12.8826 8.63214 14.4087 8 16 8Z"
-                                            stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                            stroke-linejoin="round" />
-                                        <path d="M6 9H2V21H6V9Z" stroke="currentColor" stroke-width="2"
-                                            stroke-linecap="round" stroke-linejoin="round" />
-                                        <path
-                                            d="M4 6C5.10457 6 6 5.10457 6 4C6 2.89543 5.10457 2 4 2C2.89543 2 2 2.89543 2 4C2 5.10457 2.89543 6 4 6Z"
-                                            stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                            stroke-linejoin="round" />
-                                    </svg>
-                                </div>
-                                <div class="contact-card-content">
-                                    <h3>LinkedIn</h3>
-                                    <p class="contact-handle">John Jessienel Arquesola</p>
-                                </div>
-                                <div class="contact-arrow">
-                                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <path d="M7 17L17 7M17 7H7M17 7V17" stroke="currentColor" stroke-width="2"
-                                            stroke-linecap="round" stroke-linejoin="round" />
-                                    </svg>
-                                </div>
-                            </a>
-
-                            <!-- GitHub Card -->
-                            <a href="https://github.com/Cocoasaur" target="_blank" rel="noopener noreferrer"
-                                class="contact-card" data-platform="github">
-                                <div class="contact-icon-wrapper">
-                                    <svg class="contact-icon" viewBox="0 0 24 24" fill="none"
-                                        xmlns="http://www.w3.org/2000/svg">
-                                        <path
-                                            d="M9 19C4 20.5 4 16.5 2 16M16 22V18.13C16.0375 17.6532 15.9731 17.1738 15.811 16.7238C15.6489 16.2738 15.3929 15.8634 15.06 15.52C18.2 15.17 21.5 13.98 21.5 8.52C21.4997 7.12383 20.9627 5.7812 20 4.77C20.4559 3.54851 20.4236 2.19835 19.91 1C19.91 1 18.73 0.65 16 2.48C13.708 1.85882 11.292 1.85882 9 2.48C6.27 0.65 5.09 1 5.09 1C4.57638 2.19835 4.54414 3.54851 5 4.77C4.03013 5.7887 3.49252 7.14346 3.5 8.55C3.5 13.97 6.8 15.16 9.94 15.55C9.611 15.89 9.35726 16.2954 9.19531 16.7399C9.03335 17.1844 8.96681 17.6581 9 18.13V22"
-                                            stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                            stroke-linejoin="round" />
-                                    </svg>
-                                </div>
-                                <div class="contact-card-content">
-                                    <h3>GitHub</h3>
-                                    <p class="contact-handle">@Cocoasaur</p>
-                                </div>
-                                <div class="contact-arrow">
-                                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <path d="M7 17L17 7M17 7H7M17 7V17" stroke="currentColor" stroke-width="2"
-                                            stroke-linecap="round" stroke-linejoin="round" />
-                                    </svg>
-                                </div>
-                            </a>
+                    <div class="custom-filter" id="custom-filter">
+                        <button type="button" class="custom-filter-trigger" id="filter-trigger" aria-haspopup="listbox"
+                            aria-expanded="false" aria-controls="filter-menu">
+                            <span id="filter-trigger-text">All Projects</span>
+                            <svg class="filter-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                aria-hidden="true">
+                                <polyline points="6 9 12 15 18 9"></polyline>
+                            </svg>
+                        </button>
+                        <div class="custom-filter-menu" id="filter-menu" role="listbox" aria-label="Filter projects">
+                            <button type="button" class="custom-filter-option active" role="option" aria-selected="true"
+                                data-value="all">All Projects</button>
+                            <button type="button" class="custom-filter-option" role="option" aria-selected="false"
+                                data-value="completed">Completed</button>
+                            <button type="button" class="custom-filter-option" role="option" aria-selected="false"
+                                data-value="in-progress">In Progress</button>
+                            <button type="button" class="custom-filter-option" role="option" aria-selected="false"
+                                data-value="paused">Paused</button>
                         </div>
+                        <select id="filter-select" class="filter-select-native" aria-hidden="true" tabindex="-1">
+                            <option value="all">All Projects</option>
+                            <option value="completed">Completed</option>
+                            <option value="in-progress">In Progress</option>
+                            <option value="paused">Paused</option>
+                        </select>
                     </div>
                 </div>
-            </article>
+
+                <div id="active-filters" class="active-filters"></div>
+
+                <div id="projects-grid" class="projects-grid"></div>
+
+                <div id="empty-state" class="empty-state" style="display: none;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="12" y1="16" x2="12" y2="12"></line>
+                        <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                    </svg>
+                    <h3>No projects found</h3>
+                    <p>Try adjusting your search or filters</p>
+                </div>
+            </div>
         </section>
+
+        <!-- Contact Section -->
+        <section id="contact" class="contact">
+            <div class="container">
+                <div class="contact-header-wrapper">
+                    <div class="contact-header">
+                    </div>
+                    <div class="contact-main-content">
+                        <span class="section-label">Connect with Me</span>
+                        <h2 class="contact-main-title">Get In Touch</h2>
+                        <p class="contact-description">
+                            I'm always open to discussing new projects, creative ideas, or opportunities to be part of
+                            your
+                            visions.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="contact-content">
+
+                    <div class="contact-grid">
+                        <a href="mailto:cocoasaurjl@gmail.com" class="contact-card">
+                            <div class="contact-card-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                    <rect x="3" y="5" width="18" height="14" rx="3"></rect>
+                                    <path d="M4 7l8 6 8-6"></path>
+                                    <path d="M10 12l-6 5"></path>
+                                    <path d="M14 12l6 5"></path>
+                                </svg>
+                            </div>
+                            <div class="contact-card-content">
+                                <h3>Email</h3>
+                                <p><span class="__cf_email__"
+                                        data-cfemail="7c1f131f131d0f1d090e16103c1b111d1510521f1311"><span
+                                            class="__cf_email__"
+                                            data-cfemail="3a595559555b495b4f4850567a5d575b535614595557">cocoasaurjl@gmail.com</span></span>
+                                </p>
+                            </div>
+                            <div class="contact-card-arrow">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                    <path d="M7 17L17 7"></path>
+                                    <path d="M7 7h10v10"></path>
+                                </svg>
+                            </div>
+                        </a>
+
+                        <a href="https://www.linkedin.com/in/john-jessienel-arquesola-96231735b" target="_blank"
+                            rel="noopener noreferrer" class="contact-card">
+                            <div class="contact-card-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                    <rect x="3" y="3" width="18" height="18" rx="4"></rect>
+                                    <path d="M8 10v7"></path>
+                                    <path d="M8 7.5h.01"></path>
+                                    <path d="M12 17v-4a2 2 0 0 1 4 0v4"></path>
+                                    <path d="M12 10v7"></path>
+                                </svg>
+                            </div>
+                            <div class="contact-card-content">
+                                <h3>LinkedIn</h3>
+                                <p>John Jessienel Arquesola</p>
+                            </div>
+                            <div class="contact-card-arrow">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                    <path d="M7 17L17 7"></path>
+                                    <path d="M7 7h10v10"></path>
+                                </svg>
+                            </div>
+                        </a>
+
+                        <a href="https://github.com/Cocoasaur" target="_blank" rel="noopener noreferrer"
+                            class="contact-card">
+                            <div class="contact-card-icon">
+                                <svg class="icon-github" viewBox="0 0 16 16" fill="currentColor" stroke="none"
+                                    aria-hidden="true">
+                                    <path
+                                        d="M8 0C3.58 0 0 3.58 0 8a8 8 0 0 0 5.47 7.59c.4.07.55-.17.55-.38v-1.49c-2.22.48-2.69-1.07-2.69-1.07-.36-.92-.88-1.16-.88-1.16-.72-.5.05-.49.05-.49.79.06 1.21.82 1.21.82.71 1.2 1.87.86 2.33.66.07-.52.28-.86.5-1.06-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.58.82-2.14-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.6 7.6 0 0 1 4 0c1.53-1.03 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.14 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48v2.2c0 .21.15.46.55.38A8 8 0 0 0 16 8c0-4.42-3.58-8-8-8z">
+                                    </path>
+                                </svg>
+                            </div>
+                            <div class="contact-card-content">
+                                <h3>GitHub</h3>
+                                <p>@Cocoasaur</p>
+                            </div>
+                            <div class="contact-card-arrow">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                    <path d="M7 17L17 7"></path>
+                                    <path d="M7 7h10v10"></path>
+                                </svg>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
     </main>
 
-    <!-- Background Canvas -->
-    <canvas id="background-canvas"></canvas>
-
+    <!-- Footer -->
     <footer class="footer">
-        <p>&copy; 2026 DinoWeb. All rights reserved.</p>
+        <p>&copy; 2026 DinoWeb</p>
     </footer>
+
+    <!-- Project Modal -->
+    <aside id="project-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title"
+        aria-hidden="true">
+        <div class="modal-overlay" id="modal-overlay"></div>
+        <div class="modal-container">
+            <header class="modal-header">
+                <div class="modal-header-left">
+                    <h2 class="modal-title" id="modal-title">Project Title</h2>
+                    <div class="modal-meta">
+                        <div class="modal-status">
+                            <span class="status-dot" id="modal-status-dot"></span>
+                            <span id="modal-status-text">Status</span>
+                        </div>
+                        <div class="modal-tags" id="modal-tags"></div>
+                    </div>
+                </div>
+                <button class="modal-close" id="modal-close" onclick="closeModal()" aria-label="Close modal">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </header>
+
+            <section class="modal-body" aria-label="Project details">
+                <div class="modal-bento-grid">
+                    <!-- Gallery Bento Box - Large -->
+                    <div class="modal-bento-box modal-gallery-box">
+                        <div class="gallery-main">
+                            <img id="modal-image" src="" alt="Project screenshot">
+                            <button class="gallery-btn gallery-prev" id="gallery-prev" aria-label="Previous image">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                    <polyline points="15 18 9 12 15 6"></polyline>
+                                </svg>
+                            </button>
+                            <button class="gallery-btn gallery-next" id="gallery-next" aria-label="Next image">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                    <polyline points="9 18 15 12 9 6"></polyline>
+                                </svg>
+                            </button>
+                            <div class="gallery-counter" id="gallery-counter">1 / 1</div>
+                        </div>
+                        <div class="gallery-thumbnails" id="gallery-thumbnails"></div>
+                    </div>
+
+                    <!-- Description Bento Box -->
+                    <div class="modal-bento-box modal-description-box">
+                        <h3 class="modal-bento-title">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                <polyline points="14 2 14 8 20 8"></polyline>
+                            </svg>
+                            Description
+                        </h3>
+                        <div class="modal-description" id="modal-description"></div>
+                    </div>
+
+                    <!-- Development Logs Bento Box -->
+                    <div class="modal-bento-box modal-logs-box">
+                        <h3 class="modal-bento-title">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path>
+                            </svg>
+                            Development Logs
+                        </h3>
+                        <div class="modal-logs">
+                            <ul id="modal-logs-list"></ul>
+                        </div>
+                    </div>
+
+                    <!-- Repository Link Bento Box -->
+                    <div class="modal-bento-box modal-repo-box">
+                        <a href="#" id="modal-repo-link" class="repo-link-card" target="_blank"
+                            rel="noopener noreferrer">
+                            <div class="repo-link-icon">
+                                <svg viewBox="0 0 24 24" fill="currentColor">
+                                    <path
+                                        d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
+                                </svg>
+                            </div>
+                            <div class="repo-link-content">
+                                <h4>View Repository</h4>
+                                <p>Check out the source code</p>
+                            </div>
+                            <div class="repo-link-arrow">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                    <path d="M7 17L17 7"></path>
+                                    <path d="M7 7h10v10"></path>
+                                </svg>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </aside>
+
+    <!-- Project Card Template -->
+    <template id="project-card-template">
+        <article class="project-card">
+            <!-- Background Image -->
+            <figure class="project-card-image-bg">
+                <img src="" alt="">
+            </figure>
+            <!-- Gradient Overlay -->
+            <div class="project-card-overlay-gradient"></div>
+            <!-- Status Badge - Top Right -->
+            <aside class="project-card-status" aria-label="Project status">
+                <span class="status-dot"></span>
+            </aside>
+            <!-- Content - Bottom -->
+            <section class="project-card-content">
+                <h3 class="project-card-title"></h3>
+                <p class="project-card-desc"></p>
+                <div class="project-card-tags"></div>
+                <button class="project-view-btn">View Project</button>
+            </section>
+        </article>
+    </template>
+
+    <!-- Tag Tooltip -->
+    <div id="tag-tooltip" class="tag-tooltip" aria-hidden="true">
+        <div class="tag-tooltip-content"></div>
+    </div>
 
     <script src="script.js"></script>
     <script src="2d-background.js"></script>
 </body>
-
-</html>

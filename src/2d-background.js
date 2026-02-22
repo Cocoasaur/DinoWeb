@@ -114,15 +114,17 @@ function animate() {
 
 // check if particles are close enough to draw line between them
 function connect() {
-    let opacityValue = 1;
-    for (let a = 0; a < particlesArray.length; a++) {
-        for (let b = a; b < particlesArray.length; b++) {
-            let distance = ((particlesArray[a].x - particlesArray[b].x) * (particlesArray[a].x - particlesArray[b].x))
-                + ((particlesArray[a].y - particlesArray[b].y) * (particlesArray[a].y - particlesArray[b].y));
+    const maxDistance = (canvas.width / 7) * (canvas.height / 7);
 
-            if (distance < (canvas.width / 7) * (canvas.height / 7)) {
-                opacityValue = 1 - (distance / 20000);
-                ctx.strokeStyle = 'rgba(255, 255, 255, ' + opacityValue + ')';
+    for (let a = 0; a < particlesArray.length; a++) {
+        for (let b = a + 1; b < particlesArray.length; b++) {
+            const dx = particlesArray[a].x - particlesArray[b].x;
+            const dy = particlesArray[a].y - particlesArray[b].y;
+            const distance = (dx * dx) + (dy * dy);
+
+            if (distance < maxDistance) {
+                const opacityValue = 1 - (distance / 20000);
+                ctx.strokeStyle = `rgba(255, 255, 255, ${opacityValue})`;
                 ctx.lineWidth = 1;
                 ctx.beginPath();
                 ctx.moveTo(particlesArray[a].x, particlesArray[a].y);
@@ -133,12 +135,16 @@ function connect() {
     }
 }
 
-// resize event
+// resize event with debounce for performance
+let resizeTimeout;
 window.addEventListener('resize',
     function () {
-        canvas.width = innerWidth;
-        canvas.height = innerHeight;
-        init();
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(() => {
+            canvas.width = innerWidth;
+            canvas.height = innerHeight;
+            init();
+        }, 250);
     }
 )
 
