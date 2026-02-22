@@ -1,30 +1,8 @@
 /* =====================================================
    DINOWEB - PORTFOLIO STYLESHEET
    =====================================================
-   
-   TABLE OF CONTENTS:
-   1. Modern Reset
-   2. CSS Variables
-   3. Base Styles
-   4. Layout Components
-      - Navigation
-      - Hero Section
-      - About Section (Bento Grid)
-      - Projects Section
-      - Contact Section
-   5. Modals
-   6. Utilities
-   7. Animations
-   8. Responsive Design
-      - Desktop (1024px+)
-      - Tablet (768px - 1024px)
-      - Mobile (< 768px)
-   
-   Last Updated: 2025
-   ===================================================== */
+*/
 
-/* ===== MODERN RESET ===== */
-*,
 *::before,
 *::after {
     margin: 0;
@@ -32,8 +10,33 @@
     box-sizing: border-box;
 }
 
-/* ===== CSS VARIABLES ===== */
 :root {
+    /* ── Color Lock: prevents ALL browser dark/light mode overrides ── */
+    color-scheme: only dark;
+    /* ── Navbar surface (white pill + dark text) ── */
+    --nav-bg: #ffffff;
+    --nav-text: #000000;
+    --nav-toggle-bar: #000000;
+    --nav-mobile-bg: #ffffff;
+
+    /* ── Modal / pop-up surfaces ── */
+    --modal-container-bg: #f8fafc;
+    --modal-container-border: #e2e8f0;
+    --modal-header-bg: #ffffff;
+    --modal-header-border: #e2e8f0;
+    --modal-body-bg: #f8fafc;
+    --modal-title-color: #0f172a;
+    --modal-scrollbar-track: #f8fafc;
+    --modal-scrollbar-thumb: #9d9d9d;
+    --modal-scrollbar-thumb-hover: #707070;
+
+    /* ── Contact section text ── */
+    --contact-title-color: #1a1a1a;
+    --contact-desc-color: #000000;
+
+    /* ── Buttons ── */
+    --btn-view-bg: #3094ec;
+    --btn-view-bg-hover: #1d78c8;
     /* Colors */
     --color-primary: #3b82f6;
     --color-primary-dark: #2563eb;
@@ -123,6 +126,11 @@
 html {
     scroll-behavior: smooth;
     overflow-x: hidden;
+    /* Lock: stop Samsung Internet / any browser from auto-adjusting colours */
+    -webkit-color-adjust: exact !important;
+    color-adjust: exact !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
 }
 
 body {
@@ -134,6 +142,10 @@ body {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     font-family: 'Fira Mono', monospace;
+    -webkit-color-adjust: exact !important;
+    color-adjust: exact !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
 }
 
 ::selection {
@@ -174,7 +186,8 @@ body {
 }
 
 .nav-container {
-    background: white;
+    background: var(--nav-bg);
+    -webkit-backdrop-filter: blur(12px);
     backdrop-filter: blur(12px);
     border-radius: 60px;
     padding: 0.75rem 1.25rem;
@@ -194,7 +207,7 @@ body {
 .nav-logo {
     font-size: 1.5rem;
     font-weight: 700;
-    color: #000000;
+    color: var(--nav-text);
     text-decoration: none;
     position: relative;
     transition: color var(--transition-base);
@@ -213,7 +226,7 @@ body {
 }
 
 .nav-link {
-    color: #000000;
+    color: var(--nav-text);
     text-decoration: none;
     font-weight: 600;
     font-size: 0.95rem;
@@ -323,7 +336,7 @@ body {
 .nav-toggle span {
     width: 25px;
     height: 3px;
-    background: #000000;
+    background: var(--nav-toggle-bar);
     transition: all var(--transition-base);
     border-radius: var(--radius-full);
 }
@@ -346,6 +359,7 @@ body {
     width: 100%;
     padding: 3rem 2.5rem;
     background: rgb(255, 255, 255);
+    -webkit-backdrop-filter: blur(10px);
     backdrop-filter: blur(10px);
     border-radius: var(--radius-2xl);
     border: 1px solid rgba(255, 255, 255, 0.1);
@@ -378,6 +392,7 @@ body {
     text-align: center;
     padding: 3rem 2.5rem;
     background: rgb(255, 255, 255);
+    -webkit-backdrop-filter: blur(10px);
     backdrop-filter: blur(10px);
     border-radius: var(--radius-2xl);
     border: 1px solid rgba(255, 255, 255, 0.1);
@@ -1272,8 +1287,8 @@ section {
     right: 0;
     height: 50%;
     background: var(--color-bg-secondary);
-    backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
     z-index: 1;
     pointer-events: none;
     border-radius: 0 0 1.5rem 1.5rem;
@@ -1329,6 +1344,7 @@ section {
 .project-tag {
     padding: 0.3rem 0.7rem;
     background: rgba(255, 255, 255, 0.2);
+    -webkit-backdrop-filter: blur(10px);
     backdrop-filter: blur(10px);
     color: #ffffff;
     border-radius: var(--radius-full);
@@ -1350,6 +1366,7 @@ section {
     right: 1.25rem;
     z-index: 3;
     background: rgba(0, 0, 0, 0.7);
+    -webkit-backdrop-filter: blur(10px);
     backdrop-filter: blur(10px);
     border-radius: var(--radius-full);
     padding: 0.5rem;
@@ -1371,7 +1388,7 @@ section {
 .project-view-btn {
     width: 100%;
     padding: 0.75rem 1.25rem;
-    background: #3094ec;
+    background: var(--btn-view-bg);
     color: #ffffff;
     border: 2px solid rgba(255, 255, 255, 0.3);
     border-radius: var(--radius-full);
@@ -1379,11 +1396,12 @@ section {
     font-size: 0.85rem;
     cursor: pointer;
     transition: all var(--transition-base);
+    -webkit-backdrop-filter: blur(10px);
     backdrop-filter: blur(10px);
 }
 
 .project-view-btn:hover {
-    background: #1d78c8;
+    background: var(--btn-view-bg-hover);
     color: #ffffff;
     border: 2px solid rgba(233, 233, 233, 0.3);
     transform: translateY(-2px);
@@ -1423,13 +1441,13 @@ section {
 .contact-main-title {
     font-size: 3rem;
     font-weight: 700;
-    color: #1a1a1a;
+    color: var(--contact-title-color);
     margin-bottom: 1rem;
 }
 
 .contact-description {
     font-size: 1rem;
-    color: #000000;
+    color: var(--contact-desc-color);
     line-height: 1.6;
     max-width: 600px;
     margin: 0 auto;
@@ -1498,6 +1516,7 @@ section {
     border-radius: 20px;
     flex-shrink: 0;
     transition: all var(--transition-base);
+    -webkit-backdrop-filter: blur(10px);
     backdrop-filter: blur(10px);
     border: 1px solid rgba(255, 255, 255, 0.35);
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 10px 20px rgba(0, 0, 0, 0.15);
@@ -1589,6 +1608,7 @@ section {
     text-align: center;
     border: 1px solid var(--color-border);
     background: rgba(30, 41, 59, 0.4);
+    -webkit-backdrop-filter: blur(10px);
     backdrop-filter: blur(10px);
 }
 
@@ -1616,15 +1636,16 @@ section {
     position: absolute;
     inset: 0;
     background: rgba(0, 0, 0, 0.8);
+    -webkit-backdrop-filter: blur(8px);
     backdrop-filter: blur(8px);
     animation: fadeIn var(--transition-base);
 }
 
 .modal-container {
     position: relative;
-    background: #f8fafc;
-    /*Pop up modal bg color - Light mode*/
-    border: 1px solid #e2e8f0;
+    background: var(--modal-container-bg);
+    /*Pop up modal bg color*/
+    border: 1px solid var(--modal-container-border);
     border-radius: var(--radius-2xl);
     max-width: 1000px;
     width: 95%;
@@ -1666,8 +1687,8 @@ section {
     justify-content: space-between;
     gap: 1.5rem;
     padding: 1.5rem;
-    border-bottom: 1px solid #e2e8f0;
-    background: #ffffff;
+    border-bottom: 1px solid var(--modal-header-border);
+    background: var(--modal-header-bg);
 }
 
 .modal-header-left {
@@ -1677,7 +1698,7 @@ section {
 .modal-title {
     font-size: 1.5rem;
     font-weight: 700;
-    color: #0f172a;
+    color: var(--modal-title-color);
     margin-bottom: 0.75rem;
 }
 
@@ -1733,6 +1754,7 @@ section {
 
 /*padding: 0.3rem 0.7rem;
     background: rgba(255, 255, 255, 0.2);
+    -webkit-backdrop-filter: blur(10px);
     backdrop-filter: blur(10px);
     color: #ffffff;
     border-radius: var(--radius-full);
@@ -1777,7 +1799,7 @@ section {
     /* Removed max-height to allow modal to fill container at any zoom level */
     min-height: 0;
     flex-direction: column;
-    background: #f8fafc;
+    background: var(--modal-body-bg);
 }
 
 /* Bento Box Grid Layout for Modal */
@@ -1797,6 +1819,7 @@ section {
 .modal-bento-box {
     background: var(--color-bg-secondary);
     /* Darker background for less eye strain and better contrast */
+    -webkit-backdrop-filter: blur(10px);
     backdrop-filter: blur(10px);
     border-radius: var(--radius-lg);
     border: 1px solid rgba(255, 255, 255, 0.15);
@@ -2017,6 +2040,7 @@ section {
     align-items: center;
     justify-content: center;
     background: rgba(0, 0, 0, 0.6);
+    -webkit-backdrop-filter: blur(8px);
     backdrop-filter: blur(8px);
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: var(--radius-md);
@@ -2059,6 +2083,7 @@ section {
     right: 1rem;
     padding: 0.5rem 1rem;
     background: rgba(0, 0, 0, 0.6);
+    -webkit-backdrop-filter: blur(8px);
     backdrop-filter: blur(8px);
     border-radius: var(--radius-md);
     color: white;
@@ -2123,17 +2148,17 @@ section {
 }
 
 .modal-body::-webkit-scrollbar-track {
-    background: #f8fafc;
-    /*Pop up modal scrollbar track bg color - light mode*/
+    background: var(--modal-scrollbar-track);
+    /*Pop up modal scrollbar track bg color*/
 }
 
 .modal-body::-webkit-scrollbar-thumb {
-    background: #9d9d9d;
+    background: var(--modal-scrollbar-thumb);
     border-radius: var(--radius-full);
 }
 
 .modal-body::-webkit-scrollbar-thumb:hover {
-    background: #707070;
+    background: var(--modal-scrollbar-thumb-hover);
 }
 
 /* Modal logs scrollbar - match description scrollbar for consistency */
@@ -2215,6 +2240,7 @@ body.menu-open {
 
 .tag-tooltip-content {
     background: rgba(15, 23, 42, 0.98);
+    -webkit-backdrop-filter: blur(12px);
     backdrop-filter: blur(12px);
     border: 1px solid var(--color-border);
     border-radius: var(--radius-md);
@@ -2250,6 +2276,7 @@ body.menu-open {
     height: 100%;
     background: rgba(15, 23, 42, 0.8);
     /* Dark overlay */
+    -webkit-backdrop-filter: blur(8px);
     backdrop-filter: blur(8px);
     /* Blurs the background */
     z-index: 2000;
@@ -2605,7 +2632,7 @@ body.menu-open {
         max-width: 400px;
         flex-direction: column;
         gap: 0.75rem;
-        background: #ffffff;
+        background: var(--nav-mobile-bg);
         border-radius: 24px;
         padding: 1.5rem;
         /*border: 1px solid rgba(0, 0, 0, 0.08);*/
