@@ -3064,3 +3064,18 @@ body.menu-open {
 .contact-card.is-visible:hover {
     transform: translateY(-5px) scale(1.02);
 }
+
+/* ===== MOBILE TAG TOOLTIP ===== */
+@media (max-width: 768px) {
+    .tag-tooltip-content {
+        padding: 0.5rem 0.65rem;
+        max-width: 180px;
+        border-radius: var(--radius-sm);
+    }
+
+    .tag-tooltip-content .project-tag {
+        font-size: 0.65rem;
+        padding: 0.2rem 0.5rem;
+        margin: 0.15rem;
+    }
+}

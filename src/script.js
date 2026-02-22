@@ -426,6 +426,18 @@ This website serves as my online presence and a platform to showcase my work to 
                     moreTag.addEventListener('mouseleave', hideTagTooltip);
                     moreTag.addEventListener('mousemove', updateTooltipPosition);
 
+                    // Mobile touch support: anchor tooltip to the tag element
+                    moreTag.addEventListener('touchstart', (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        const isVisible = tooltip.getAttribute('aria-hidden') === 'false';
+                        if (isVisible) {
+                            hideTagTooltip();
+                        } else {
+                            showTagTooltipAnchored(moreTag, hiddenTags);
+                        }
+                    }, { passive: false });
+
                     tagsContainer.appendChild(moreTag);
                 }
             }
@@ -452,21 +464,51 @@ This website serves as my online presence and a platform to showcase my work to 
     const tooltipContent = tooltip?.querySelector('.tag-tooltip-content');
     let currentTooltipEvent = null;
 
-    function showTagTooltip(event, tags) {
-        if (!tooltip || !tooltipContent) return;
-
-        currentTooltipEvent = event;
+    function populateTooltip(tags) {
         tooltipContent.innerHTML = '';
-
         tags.forEach(tag => {
             const tagEl = document.createElement('span');
             tagEl.className = 'project-tag';
             tagEl.textContent = tag;
             tooltipContent.appendChild(tagEl);
         });
+    }
 
+    function showTagTooltip(event, tags) {
+        if (!tooltip || !tooltipContent) return;
+        currentTooltipEvent = event;
+        populateTooltip(tags);
         tooltip.setAttribute('aria-hidden', 'false');
         updateTooltipPosition(event);
+    }
+
+    // Mobile: anchor tooltip above/below the +N tag element
+    function showTagTooltipAnchored(anchorEl, tags) {
+        if (!tooltip || !tooltipContent) return;
+        populateTooltip(tags);
+        tooltip.setAttribute('aria-hidden', 'false');
+
+        // Position after paint so we know tooltip dimensions
+        requestAnimationFrame(() => {
+            const tagRect = anchorEl.getBoundingClientRect();
+            const tooltipRect = tooltip.getBoundingClientRect();
+            const margin = 8;
+            const vw = window.innerWidth;
+
+            // Try placing above the tag first
+            let top = tagRect.top - tooltipRect.height - margin;
+            if (top < margin) {
+                // Not enough room above — place below
+                top = tagRect.bottom + margin;
+            }
+
+            // Center horizontally over the tag, clamped to viewport
+            let left = tagRect.left + tagRect.width / 2 - tooltipRect.width / 2;
+            left = Math.max(margin, Math.min(left, vw - tooltipRect.width - margin));
+
+            tooltip.style.left = left + 'px';
+            tooltip.style.top = top + 'px';
+        });
     }
 
     function hideTagTooltip() {
@@ -474,6 +516,14 @@ This website serves as my online presence and a platform to showcase my work to 
         tooltip.setAttribute('aria-hidden', 'true');
         currentTooltipEvent = null;
     }
+
+    // Dismiss mobile tooltip when tapping anywhere else
+    document.addEventListener('touchstart', (e) => {
+        if (!tooltip || tooltip.getAttribute('aria-hidden') === 'true') return;
+        if (!e.target.closest('.more-tags')) {
+            hideTagTooltip();
+        }
+    }, { passive: true });
 
     function updateTooltipPosition(event) {
         if (!tooltip || tooltip.getAttribute('aria-hidden') === 'true') return;
