@@ -1,0 +1,142 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;700&family=Inter:wght@400;500;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ══════════════════════════════════════════════════════
+   THEME 01 — Demain soir bleu
+   ══════════════════════════════════════════════════════ */
+:root,
+[data-theme='demain-soir-bleu'] {
+  --void-bg: #002451;
+  --void-surface: #00346e;
+  --void-surface-80: rgba(0, 36, 81, 0.92);
+  --void-border: rgba(187, 218, 255, 0.15);
+  --void-border-dim: rgba(187, 218, 255, 0.07);
+  --void-grid: rgba(187, 218, 255, 0.04);
+  --void-grid-drift: rgba(187, 218, 255, 0.07);
+  --void-text: rgba(255, 255, 255, 0.85);
+  --void-text-dim: rgba(187, 218, 255, 0.55);
+  --void-text-muted: rgba(251, 251, 251, 0.808);
+  --void-text-full: #ffffff;
+  --void-accent: #eff6ff;
+  --void-green: rgba(209, 241, 169, 0.75);
+  --void-yellow: rgba(255, 197, 143, 0.75);
+  --void-marker: rgba(255, 255, 255, 0.384);
+  --void-scrubber: rgb(255, 255, 255);
+  --void-btn-bg: rgba(0, 36, 81, 0.92);
+  --void-btn-border: rgba(187, 218, 255, 0.15);
+  --void-overlay-grid: rgba(135, 206, 235, 0.08);
+  --cube-color: #dddddd;
+  --cube-edge-color: #ffffff;
+  --cube-edge-opacity: 0.35;
+  --overlay-bg: rgba(0, 18, 51, 0.88);
+  --cube-text-default: #1a2332;
+  --cube-text-hover: #000000;
+  --cube-text-accent: #000000;
+  --cube-ticks-idle: rgba(255, 255, 255, 0.35);
+  --cube-ticks-hover: rgba(255, 255, 255, 0.9);
+  --cube-ticks-hover-scale: 1.05;
+  --skill-card-bg-hover: rgba(106, 187, 231, 0.268);
+  --skill-card-bg: rgba(14, 129, 191, 0.268);
+}
+
+/* ══════════════════════════════════════════════════════
+   THEME 02 — Clair obscur
+   ══════════════════════════════════════════════════════ */
+[data-theme='clair-obscur'] {
+  --void-bg: #e8e6e1;
+  --void-surface: #f5f3ef;
+  --void-surface-80: rgba(245, 243, 239, 0.95);
+  --void-border: rgba(0, 0, 0, 0.25);
+  --void-border-dim: rgba(0, 0, 0, 0.14);
+  --void-grid: rgba(0, 0, 0, 0.10);
+  --void-grid-drift: rgba(0, 0, 0, 0.14);
+  --void-text: rgba(20, 20, 20, 0.92);
+  --void-text-dim: rgba(40, 40, 40, 0.75);
+  --void-text-muted: rgba(15, 15, 15, 0.986);
+  --void-text-full: #0a0a0a;
+  --void-accent: #1a1a1a;
+  --void-green: rgba(40, 100, 40, 0.85);
+  --void-yellow: rgba(160, 100, 20, 0.85);
+  --void-marker: rgba(0, 0, 0, 0.45);
+  --void-scrubber: rgb(0, 0, 0);
+  --void-btn-bg: rgba(210, 207, 201, 0.95);
+  --void-btn-border: rgba(0, 0, 0, 0.28);
+  --void-overlay-grid: rgba(93, 93, 93, 0.186);
+  --cube-color: #3d3d3d;
+  --cube-edge-color: #4a4a4a;
+  --cube-edge-opacity: 0.40;
+  --overlay-bg: rgba(220, 218, 213, 0.95);
+  --cube-text-default: #e8e6e1;
+  --cube-text-hover: #ffffff;
+  --cube-text-accent: #c8c6c1;
+  --cube-ticks-idle: rgb(48, 48, 48);
+  --cube-ticks-hover: rgba(0, 0, 0, 0.95);
+  --cube-ticks-hover-scale: 1.05;
+  --skill-card-bg-hover: rgb(249, 249, 249);
+  --skill-card-bg: rgb(255, 255, 255);
+}
+
+/* ═════════════════════════════════════
+   OVERLAY STATE — hide background UI
+   Canvas (.cube-entrance) stays visible
+   ═════════════════════════════════════ */
+.overlay-active .sidebar-entrance,
+.overlay-active .corner-markers-entrance,
+.overlay-active .theme-label-entrance,
+.overlay-active .scrubber-entrance,
+.overlay-active .coord-entrance,
+.overlay-active .footer-entrance,
+.overlay-active .void-grid,
+.overlay-active .void-grid-drift {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Uniform transitions for smooth restore */
+.sidebar-entrance,
+.corner-markers-entrance,
+.theme-label-entrance,
+.scrubber-entrance,
+.coord-entrance,
+.footer-entrance,
+.void-grid,
+.void-grid-drift {
+  transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@layer base {
+  body {
+    margin: 0;
+    overflow: hidden;
+    background-color: var(--void-bg);
+    font-family: 'Inter', sans-serif;
+    cursor: grab;
+    transition: background-color 0.5s ease;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  body:active {
+    cursor: grabbing;
+  }
+
+  .overlay-panel,
+  .overlay-panel * {
+    user-select: text;
+    -webkit-user-select: text;
+  }
+}
+
+@keyframes drift {
+  from {
+    background-position: 0 0;
+  }
+
+  to {
+    background-position: 100px 100px;
+  }
+}

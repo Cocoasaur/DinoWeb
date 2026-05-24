@@ -1,0 +1,38 @@
+import { createContext, useContext, useState, useEffect } from 'react';
+
+const ThemeContext = createContext(null);
+
+const THEME_KEY = 'dinoweb-theme';
+const THEME_DEMAIN = 'demain-soir-bleu';
+const THEME_CLAIR = 'clair-obscur';
+
+export function ThemeProvider({ children }) {
+    const [theme, setTheme] = useState(() => {
+        const stored = localStorage.getItem(THEME_KEY);
+        return stored === THEME_CLAIR ? THEME_CLAIR : THEME_DEMAIN;
+    });
+
+    useEffect(() => {
+        localStorage.setItem(THEME_KEY, theme);
+        document.documentElement.setAttribute('data-theme', theme);
+    }, [theme]);
+
+    const toggle = () => setTheme(prev =>
+        prev === THEME_DEMAIN ? THEME_CLAIR : THEME_DEMAIN
+    );
+
+    // isDark preserves backward compatibility for components that check theme brightness
+    const isDark = theme === THEME_DEMAIN;
+
+    return (
+        <ThemeContext.Provider value={{ theme, isDark, toggle }}>
+            {children}
+        </ThemeContext.Provider>
+    );
+}
+
+export function useTheme() {
+    const ctx = useContext(ThemeContext);
+    if (!ctx) throw new Error('useTheme must be used inside ThemeProvider');
+    return ctx;
+}

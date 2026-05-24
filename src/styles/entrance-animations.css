@@ -1,0 +1,279 @@
+@media (prefers-reduced-motion: reduce) {
+
+    .cube-entrance,
+    .corner-markers-entrance,
+    .sidebar-entrance,
+    .dino-entrance,
+    .subtitle-entrance,
+    .theme-label-entrance,
+    .coord-entrance,
+    .scrubber-entrance,
+    .footer-entrance,
+    .web-hatch,
+    .web-trace {
+        animation: none !important;
+        opacity: 1 !important;
+        transform: none !important;
+    }
+
+    .void-grid-drift {
+        animation: none !important;
+    }
+
+    .web-trace {
+        stroke-dashoffset: 0 !important;
+    }
+}
+
+.void-grid {
+    background-image:
+        linear-gradient(var(--void-grid) 1px, transparent 1px),
+        linear-gradient(90deg, var(--void-grid) 1px, transparent 1px);
+    background-size: 50px 50px;
+    background-position: center center;
+    transition: background-image 0.5s ease;
+}
+
+.void-grid-drift {
+    background-image:
+        linear-gradient(var(--void-grid-drift) 1px, transparent 1px),
+        linear-gradient(90deg, var(--void-grid-drift) 1px, transparent 1px);
+    background-size: 100px 100px;
+    animation: drift 60s linear infinite;
+    transition: background-image 0.5s ease;
+}
+
+/* ── Cube ── opacity only, no transform scale (fixes reload lag) */
+.cube-entrance {
+    opacity: 0;
+    animation: cube-in 1.0s cubic-bezier(0.4, 0, 0.2, 1) 0.25s forwards;
+}
+
+@keyframes cube-in {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+/* ── Corner markers ── subtle fade */
+.corner-markers-entrance {
+    opacity: 0;
+    animation: fade-in 0.6s ease-out 0.05s forwards;
+}
+
+/* ── Sidebar ── slide up + fade (existing, kept) */
+.sidebar-entrance {
+    opacity: 0;
+    transform: translateY(calc(-50% + 24px));
+    animation: sidebar-in 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.15s forwards;
+}
+
+@keyframes sidebar-in {
+    to {
+        opacity: 1;
+        transform: translateY(-50%);
+    }
+}
+
+.dino-entrance {
+    opacity: 0;
+    animation: fade-in 0.7s ease-out 0.2s forwards;
+}
+
+.subtitle-entrance {
+    opacity: 0;
+    transform: translateY(10px);
+    animation: subtitle-in 0.8s cubic-bezier(0.22, 1, 0.36, 1) 0.55s forwards;
+}
+
+@keyframes subtitle-in {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ── Theme label ── */
+.theme-label-entrance {
+    opacity: 0;
+    animation: fade-in 0.7s ease-out 0.45s forwards;
+}
+
+/* ── Coordinate display ── slide from top */
+.coord-entrance {
+    opacity: 0;
+    animation: coord-in 0.7s ease-out 0.55s forwards;
+}
+
+@keyframes coord-in {
+    from {
+        opacity: 0;
+        transform: translateY(-12px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ── Scrubber ── slide from right */
+.scrubber-entrance {
+    opacity: 0;
+    animation: scrubber-in 0.7s ease-out 0.75s forwards;
+}
+
+@keyframes scrubber-in {
+    from {
+        opacity: 0;
+        transform: translateX(12px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* ── Footer ── slide from bottom */
+.footer-entrance {
+    opacity: 0;
+    animation: footer-in 0.8s cubic-bezier(0.22, 1, 0.36, 1) 0.95s forwards;
+}
+
+@keyframes footer-in {
+    from {
+        opacity: 0;
+        transform: translateY(16px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fade-in {
+    to {
+        opacity: 1;
+    }
+}
+
+/* ── Blueprint text animations ── */
+.web-hatch {
+    opacity: 0;
+    animation: hatch-reveal 0.6s ease-out 2.6s forwards;
+}
+
+@keyframes hatch-reveal {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 0.40;
+    }
+}
+
+.web-trace {
+    stroke-dasharray: 1500;
+    stroke-dashoffset: 1500;
+    opacity: 0.85;
+    animation:
+        blueprint-draw 2.2s cubic-bezier(0.4, 0, 0.2, 1) 0.3s forwards,
+        blueprint-idle 6s ease-in-out 3.2s infinite;
+}
+
+@keyframes blueprint-draw {
+    to {
+        stroke-dashoffset: 0;
+    }
+}
+
+@keyframes blueprint-idle {
+
+    0%,
+    100% {
+        opacity: 0.75;
+    }
+
+    50% {
+        opacity: 1.0;
+    }
+}
+
+/* ══════════════════════════════════════════════════════
+   OVERLAY ANIMATED GRID — slow drifting blueprint lines
+   ══════════════════════════════════════════════════════ */
+
+.overlay-grid-drift {
+    animation: overlay-grid-drift 25s linear infinite;
+}
+
+@keyframes overlay-grid-drift {
+    from {
+        background-position: 0 0;
+    }
+
+    to {
+        background-position: 40px 40px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .overlay-grid-drift {
+        animation: none !important;
+    }
+}
+
+/* ══════════════════════════════════════════════════════
+   VIEW TRANSITION — directional iris wipe from cube origin
+   ══════════════════════════════════════════════════════ */
+:root {
+    --theme-transition-duration: 1.6s;
+    --theme-transition-easing: cubic-bezier(0.76, 0, 0.24, 1);
+}
+
+[data-theme-direction='to-dark']::view-transition-old(root) {
+    animation: none;
+    z-index: 1;
+}
+
+[data-theme-direction='to-dark']::view-transition-new(root) {
+    animation: theme-circle-expand var(--theme-transition-duration) var(--theme-transition-easing) forwards;
+    z-index: 2;
+}
+
+[data-theme-direction='to-light']::view-transition-old(root) {
+    animation: theme-circle-shrink var(--theme-transition-duration) var(--theme-transition-easing) forwards;
+    z-index: 2;
+}
+
+[data-theme-direction='to-light']::view-transition-new(root) {
+    animation: none;
+    z-index: 1;
+}
+
+@keyframes theme-circle-expand {
+    from {
+        clip-path: circle(0% at var(--theme-origin-x, 50%) var(--theme-origin-y, 50%));
+    }
+
+    to {
+        clip-path: circle(150% at var(--theme-origin-x, 50%) var(--theme-origin-y, 50%));
+    }
+}
+
+@keyframes theme-circle-shrink {
+    from {
+        clip-path: circle(150% at var(--theme-origin-x, 50%) var(--theme-origin-y, 50%));
+    }
+
+    to {
+        clip-path: circle(0% at var(--theme-origin-x, 50%) var(--theme-origin-y, 50%));
+    }
+}
