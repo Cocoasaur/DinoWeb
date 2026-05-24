@@ -9,9 +9,15 @@ export default defineConfig({
     cssTarget: 'chrome61',
     rollupOptions: {
       output: {
-        manualChunks: {
-          three: ['three', '@react-three/fiber', '@react-three/drei'],
-          vendor: ['react', 'react-dom'],
+        manualChunks(id) {
+          if (id.includes('node_modules/three') ||
+            id.includes('node_modules/@react-three')) {
+            return 'three'
+          }
+          if (id.includes('node_modules/react') ||
+            id.includes('node_modules/react-dom')) {
+            return 'vendor'
+          }
         }
       }
     },
