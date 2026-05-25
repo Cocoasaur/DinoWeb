@@ -14,8 +14,10 @@ import ciscoIntroDS from '../assets/certifications/Cisco_Data_Science.png';
 
 // ── Placeholder: update this with your actual PDF path ──────────────────────
 import resumePdf from '../assets/resume/Resume_Arquesola.pdf';
+import resumePreview from '../assets/resume/Resume_Arquesola_preview.png';
 
 const RESUME_PDF_URL = resumePdf;
+const RESUME_PREVIEW_URL = resumePreview;
 
 const S = {
     label: {
@@ -224,7 +226,9 @@ function ResumeViewer() {
                 }}
             >
                 <div
+                    className="about-resume-scale-layer"
                     style={{
+                        '--resume-scale': scale,
                         width: '100%',
                         height: '100%',
                         transform: `scale(${scale})`,
@@ -235,13 +239,20 @@ function ResumeViewer() {
                     <iframe
                         src={`${RESUME_PDF_URL}#toolbar=0&navpanes=0`}
                         title="Resume PDF"
-                        className="border-0"
+                        className="about-resume-pdf border-0"
                         style={{
                             width: iframeWidth,
                             height: iframeHeight,
                             minWidth: '100%',
                             minHeight: '100%',
                         }}
+                    />
+                    <img
+                        src={RESUME_PREVIEW_URL}
+                        alt="Resume preview"
+                        className="about-resume-preview"
+                        style={{ width: `${scale * 100}%` }}
+                        draggable={false}
                     />
                 </div>
             </div>

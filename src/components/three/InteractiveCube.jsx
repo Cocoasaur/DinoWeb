@@ -30,7 +30,7 @@ function getZoomedCameraZ(camera, cubeScale, breakpoint) {
 
 export default function InteractiveCube({
     onFaceClick, onFacePressStart, targetRotation, isZoomed, isZoomingOut,
-    zoomZ, onRotationChange, isDraggingRef,
+    zoomZ, onRotationChange, isDraggingRef, onPinchZoom,
     onZoomComplete, onZoomOutComplete
 }) {
     const groupRef = useRef();
@@ -40,6 +40,12 @@ export default function InteractiveCube({
     });
     const lastMouse = useRef({ x: 0, y: 0 });
     const lastPointerDownFaceName = useRef(null);
+    const pinchRef = useRef({
+        active: false,
+        lastDistance: 0,
+    });
+    const suppressFaceClickRef = useRef(false);
+    const suppressFaceClickTimerRef = useRef(0);
     const animTimerRef = useRef(0);
     const hasNotifiedRef = useRef(false);
     const zoomOutTimerRef = useRef(0);
@@ -96,17 +102,41 @@ export default function InteractiveCube({
         hasNotifiedOutRef.current = false;
     }, [isZoomingOut]);
 
+    const clearSuppressFaceClickTimer = () => {
+        if (!suppressFaceClickTimerRef.current) return;
+        window.clearTimeout(suppressFaceClickTimerRef.current);
+        suppressFaceClickTimerRef.current = 0;
+    };
+
+    const suppressFaceClickBriefly = () => {
+        suppressFaceClickRef.current = true;
+        clearSuppressFaceClickTimer();
+        suppressFaceClickTimerRef.current = window.setTimeout(() => {
+            suppressFaceClickRef.current = false;
+            suppressFaceClickTimerRef.current = 0;
+        }, 350);
+    };
+
     useEffect(() => {
         const canvas = gl.domElement;
+        const previousTouchAction = canvas.style.touchAction;
+
+        canvas.style.touchAction = 'none';
+
+        const getTouchDistance = (touches) => {
+            const dx = touches[0].clientX - touches[1].clientX;
+            const dy = touches[0].clientY - touches[1].clientY;
+            return Math.hypot(dx, dy);
+        };
 
         const handleMouseDown = (e) => {
-            if (isZoomed) return;
+            if (isZoomed || isZoomingOut) return;
             isDraggingRef.current = true;
             lastMouse.current = { x: e.clientX, y: e.clientY };
             canvas.style.cursor = 'grabbing';
         };
         const handleMouseMove = (e) => {
-            if (!isDraggingRef.current || isZoomed) return;
+            if (!isDraggingRef.current || isZoomed || isZoomingOut) return;
             rotationRef.current = {
                 x: rotationRef.current.x + (e.clientY - lastMouse.current.y) * 0.008,
                 y: rotationRef.current.y + (e.clientX - lastMouse.current.x) * 0.008
@@ -120,12 +150,44 @@ export default function InteractiveCube({
         };
 
         const handleTouchStart = (e) => {
-            if (isZoomed) return;
+            if (isZoomed || isZoomingOut) return;
+
+            if (e.touches.length >= 2) {
+                e.preventDefault();
+                pinchRef.current.active = true;
+                pinchRef.current.lastDistance = getTouchDistance(e.touches);
+                isDraggingRef.current = false;
+                lastPointerDownFaceName.current = null;
+                suppressFaceClickBriefly();
+                invalidate();
+                return;
+            }
+
             isDraggingRef.current = true;
             lastMouse.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
         };
         const handleTouchMove = (e) => {
-            if (!isDraggingRef.current || isZoomed) return;
+            if (isZoomed || isZoomingOut) return;
+
+            if (e.touches.length >= 2) {
+                e.preventDefault();
+                const distance = getTouchDistance(e.touches);
+                const previousDistance = pinchRef.current.active
+                    ? pinchRef.current.lastDistance
+                    : distance;
+                const distanceDelta = distance - previousDistance;
+                pinchRef.current.active = true;
+                pinchRef.current.lastDistance = distance;
+                isDraggingRef.current = false;
+                lastPointerDownFaceName.current = null;
+                suppressFaceClickBriefly();
+                onPinchZoom?.(distanceDelta);
+                invalidate();
+                return;
+            }
+
+            if (!isDraggingRef.current || pinchRef.current.active) return;
+
             e.preventDefault();
             const touch = e.touches[0];
             rotationRef.current = {
@@ -135,26 +197,54 @@ export default function InteractiveCube({
             lastMouse.current = { x: touch.clientX, y: touch.clientY };
             invalidate();
         };
-        const handleTouchEnd = () => {
+        const handleTouchEnd = (e) => {
+            if (pinchRef.current.active) {
+                suppressFaceClickBriefly();
+            }
+
+            if (e.touches.length >= 2) {
+                pinchRef.current.lastDistance = getTouchDistance(e.touches);
+                isDraggingRef.current = false;
+                return;
+            }
+
+            pinchRef.current.active = false;
+
+            if (e.touches.length === 1 && !isZoomed && !isZoomingOut) {
+                lastMouse.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+                isDraggingRef.current = false;
+                return;
+            }
+
             isDraggingRef.current = false;
+        };
+        const handleTouchCancel = () => {
+            pinchRef.current.active = false;
+            pinchRef.current.lastDistance = 0;
+            isDraggingRef.current = false;
+            suppressFaceClickBriefly();
         };
 
         canvas.addEventListener('mousedown', handleMouseDown, { passive: true });
         document.addEventListener('mousemove', handleMouseMove, { passive: true });
         document.addEventListener('mouseup', handleMouseUp, { passive: true });
-        canvas.addEventListener('touchstart', handleTouchStart, { passive: true });
+        canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
         document.addEventListener('touchmove', handleTouchMove, { passive: false });
         document.addEventListener('touchend', handleTouchEnd, { passive: true });
+        document.addEventListener('touchcancel', handleTouchCancel, { passive: true });
 
         return () => {
+            canvas.style.touchAction = previousTouchAction;
+            clearSuppressFaceClickTimer();
             canvas.removeEventListener('mousedown', handleMouseDown);
             document.removeEventListener('mousemove', handleMouseMove);
             document.removeEventListener('mouseup', handleMouseUp);
             canvas.removeEventListener('touchstart', handleTouchStart);
             document.removeEventListener('touchmove', handleTouchMove);
             document.removeEventListener('touchend', handleTouchEnd);
+            document.removeEventListener('touchcancel', handleTouchCancel);
         };
-    }, [isZoomed, isDraggingRef, gl, invalidate]);
+    }, [isZoomed, isZoomingOut, isDraggingRef, gl, invalidate, onPinchZoom]);
 
     const handleFaceClickWithPress = (faceName) => {
         if (pressRef.current.active) return;
@@ -307,7 +397,9 @@ export default function InteractiveCube({
             {FACE_CONFIG.map((face) => (
                 <CubeFace key={face.name} {...face}
                     onFaceClick={handleFaceClickWithPress}
-                    isZoomed={isZoomed} lastPointerDownFaceName={lastPointerDownFaceName} />
+                    isZoomed={isZoomed}
+                    lastPointerDownFaceName={lastPointerDownFaceName}
+                    suppressFaceClickRef={suppressFaceClickRef} />
             ))}
         </group>
     );

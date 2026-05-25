@@ -17,7 +17,7 @@ function HomeIcon() {
 
 export default function CubeFace({
     name, position, rotation, text,
-    onFaceClick, isZoomed, lastPointerDownFaceName
+    onFaceClick, isZoomed, lastPointerDownFaceName, suppressFaceClickRef
 }) {
     const [hovered, setHovered] = useState(false);
     const pointerDownPos = useRef({ x: 0, y: 0 });
@@ -34,12 +34,16 @@ export default function CubeFace({
         e.stopPropagation();
         if (isHome) return;
         if (isZoomed) return;
+        if (suppressFaceClickRef?.current) {
+            suppressFaceClickRef.current = false;
+            return;
+        }
         if (lastPointerDownFaceName && lastPointerDownFaceName.current !== name) return;
         const dx = e.clientX - pointerDownPos.current.x;
         const dy = e.clientY - pointerDownPos.current.y;
         if (Math.sqrt(dx * dx + dy * dy) > DRAG_THRESHOLD) return;
         onFaceClick(name);
-    }, [name, onFaceClick, isZoomed, lastPointerDownFaceName, isHome]);
+    }, [name, onFaceClick, isZoomed, lastPointerDownFaceName, isHome, suppressFaceClickRef]);
 
     const handlePointerOver = useCallback((e) => {
         e.stopPropagation();

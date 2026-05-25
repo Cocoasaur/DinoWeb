@@ -111,6 +111,17 @@
     background-color: var(--void-surface-80);
 }
 
+.about-resume-pdf {
+    display: block;
+}
+
+.about-resume-preview {
+    display: none;
+    max-width: none;
+    height: auto;
+    background-color: #ffffff;
+}
+
 .about-resume-button {
     border-color: var(--void-border);
     background-color: var(--void-surface-80);
@@ -159,6 +170,22 @@
         margin-bottom: -14px !important;
         margin-left: auto !important;
         margin-right: 14px !important;
+    }
+
+    .about-resume-scale-layer {
+        width: 100% !important;
+        height: auto !important;
+        transform: none !important;
+        transition: none !important;
+    }
+
+    .about-resume-pdf {
+        display: none !important;
+    }
+
+    .about-resume-preview {
+        display: block;
+        transition: width 0.2s ease-out;
     }
 }
 

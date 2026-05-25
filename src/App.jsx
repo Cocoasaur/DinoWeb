@@ -50,7 +50,7 @@ export default function App() {
     isZoomed, isZoomingOut, showOverlay, activeFace, targetRotation,
     zoomZ, coordsRef, isDraggingRef, themeTransitionActive, overlayPhase,
     handleFaceClick, handleFacePressStart, handleCloseOverlay,
-    handleZoomOutComplete, handleWheel,
+    handleZoomOutComplete, handleWheel, handlePinchZoom,
     handleRotationChange, updateZoomCoord, handleZoomComplete,
     handleThemeTransitionComplete, handleOverlayCloseComplete,
   } = useCubeInteraction();
@@ -148,6 +148,7 @@ export default function App() {
               zoomZ={zoomZ}
               onRotationChange={handleRotationChange}
               isDraggingRef={isDraggingRef}
+              onPinchZoom={handlePinchZoom}
               onZoomComplete={handleZoomComplete}
               onZoomOutComplete={handleZoomOutComplete}
             />

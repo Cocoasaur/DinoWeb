@@ -126,6 +126,13 @@ export function useCubeInteraction() {
         });
     }, []);
 
+    const handlePinchZoom = useCallback((distanceDelta) => {
+        setZoomZ(prev => {
+            const next = prev - distanceDelta * 0.75;
+            return Math.min(Math.max(next, ZOOM_MIN), ZOOM_MAX);
+        });
+    }, []);
+
     const handleRotationChange = useCallback((x, y) => {
         coordsRef.current.x = x;
         coordsRef.current.y = y;
@@ -143,7 +150,7 @@ export function useCubeInteraction() {
         isZoomed, isZoomingOut, showOverlay, activeFace, targetRotation,
         zoomZ, coordsRef, isDraggingRef, themeTransitionActive, overlayPhase,
         handleFaceClick, handleFacePressStart, handleCloseOverlay,
-        handleZoomOutComplete, handleWheel,
+        handleZoomOutComplete, handleWheel, handlePinchZoom,
         handleRotationChange, updateZoomCoord, handleZoomComplete,
         handleThemeTransitionComplete, handleOverlayCloseComplete,
     };
