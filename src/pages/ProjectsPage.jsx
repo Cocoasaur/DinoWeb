@@ -37,7 +37,7 @@ function StatusBadge({ status }) {
     const color = STATUS_COLORS[status] || '#888';
     return (
         <span
-            className="inline-flex items-center gap-2 px-3 py-1.5 border text-[11px] tracking-[0.15em] uppercase"
+            className="project-status-badge inline-flex items-center gap-2 px-3 py-1.5 border text-[11px] tracking-[0.15em] uppercase"
             style={{
                 fontFamily: "'Space Grotesk', monospace",
                 color: 'var(--void-text-full)',
@@ -63,7 +63,7 @@ function ProjectCard({ project, onClick }) {
     return (
         <div
             onClick={onClick}
-            className="border p-6 md:p-8 transition-all duration-300 cursor-pointer group"
+            className="projects-card border p-6 md:p-8 transition-all duration-300 cursor-pointer group"
             style={{
                 borderColor: 'var(--void-border)',
                 backgroundColor: 'transparent',
@@ -77,26 +77,26 @@ function ProjectCard({ project, onClick }) {
                 e.currentTarget.style.borderColor = 'var(--void-border)';
             }}
         >
-            <div className="flex justify-between items-start mb-4">
-                <div className="flex items-baseline gap-4">
-                    <span style={{ ...S.muted, fontSize: '10px' }}>
+            <div className="projects-card-header flex justify-between items-start mb-4">
+                <div className="projects-card-title-group flex items-baseline gap-4">
+                    <span className="projects-card-id" style={{ ...S.muted, fontSize: '10px' }}>
                         {id}_
                     </span>
                     <h3
-                        className="text-lg md:text-xl tracking-[0.15em] uppercase"
+                        className="projects-card-name text-lg md:text-xl tracking-[0.15em] uppercase"
                         style={S.projectName}
                     >
-                        {name}
+                        {name.replace(/_/g, '_\u200B')}
                     </h3>
                 </div>
                 <StatusBadge status={status} />
             </div>
 
-            <p className="text-sm leading-relaxed mb-5" style={S.body}>
+            <p className="projects-card-copy text-sm leading-relaxed mb-5" style={S.body}>
                 {shortDesc}
             </p>
 
-            <div className="flex gap-4 flex-wrap">
+            <div className="projects-card-stack flex gap-4 flex-wrap">
                 {stack.map((s) => (
                     <span key={s} style={S.stack}>
                         {s}
@@ -144,23 +144,23 @@ export default function ProjectsPage({ selectedProject, onSelectProject }) {
     });
 
     return (
-        <div>
+        <div className="projects-page">
             {/* Header */}
             <div
-                className="mb-10 pb-6 border-b"
+                className="projects-list-header mb-10 pb-6 border-b"
                 style={{ borderColor: 'var(--void-border)' }}
             >
-                <p className="uppercase mb-2" style={S.label}>
+                <p className="projects-list-label uppercase mb-2" style={S.label}>
                     FACE_03 / PROJECTS_LIST
                 </p>
                 <h2
-                    className="text-4xl font-bold tracking-[0.15em] uppercase"
+                    className="projects-list-title text-4xl font-bold tracking-[0.15em] uppercase"
                     style={S.h2}
                 >
                     PROJECTS
                 </h2>
                 {/* Search Bar */}
-                <div className="relative mt-4">
+                <div className="projects-search relative mt-4">
                     <input
                         type="text"
                         value={searchQuery}
@@ -177,7 +177,7 @@ export default function ProjectsPage({ selectedProject, onSelectProject }) {
             </div>
 
             {/* Project list */}
-            <div className="space-y-5">
+            <div className="projects-list space-y-5">
                 {filteredProjects.length === 0 ? (
                     <p className="text-center text-[var(--void-text-muted)]">
                         No projects found matching your search.

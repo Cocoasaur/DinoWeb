@@ -55,10 +55,10 @@ export default function ImageCarousel({ images, imageCount, className = '' }) {
     const slideWidth = 100; // percentage
 
     return (
-        <div className={`relative select-none ${className}`} ref={containerRef}>
+        <div className={`image-carousel relative select-none ${className}`} ref={containerRef}>
             {/* Main viewport */}
             <div
-                className="relative overflow-hidden border"
+                className="image-carousel__viewport relative overflow-hidden border"
                 style={{ borderColor: 'var(--void-border)' }}
                 onPointerDown={handlePointerDown}
                 onPointerMove={handlePointerMove}
@@ -68,7 +68,7 @@ export default function ImageCarousel({ images, imageCount, className = '' }) {
                 {/* Track */}
                 <div
                     ref={trackRef}
-                    className="flex transition-transform duration-500 ease-out"
+                    className="image-carousel__track"
                     style={{
                         transform: `translateX(calc(-${currentIndex * slideWidth}% + ${isDragging ? translateX : 0}px))`,
                         cursor: isDragging ? 'grabbing' : 'grab',
@@ -77,15 +77,14 @@ export default function ImageCarousel({ images, imageCount, className = '' }) {
                     {images?.map((src, idx) => (
                         <div
                             key={idx}
-                            className="w-full flex-shrink-0"
+                            className="image-carousel__slide w-full flex-shrink-0"
                             style={{ flex: `0 0 ${slideWidth}%` }}
                         >
                             <img
                                 src={src}
                                 alt={`Slide ${idx + 1}`}
-                                className="w-full h-auto object-contain"
+                                className="image-carousel__image"
                                 draggable={false}
-                                style={{ maxHeight: '400px', width: '100%' }}
                             />
                         </div>
                     ))}
@@ -98,7 +97,7 @@ export default function ImageCarousel({ images, imageCount, className = '' }) {
                             onClick={prev}
                             disabled={currentIndex === 0}
                             onPointerDown={(e) => e.stopPropagation()}
-                            className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center border transition-all duration-200 disabled:opacity-30 disabled:cursor-not-allowed"
+                            className="image-carousel__arrow image-carousel__arrow--prev absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center border transition-all duration-200"
                             style={{
                                 backgroundColor: 'var(--void-surface-80)',
                                 borderColor: 'var(--void-border)',
@@ -119,7 +118,7 @@ export default function ImageCarousel({ images, imageCount, className = '' }) {
                             onClick={next}
                             disabled={currentIndex === maxIndex}
                             onPointerDown={(e) => e.stopPropagation()}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center border transition-all duration-200 disabled:opacity-30 disabled:cursor-not-allowed"
+                            className="image-carousel__arrow image-carousel__arrow--next absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center border transition-all duration-200"
                             style={{
                                 backgroundColor: 'var(--void-surface-80)',
                                 borderColor: 'var(--void-border)',
@@ -141,24 +140,13 @@ export default function ImageCarousel({ images, imageCount, className = '' }) {
             </div>
 
             {/* ── Dot indicators — matching HorizontalCarousel.jsx style ── */}
-            <div className="flex items-center justify-center gap-2 mt-4">
+            <div className="image-carousel__dots">
                 {images?.map((_, i) => (
                     <button
                         key={i}
                         onClick={() => goTo(i)}
-                        style={{
-                            width: i === currentIndex ? '50px' : '17px',
-                            height: '17px',
-                            borderRadius: '13px',
-                            border: 'none',
-                            padding: 0,
-                            cursor: 'pointer',
-                            backgroundColor: i === currentIndex
-                                ? 'var(--void-text-full)'
-                                : 'var(--void-border)',
-                            transition: 'all 0.35s cubic-bezier(0.34, 1.36, 0.64, 1)',
-                            flexShrink: 0,
-                        }}
+                        className={`image-carousel__dot ${i === currentIndex ? 'image-carousel__dot--active' : ''}`}
+                        aria-label={`Go to slide ${i + 1}`}
                     />
                 ))}
             </div>
@@ -166,7 +154,7 @@ export default function ImageCarousel({ images, imageCount, className = '' }) {
             {/* Counter */}
             {totalImages > 1 && (
                 <div
-                    className="absolute top-3 right-3 px-2 py-1 text-[10px] tracking-widest uppercase border"
+                    className="image-carousel__counter absolute top-3 right-3 px-2 py-1 text-[10px] tracking-widest uppercase border"
                     style={{
                         fontFamily: "'Space Grotesk', monospace",
                         backgroundColor: 'var(--void-surface-80)',

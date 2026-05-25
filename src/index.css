@@ -89,6 +89,8 @@
 .overlay-active .scrubber-entrance,
 .overlay-active .coord-entrance,
 .overlay-active .footer-entrance,
+.overlay-active .mobile-branding-entrance,
+.overlay-active .rotate-prompt-entrance,
 .overlay-active .void-grid,
 .overlay-active .void-grid-drift {
   opacity: 0 !important;
@@ -103,6 +105,8 @@
 .scrubber-entrance,
 .coord-entrance,
 .footer-entrance,
+.mobile-branding-entrance,
+.rotate-prompt-entrance,
 .void-grid,
 .void-grid-drift {
   transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1);

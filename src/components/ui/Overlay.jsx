@@ -112,7 +112,7 @@ export default function Overlay({
             {/* Panel container — attach ref here */}
             <div
                 ref={scrollPanelRef} // ← attach ref
-                className="relative w-[90vw] max-w-5xl max-h-[85vh] border overlay-scroll"
+                className="portfolio-overlay-panel relative w-[90vw] max-w-5xl max-h-[85vh] border overlay-scroll"
                 style={{
                     backgroundColor: 'var(--void-surface)',
                     borderColor: 'var(--void-border)',
@@ -130,7 +130,7 @@ export default function Overlay({
                 {renderCloseButton ? renderCloseButton({ onClose }) : (
                     <button
                         onClick={onClose}
-                        className="sticky top-5 right-5 z-20 ml-auto text-xl w-10 h-10 flex items-center justify-center border transition-all duration-300 cursor-pointer"
+                        className="portfolio-overlay-close sticky top-5 right-5 z-20 ml-auto text-xl w-10 h-10 flex items-center justify-center border transition-all duration-300 cursor-pointer"
                         style={{
                             fontFamily: "'Space Grotesk', monospace",
                             color: 'var(--void-text-full)',
@@ -149,7 +149,7 @@ export default function Overlay({
                         ✕
                     </button>
                 )}
-                <div className="p-12 pt-8">
+                <div className="portfolio-overlay-content p-12 pt-8">
                     <Suspense fallback={
                         <div className="animate-pulse h-32 rounded" style={{ backgroundColor: 'var(--void-border)' }} />
                     }>

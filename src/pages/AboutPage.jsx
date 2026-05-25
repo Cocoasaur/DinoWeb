@@ -41,13 +41,10 @@ const S = {
     key: {
         fontFamily: "'Space Grotesk', monospace",
         color: 'var(--void-text-muted)',
-        fontSize: '10px',
-        letterSpacing: '0.2em',
     },
     val: {
         fontFamily: "'Inter', sans-serif",
         color: 'var(--void-text-full)',
-        fontSize: '14px',
     },
 };
 
@@ -81,16 +78,16 @@ function TimelineItem({ year, degree, academic_track, school, desc }) {
 
     return (
         <div
-            className="relative pl-8 pb-8 last:pb-0"
+            className="about-timeline-item relative pl-8 pb-8 last:pb-0"
             onMouseEnter={() => setHovered(true)}
             onMouseLeave={() => setHovered(false)}
         >
             <div
-                className="absolute left-[5px] top-2 bottom-0 w-px"
+                className="about-timeline-line absolute left-[5px] top-2 bottom-0 w-px"
                 style={{ backgroundColor: 'var(--void-border)' }}
             />
             <div
-                className="absolute left-0 top-1.5 w-3 h-3 rounded-full border-2 transition-all duration-300"
+                className="about-timeline-dot absolute left-0 top-1.5 w-3 h-3 rounded-full border-2 transition-all duration-300"
                 style={{
                     borderColor: hovered ? 'var(--void-accent)' : 'var(--void-border)',
                     backgroundColor: hovered ? 'var(--void-accent)' : 'transparent',
@@ -99,25 +96,25 @@ function TimelineItem({ year, degree, academic_track, school, desc }) {
             />
             <div>
                 <p
-                    className="text-[10px] tracking-[0.2em] uppercase mb-1"
+                    className="about-timeline-year text-[10px] tracking-[0.2em] uppercase mb-1"
                     style={{ fontFamily: "'Space Grotesk', monospace", color: 'var(--void-text-muted)' }}
                 >
                     {year}
                 </p>
                 <h4
-                    className="text-[15px] font-bold mb-1"
+                    className="about-timeline-title text-[15px] font-bold mb-1"
                     style={{ fontFamily: "'Space Grotesk', monospace", color: 'var(--void-text-full)' }}
                 >
                     {degree || academic_track}
                 </h4>
                 <p
-                    className="text-[13px] mb-2"
+                    className="about-timeline-school text-[13px] mb-2"
                     style={{ fontFamily: "'Inter', sans-serif", color: 'var(--void-text-dim)' }}
                 >
                     {school}
                 </p>
                 <p
-                    className="text-[13px] leading-[1.6]"
+                    className="about-timeline-desc text-[13px] leading-[1.6]"
                     style={{ fontFamily: "'Inter', sans-serif", color: 'var(--void-text)' }}
                 >
                     {desc}
@@ -140,13 +137,13 @@ function ResumeViewer() {
     const iframeHeight = `${100 / scale}%`;
 
     return (
-        <div>
+        <div className="about-resume-viewer">
             {/* Toolbar */}
-            <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2">
+            <div className="about-resume-toolbar flex items-center justify-between mb-4">
+                <div className="about-resume-controls flex items-center gap-2">
                     <button
                         onClick={zoomOut}
-                        className="w-8 h-8 flex items-center justify-center border transition-all duration-200"
+                        className="about-resume-button w-8 h-8 flex items-center justify-center border transition-all duration-200"
                         style={{
                             borderColor: 'var(--void-border)',
                             backgroundColor: 'var(--void-surface-80)',
@@ -159,14 +156,14 @@ function ResumeViewer() {
                         −
                     </button>
                     <span
-                        className="text-[11px] tracking-widest uppercase px-2"
+                        className="about-resume-scale text-[11px] tracking-widest uppercase px-2"
                         style={{ fontFamily: "'Space Grotesk', monospace", color: 'var(--void-text-muted)' }}
                     >
                         {Math.round(scale * 100)}%
                     </span>
                     <button
                         onClick={zoomIn}
-                        className="w-8 h-8 flex items-center justify-center border transition-all duration-200"
+                        className="about-resume-button w-8 h-8 flex items-center justify-center border transition-all duration-200"
                         style={{
                             borderColor: 'var(--void-border)',
                             backgroundColor: 'var(--void-surface-80)',
@@ -180,7 +177,7 @@ function ResumeViewer() {
                     </button>
                     <button
                         onClick={resetZoom}
-                        className="w-8 h-8 flex items-center justify-center border transition-all duration-200 ml-1"
+                        className="about-resume-button about-resume-button--muted about-resume-reset w-8 h-8 flex items-center justify-center border transition-all duration-200 ml-1"
                         style={{
                             borderColor: 'var(--void-border)',
                             backgroundColor: 'var(--void-surface-80)',
@@ -197,7 +194,7 @@ function ResumeViewer() {
                 <a
                     href={RESUME_PDF_URL}
                     download
-                    className="flex items-center gap-2 px-4 py-2 border text-[10px] tracking-[0.2em] uppercase transition-all duration-300"
+                    className="about-resume-download flex items-center gap-2 px-4 py-2 border text-[10px] tracking-[0.2em] uppercase transition-all duration-300"
                     style={{
                         fontFamily: "'Space Grotesk', monospace",
                         color: 'var(--void-text-dim)',
@@ -219,11 +216,10 @@ function ResumeViewer() {
 
             {/* PDF Viewer — fixed zoom approach */}
             <div
-                className="border"
+                className="about-resume-frame border"
                 style={{
                     borderColor: 'var(--void-border)',
                     backgroundColor: 'var(--void-surface-80)',
-                    height: '600px',
                     overflow: 'auto',
                 }}
             >
@@ -251,12 +247,12 @@ function ResumeViewer() {
             </div>
 
             {/* Linked text below viewer */}
-            <div className="mt-4 flex items-center justify-between">
+            <div className="about-resume-footer mt-4 flex items-center justify-between">
                 <a
                     href={RESUME_PDF_URL}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-[12px] transition-colors duration-300"
+                    className="about-resume-link text-[12px] transition-colors duration-300"
                     style={{
                         fontFamily: "'Inter', sans-serif",
                         color: 'var(--void-text-dim)',
@@ -269,7 +265,7 @@ function ResumeViewer() {
                     Open in new tab →
                 </a>
                 <span
-                    className="text-[10px] tracking-widest uppercase"
+                    className="about-resume-file text-[10px] tracking-widest uppercase"
                     style={{ fontFamily: "'Space Grotesk', monospace", color: 'var(--void-text-muted)' }}
                 >
                     Resume_Arquesola.pdf
@@ -281,14 +277,14 @@ function ResumeViewer() {
 
 export default function AboutPage() {
     return (
-        <div>
+        <div className="about-page">
             {/* Header */}
-            <div className="mb-10 pb-6 border-b" style={{ borderColor: 'var(--void-border)' }}>
-                <p className="uppercase mb-2" style={S.label}>
+            <div className="about-header mb-10 pb-6 border-b" style={{ borderColor: 'var(--void-border)' }}>
+                <p className="about-label uppercase mb-2" style={S.label}>
                     FACE_01 / ENTITY_PROFILE
                 </p>
                 <h2
-                    className="text-4xl font-bold uppercase"
+                    className="about-title text-4xl font-bold uppercase"
                     style={{ ...S.h2, letterSpacing: '0.18em' }}
                 >
                     About
@@ -298,44 +294,42 @@ export default function AboutPage() {
             {/* ═══════════════════════════════════════════════════════
                 TOP SECTION: Introduction | Profile Picture
             ═══════════════════════════════════════════════════════ */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+            <div className="about-grid grid grid-cols-1 md:grid-cols-2 gap-12">
                 {/* Left — Introduction */}
-                <div>
-                    <h3 className="uppercase mb-5" style={S.h3}>
+                <div className="about-section about-introduction">
+                    <h3 className="about-section-title uppercase mb-5" style={S.h3}>
                         Introduction
                     </h3>
-                    <p className="text-[15px] leading-[1.7] mb-6" style={S.p}>
+                    <p className="about-copy text-[15px] leading-[1.7] mb-6" style={S.p}>
                         Hi, I'm John Jessienel M. Arquesola. I'm a computer science student passionate
                         about exploring the endless possibilities of technology. I'm constantly
                         experimenting with new tools, refining my craft in programming and design,
                         and finding fresh ways to blend logic with imagination.
                     </p>
-                    <p className="text-[15px] leading-[1.7] mb-6" style={S.p}>
+                    <p className="about-copy text-[15px] leading-[1.7] mb-6" style={S.p}>
                         For me, growth isn't just about learning new skills, it's about stretching
                         boundaries, embracing the unknown, and turning obstacles into opportunities.
                         Whether I'm sketching out a design, debugging a tricky line of code, or
                         exploring the next wave of innovation, I bring both creativity and
                         determination to the table.
                     </p>
-                    <p className="text-[15px] leading-[1.7]" style={S.p}>
+                    <p className="about-copy text-[15px] leading-[1.7]" style={S.p}>
                         I don't just chase challenges, I welcome them, because each one is a chance
                         to create something meaningful, elegant, and lasting.
                     </p>
                 </div>
 
                 {/* Right — Profile Picture */}
-                <div>
-                    <h3 className="uppercase mb-5" style={S.h3}>
+                <div className="about-section about-profile-section">
+                    <h3 className="about-section-title uppercase mb-5" style={S.h3}>
                         Profile Picture
                     </h3>
-                    <div className="mb-0">
+                    <div className="about-profile-wrap mb-0">
                         <TiltCard
-                            className="rounded-2xl overflow-hidden border"
+                            className="about-profile-card rounded-2xl overflow-hidden border"
                             style={{
                                 borderColor: 'var(--void-border)',
                                 boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
-                                width: '386px',
-                                height: '386px',
                             }}
                             tiltAmount={14}
                             scale={1.03}
@@ -344,7 +338,7 @@ export default function AboutPage() {
                             <img
                                 src={profileImage}
                                 alt="Profile avatar"
-                                className="w-full h-full object-cover"
+                                className="about-profile-image w-full h-full object-cover"
                                 draggable={false}
                             />
                         </TiltCard>
@@ -353,41 +347,41 @@ export default function AboutPage() {
             </div>
 
             {/* Divider 1: Top → Middle */}
-            <div className="my-10 w-full h-px" style={{ backgroundColor: 'var(--void-border)' }} />
+            <div className="about-divider my-10 w-full h-px" style={{ backgroundColor: 'var(--void-border)' }} />
 
             {/* ═══════════════════════════════════════════════════════
                 MIDDLE SECTION: Certifications (full width)
             ═══════════════════════════════════════════════════════ */}
-            <div className="mb-0">
-                <h3 className="uppercase mb-5" style={S.h3}>
+            <div className="about-section about-certifications mb-0">
+                <h3 className="about-section-title uppercase mb-5" style={S.h3}>
                     Certifications
                 </h3>
                 <ImageCarousel images={CERTIFICATIONS} />
             </div>
 
             {/* Divider 2: Certifications → Resume */}
-            <div className="my-10 w-full h-px" style={{ backgroundColor: 'var(--void-border)' }} />
+            <div className="about-divider my-10 w-full h-px" style={{ backgroundColor: 'var(--void-border)' }} />
 
             {/* ═══════════════════════════════════════════════════════
                 RESUME VIEWER (full width)
             ═══════════════════════════════════════════════════════ */}
-            <div className="mb-0">
-                <h3 className="uppercase mb-5" style={S.h3}>
+            <div className="about-section about-resume-section mb-0">
+                <h3 className="about-section-title uppercase mb-5" style={S.h3}>
                     Resume
                 </h3>
                 <ResumeViewer />
             </div>
 
             {/* Divider 3: Resume → Bottom */}
-            <div className="my-10 w-full h-px" style={{ backgroundColor: 'var(--void-border)' }} />
+            <div className="about-divider my-10 w-full h-px" style={{ backgroundColor: 'var(--void-border)' }} />
 
             {/* ═══════════════════════════════════════════════════════
                 BOTTOM SECTION: Education | Parameters
             ═══════════════════════════════════════════════════════ */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+            <div className="about-bottom-grid grid grid-cols-1 md:grid-cols-2 gap-12">
                 {/* Left — Education Timeline */}
-                <div>
-                    <h3 className="uppercase mb-6" style={S.h3}>
+                <div className="about-section about-education">
+                    <h3 className="about-section-title uppercase mb-6" style={S.h3}>
                         Education
                     </h3>
                     <div>
@@ -398,11 +392,11 @@ export default function AboutPage() {
                 </div>
 
                 {/* Right — Parameters */}
-                <div>
-                    <h3 className="uppercase mb-5" style={S.h3}>
+                <div className="about-section about-parameter-section">
+                    <h3 className="about-section-title uppercase mb-5" style={S.h3}>
                         Parameters
                     </h3>
-                    <div className="space-y-3">
+                    <div className="about-parameters space-y-3">
                         {[
                             ['ROLE', 'Full-Stack Developer'],
                             ['FOCUS', 'To Graduate'],
@@ -411,13 +405,13 @@ export default function AboutPage() {
                         ].map(([label, value]) => (
                             <div
                                 key={label}
-                                className="flex justify-between items-center border-b pb-3"
+                                className="about-parameter-row flex justify-between items-center border-b pb-3"
                                 style={{ borderColor: 'var(--void-border-dim)' }}
                             >
-                                <span className="uppercase" style={S.key}>
+                                <span className="about-parameter-key uppercase" style={S.key}>
                                     {label}
                                 </span>
-                                <span style={S.val}>{value}</span>
+                                <span className="about-parameter-value" style={S.val}>{value}</span>
                             </div>
                         ))}
                     </div>

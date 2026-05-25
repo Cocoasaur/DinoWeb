@@ -5,27 +5,29 @@ export default function CoordinateDisplay({ coordsRef }) {
 
     useEffect(() => {
         let frameId;
-
         const tick = () => {
             if (spanRef.current && coordsRef.current) {
                 const { x, y, z } = coordsRef.current;
-                spanRef.current.textContent =
-                    `[ X: ${x.toFixed(2)}, Y: ${y.toFixed(2)}, Z: ${z.toFixed(2)} ]`;
+                const w = window.innerWidth;
+
+                let text;
+                if (w < 400) {
+                    text = `X:${x.toFixed(1)} Y:${y.toFixed(1)} Z:${z.toFixed(1)}`;
+                } else {
+                    text = `[ X: ${x.toFixed(2)}, Y: ${y.toFixed(2)}, Z: ${z.toFixed(2)} ]`;
+                }
+
+                spanRef.current.textContent = text;
             }
             frameId = requestAnimationFrame(tick);
         };
-
         frameId = requestAnimationFrame(tick);
         return () => cancelAnimationFrame(frameId);
     }, [coordsRef]);
 
     return (
-        <div className="fixed top-10 left-12 z-40 hidden md:block coord-entrance">
-            <span
-                ref={spanRef}
-                className="font-mono text-xs tracking-widest"
-                style={{ fontFamily: "'Space Grotesk', monospace", color: 'var(--void-text-muted)' }}
-            />
+        <div className="home-coordinate coord-entrance">
+            <span ref={spanRef} className="home-coordinate__value" />
         </div>
     );
 }

@@ -1,8 +1,6 @@
 import { useState, useEffect } from 'react';
-import { useTheme } from '../../context/ThemeContext';
 
 export default function Footer() {
-    const { theme } = useTheme();
     const [time, setTime] = useState(new Date());
 
     useEffect(() => {
@@ -28,23 +26,12 @@ export default function Footer() {
     };
 
     return (
-        <footer className="fixed bottom-0 left-0 w-full z-40 bg-transparent hidden md:flex pointer-events-none footer-entrance">
-            {/* Left — Build signature */}
-            <div
-                className="fixed bottom-12 left-12 text-[10px] tracking-[0.2em] uppercase"
-                style={{ fontFamily: "'Space Grotesk', monospace", color: 'var(--void-text-muted)' }}
-            >
-                ©2026_DINOBIT  /  V.0.1.8
+        <footer className="home-footer footer-entrance">
+            <div className="home-footer__item">
+                ©2026_DINOBIT / V.0.1.8
             </div>
-
-            {/* Right — System telemetry */}
-            <div
-                className="fixed bottom-12 right-12 flex items-center gap-6 text-[10px] tracking-[0.2em] uppercase"
-                style={{ fontFamily: "'Space Grotesk', monospace", color: 'var(--void-text-muted)' }}
-            >
-                <span>
-                    {formatDate(time)}  {formatTime(time)}
-                </span>
+            <div className="home-footer__item">
+                {formatDate(time)}  {formatTime(time)}
             </div>
         </footer>
     );

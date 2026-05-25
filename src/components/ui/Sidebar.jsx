@@ -5,10 +5,10 @@ export default function Sidebar() {
 
     return (
         <div
-            className="fixed top-1/2 left-12 -translate-y-1/2 flex flex-col gap-2 hidden md:flex sidebar-entrance"
+            className="sidebar-home -translate-y-1/2 sidebar-entrance"
             style={{ zIndex: 5 }}
         >
-            <svg width="720" height="160" viewBox="0 0 720 160" style={{ overflow: 'visible' }}>
+            <svg className="sidebar-home__logo" width="720" height="160" viewBox="0 0 720 160" style={{ overflow: 'visible' }}>
                 <defs>
                     {/* Blueprint diagonal hatch — tighter, consistent 45° lines */}
                     <pattern
@@ -68,7 +68,7 @@ export default function Sidebar() {
             </svg>
 
             <div
-                className="text-[18px] tracking-[0.2em] uppercase leading-relaxed subtitle-entrance"
+                className="sidebar-home__subtitle subtitle-entrance"
                 style={{ fontFamily: "'Space Grotesk', monospace", color: 'var(--void-text-dim)' }}
             >
                 VERSION: NOT_A_FOSSIL_YET<br />

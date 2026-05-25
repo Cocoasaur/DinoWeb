@@ -13,7 +13,7 @@ function StatusBadge({ status }) {
     const color = STATUS_COLORS[status] || '#888';
     return (
         <span
-            className="inline-flex items-center gap-2 px-3 py-1.5 border text-[11px] tracking-[0.15em] uppercase"
+            className="project-status-badge inline-flex items-center gap-2 px-3 py-1.5 border text-[11px] tracking-[0.15em] uppercase"
             style={{
                 fontFamily: "'Space Grotesk', monospace",
                 color: 'var(--void-text-full)',
@@ -138,19 +138,19 @@ export default function ProjectModal({ project }) {
     const { id, name, status, fullDesc, tools, role, github, images, imageCount } = project;
 
     return (
-        <div className="h-full flex flex-col">
+        <div className="project-modal h-full flex flex-col">
 
             {/* ── Header ── */}
-            <div className="flex flex-wrap items-start gap-4 mb-2">
+            <div className="project-modal-header flex flex-wrap items-start gap-4 mb-2">
                 <div className="flex-1 min-w-0">
                     <p
-                        className="uppercase mb-1 text-[10px] tracking-[0.3em]"
+                        className="project-modal-label uppercase mb-1 text-[10px] tracking-[0.3em]"
                         style={{ fontFamily: "'Space Grotesk', monospace", color: 'var(--void-text-dim)' }}
                     >
                         PROJECT_{id}
                     </p>
                     <h2
-                        className="text-3xl md:text-4xl font-bold uppercase tracking-[0.15em]"
+                        className="project-modal-title text-3xl md:text-4xl font-bold uppercase tracking-[0.15em]"
                         style={{
                             fontFamily: "'Space Grotesk', monospace",
                             color: 'var(--void-text-full)',
@@ -162,7 +162,7 @@ export default function ProjectModal({ project }) {
                         {name.replace(/_/g, '_\u200B')}
                     </h2>
                 </div>
-                <div className="flex-shrink-0">
+                <div className="project-modal-status flex-shrink-0">
                     <StatusBadge status={status} />
                 </div>
             </div>
@@ -202,7 +202,7 @@ export default function ProjectModal({ project }) {
                 >
                     PROJECT_SCREENSHOTS
                 </h3>
-                <ImageCarousel images={images} imageCount={imageCount} />
+                <ImageCarousel images={images} imageCount={imageCount} className="project-modal-carousel" />
             </div>
 
             {/* ══ SECTION DIVIDER ══ */}

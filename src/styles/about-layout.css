@@ -1,0 +1,397 @@
+.portfolio-overlay-panel {
+    position: relative;
+}
+
+.portfolio-overlay-close {
+    flex-shrink: 0;
+}
+
+.image-carousel__viewport {
+    border-color: var(--void-border);
+}
+
+.image-carousel__track {
+    display: flex;
+    transition: transform 0.5s ease-out;
+}
+
+.image-carousel__slide {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.image-carousel__image {
+    width: 100%;
+    height: auto;
+    max-height: 400px;
+    object-fit: contain;
+}
+
+.image-carousel__arrow {
+    background-color: var(--void-surface-80);
+    border-color: var(--void-border);
+    color: var(--void-text-full);
+}
+
+.image-carousel__arrow:hover:not(:disabled) {
+    background-color: var(--void-surface-80);
+    border-color: var(--void-text-dim);
+}
+
+.image-carousel__arrow:disabled {
+    cursor: not-allowed;
+    opacity: 0.3;
+}
+
+.image-carousel__dots {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 16px;
+}
+
+.image-carousel__dot {
+    width: 17px;
+    height: 17px;
+    flex-shrink: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 13px;
+    background-color: var(--void-border);
+    cursor: pointer;
+    transition: all 0.35s cubic-bezier(0.34, 1.36, 0.64, 1);
+}
+
+.image-carousel__dot--active {
+    width: 50px;
+    background-color: var(--void-text-full);
+}
+
+.image-carousel__counter {
+    font-family: 'Space Grotesk', monospace;
+    background-color: var(--void-surface-80);
+    border-color: var(--void-border);
+    color: var(--void-text-muted);
+}
+
+.about-page {
+    width: 100%;
+}
+
+.about-header,
+.about-divider {
+    border-color: var(--void-border);
+}
+
+.about-section-title {
+    font-family: 'Space Grotesk', monospace;
+    color: var(--void-text-dim);
+    font-size: 10px;
+    letter-spacing: 0.3em;
+}
+
+.about-profile-card {
+    width: 386px;
+    height: 386px;
+    border-color: var(--void-border);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+}
+
+.about-profile-card > div {
+    width: 100%;
+    height: 100%;
+}
+
+.about-resume-frame {
+    height: 600px;
+    overflow: auto;
+    border-color: var(--void-border);
+    background-color: var(--void-surface-80);
+}
+
+.about-resume-button {
+    border-color: var(--void-border);
+    background-color: var(--void-surface-80);
+    color: var(--void-text-full);
+}
+
+.about-resume-button--muted {
+    color: var(--void-text-muted);
+}
+
+.about-resume-button:hover {
+    border-color: var(--void-text-dim);
+}
+
+.about-resume-download {
+    font-family: 'Space Grotesk', monospace;
+    color: var(--void-text-dim);
+    border-color: var(--void-border);
+    text-decoration: none;
+}
+
+.about-resume-download:hover {
+    color: var(--void-text-full);
+    border-color: var(--void-text-dim);
+}
+
+.about-parameter-row {
+    border-color: var(--void-border-dim);
+}
+
+.about-parameter-key {
+    font-size: 10px;
+    letter-spacing: 0.2em;
+}
+
+.about-parameter-value {
+    font-size: 14px;
+}
+
+@media (max-width: 1023px) {
+    .portfolio-overlay-close {
+        position: sticky !important;
+        top: 14px !important;
+        z-index: 30 !important;
+        margin-top: 14px !important;
+        margin-bottom: -14px !important;
+        margin-left: auto !important;
+        margin-right: 14px !important;
+    }
+}
+
+@media (max-width: 767px) {
+    .portfolio-overlay-panel {
+        width: min(90vw, 348px) !important;
+        max-width: 348px !important;
+        max-height: calc(100dvh - 108px) !important;
+    }
+
+    .portfolio-overlay-content {
+        padding: 10px 14px 28px !important;
+    }
+
+    .portfolio-overlay-close {
+        top: 14px !important;
+        width: 24px !important;
+        height: 24px !important;
+        font-size: 18px !important;
+        line-height: 1 !important;
+    }
+
+    .about-header {
+        margin-bottom: 24px !important;
+        padding-bottom: 18px !important;
+    }
+
+    .about-label {
+        margin-bottom: 8px !important;
+        font-size: 10px !important;
+        letter-spacing: 0.28em !important;
+    }
+
+    .about-title {
+        font-size: 34px !important;
+        line-height: 1 !important;
+        letter-spacing: 0.18em !important;
+    }
+
+    .about-grid,
+    .about-bottom-grid {
+        gap: 28px !important;
+    }
+
+    .about-section-title {
+        margin-bottom: 17px !important;
+        font-size: 10px !important;
+        letter-spacing: 0.32em !important;
+    }
+
+    .about-copy {
+        margin-bottom: 16px !important;
+        font-size: 13px !important;
+        line-height: 1.32 !important;
+    }
+
+    .about-copy:last-child {
+        margin-bottom: 0 !important;
+    }
+
+    .about-profile-card {
+        width: 100%;
+        height: auto;
+        aspect-ratio: 1.04;
+        border-radius: 10px !important;
+    }
+
+    .about-profile-image {
+        object-position: 50% 18%;
+    }
+
+    .about-divider {
+        margin-top: 28px !important;
+        margin-bottom: 28px !important;
+    }
+
+    .image-carousel__viewport {
+        aspect-ratio: 1.92;
+    }
+
+    .image-carousel__track,
+    .image-carousel__slide {
+        height: 100%;
+    }
+
+    .image-carousel__image {
+        width: auto;
+        height: 100%;
+        max-width: 100%;
+        max-height: none;
+    }
+
+    .image-carousel__arrow {
+        width: 22px !important;
+        height: 22px !important;
+        font-size: 12px !important;
+    }
+
+    .image-carousel__arrow--prev {
+        left: 7px !important;
+    }
+
+    .image-carousel__arrow--next {
+        right: 7px !important;
+    }
+
+    .image-carousel__counter {
+        top: 0 !important;
+        right: 0 !important;
+        padding: 3px 5px !important;
+        font-size: 9px !important;
+        letter-spacing: 0.12em !important;
+    }
+
+    .image-carousel__dots {
+        gap: 4px;
+        margin-top: 8px;
+    }
+
+    .image-carousel__dot {
+        width: 10px;
+        height: 10px;
+    }
+
+    .image-carousel__dot--active {
+        width: 28px;
+    }
+
+    .about-resume-toolbar {
+        margin-bottom: 12px !important;
+        gap: 10px;
+    }
+
+    .about-resume-controls {
+        gap: 6px !important;
+    }
+
+    .about-resume-button {
+        width: 16px !important;
+        height: 16px !important;
+        font-size: 12px !important;
+    }
+
+    .about-resume-reset {
+        margin-left: 2px !important;
+    }
+
+    .about-resume-scale {
+        padding-right: 6px !important;
+        padding-left: 6px !important;
+        font-size: 10px !important;
+        letter-spacing: 0.16em !important;
+    }
+
+    .about-resume-download {
+        padding: 5px 10px !important;
+        font-size: 9px !important;
+        letter-spacing: 0.18em !important;
+    }
+
+    .about-resume-frame {
+        height: 260px;
+    }
+
+    .about-resume-footer {
+        margin-top: 10px !important;
+        gap: 12px;
+    }
+
+    .about-resume-link {
+        font-size: 11px !important;
+    }
+
+    .about-resume-file {
+        max-width: 148px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font-size: 8px !important;
+        letter-spacing: 0.08em !important;
+    }
+
+    .about-timeline-item {
+        padding-bottom: 26px !important;
+        padding-left: 24px !important;
+    }
+
+    .about-timeline-line {
+        left: 5px !important;
+    }
+
+    .about-timeline-dot {
+        width: 8px !important;
+        height: 8px !important;
+    }
+
+    .about-timeline-year {
+        margin-bottom: 8px !important;
+        font-size: 13px !important;
+        letter-spacing: 0 !important;
+    }
+
+    .about-timeline-title {
+        margin-bottom: 7px !important;
+        font-size: 13px !important;
+        line-height: 1.25 !important;
+    }
+
+    .about-timeline-school,
+    .about-timeline-desc {
+        font-size: 13px !important;
+    }
+
+    .about-timeline-desc {
+        line-height: 1.35 !important;
+    }
+
+    .about-parameters {
+        gap: 0 !important;
+    }
+
+    .about-parameter-row {
+        padding: 13px 5px !important;
+    }
+
+    .about-parameter-key {
+        font-size: 9px !important;
+        letter-spacing: 0.28em !important;
+    }
+
+    .about-parameter-value {
+        max-width: 180px;
+        text-align: right;
+        font-size: 13px !important;
+    }
+}

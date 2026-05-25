@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { flushSync } from 'react-dom';
 import { Canvas } from '@react-three/fiber';
+import MobileBranding from './components/ui/MobileBranding';
+import RotatePrompt from './components/ui/RotatePrompt';
 import Scene from './components/three/Scene';
 import CornerMarkers from './components/ui/CornerMarkers';
 import Sidebar from './components/ui/Sidebar';
@@ -13,11 +15,28 @@ import { useCubeInteraction } from './hooks/useCubeInteraction';
 import { useTheme } from './context/ThemeContext';
 import { useAdaptiveDPR } from './hooks/useAdaptiveDPR';
 import { useReducedMotion } from './hooks/useReducedMotion';
+import { getHomeViewportLayout } from './hooks/useHomeViewportLayout';
 import './styles/entrance-animations.css';
+import './styles/home-layout.css';
+import './styles/about-layout.css';
+import './styles/projects-layout.css';
 
-function getCubeScreenOrigin() {
-  const x = Math.round(window.innerWidth * 0.69);
-  const y = Math.round(window.innerHeight * 0.50);
+const SCENE_CAMERA_FOV = 45;
+const SCENE_CAMERA_Z = 5;
+
+function getCubeScreenOrigin(zoomZ) {
+  const width = window.innerWidth;
+  const height = window.innerHeight;
+  const { restingX, restingY } = getHomeViewportLayout(width, height);
+  const cameraZ = SCENE_CAMERA_Z * (1 + zoomZ / 1000);
+  const fov = SCENE_CAMERA_FOV * Math.PI / 180;
+  const focal = 1 / Math.tan(fov / 2);
+  const aspect = width / height;
+  const ndcX = (restingX * focal / aspect) / cameraZ;
+  const ndcY = (restingY * focal) / cameraZ;
+  const x = Math.round((ndcX + 1) * width / 2);
+  const y = Math.round((1 - ndcY) * height / 2);
+
   return { x, y };
 }
 
@@ -59,7 +78,7 @@ export default function App() {
     if (!themeTransitionActive || transitionInProgressRef.current) return;
     transitionInProgressRef.current = true;
 
-    const { x, y } = getCubeScreenOrigin();
+    const { x, y } = getCubeScreenOrigin(zoomZ);
     document.documentElement.style.setProperty('--theme-origin-x', `${x}px`);
     document.documentElement.style.setProperty('--theme-origin-y', `${y}px`);
 
@@ -81,7 +100,7 @@ export default function App() {
       transitionInProgressRef.current = false;
       handleThemeTransitionComplete();
     }
-  }, [themeTransitionActive, isDark, toggle, handleThemeTransitionComplete, reducedMotion]);
+  }, [themeTransitionActive, isDark, toggle, handleThemeTransitionComplete, reducedMotion, zoomZ]);
 
   const isLowEnd = tier === 'low';
 
@@ -140,6 +159,8 @@ export default function App() {
         {!isLowEnd && <Scrubber />}
         <CoordinateDisplay coordsRef={coordsRef} />
         <Footer />
+        <MobileBranding />
+        <RotatePrompt />
       </div>
 
       <Overlay
@@ -159,7 +180,7 @@ export default function App() {
         renderCloseButton={activeFace === 'projects' ? ({ onClose }) => (
           <button
             onClick={selectedProject ? () => setSelectedProject(null) : onClose}
-            className="sticky top-5 right-5 z-20 ml-auto text-xl w-10 h-10 flex items-center justify-center border transition-all duration-300 cursor-pointer"
+            className="portfolio-overlay-close sticky top-5 right-5 z-20 ml-auto text-xl w-10 h-10 flex items-center justify-center border transition-all duration-300 cursor-pointer"
             style={{
               fontFamily: "'Space Grotesk', monospace",
               color: 'var(--void-text-full)',
