@@ -21,6 +21,7 @@
   --void-text-muted: rgba(251, 251, 251, 0.808);
   --void-text-full: #ffffff;
   --void-accent: #eff6ff;
+  --home-hatch-color: rgba(255, 255, 255, 0.36);
   --void-green: rgba(209, 241, 169, 0.75);
   --void-yellow: rgba(255, 197, 143, 0.75);
   --void-marker: rgba(255, 255, 255, 0.384);
@@ -58,6 +59,7 @@
   --void-text-muted: rgba(15, 15, 15, 0.986);
   --void-text-full: #0a0a0a;
   --void-accent: #1a1a1a;
+  --home-hatch-color: rgba(10, 10, 10, 0.36);
   --void-green: rgba(40, 100, 40, 0.85);
   --void-yellow: rgba(160, 100, 20, 0.85);
   --void-marker: rgba(0, 0, 0, 0.45);

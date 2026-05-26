@@ -16,16 +16,18 @@ function shortestPath(current, target) {
 }
 
 function getZoomedCameraZ(camera, cubeScale, breakpoint) {
-    if (breakpoint !== 'phone') return 2.2;
-
     const halfFov = THREE.MathUtils.degToRad(camera.fov) / 2;
     const aspect = camera.aspect || window.innerWidth / window.innerHeight;
     const faceHalfSize = cubeScale;
     const faceDepth = cubeScale * 1.01;
-    const overscan = 1.35;
+    const overscan = breakpoint === 'phone'
+        ? 1.55
+        : breakpoint === 'tablet'
+            ? 1.45
+            : 1.35;
     const fitDistance = faceHalfSize / (Math.tan(halfFov) * Math.max(1, aspect) * overscan);
 
-    return Math.max(faceDepth + fitDistance, faceDepth + camera.near + 0.22);
+    return Math.max(faceDepth + fitDistance, faceDepth + camera.near + 0.16);
 }
 
 export default function InteractiveCube({
@@ -330,7 +332,7 @@ export default function InteractiveCube({
             animTimerRef.current += dt;
             const idleCameraZ = 5 * (1 + zoomZ / 1000);
             const zoomedCameraZ = getZoomedCameraZ(camera, cubeScale, breakpoint);
-            const zoomLerpFactor = reducedMotion ? 1 : (breakpoint === 'phone' ? 0.13 : 0.07);
+            const zoomLerpFactor = reducedMotion ? 1 : (breakpoint === 'phone' ? 0.18 : 0.12);
 
             if (!reducedMotion) {
                 groupRef.current.rotation.x = THREE.MathUtils.lerp(rotX, targetRad.x, 0.04);
@@ -351,7 +353,14 @@ export default function InteractiveCube({
                 zoomLerpFactor
             );
 
-            if (animTimerRef.current > 1.6 && !hasNotifiedRef.current) {
+            const zoomSettled = Math.abs(camera.position.z - zoomedCameraZ) < 0.04;
+            const cubeCentered = Math.abs(groupRef.current.position.x - CUBE_CENTER_X) < 0.05 &&
+                Math.abs(groupRef.current.position.y) < 0.05;
+
+            if (
+                !hasNotifiedRef.current &&
+                ((animTimerRef.current > 1.6 && zoomSettled && cubeCentered) || animTimerRef.current > 2.3)
+            ) {
                 hasNotifiedRef.current = true;
                 onZoomComplete?.();
             }

@@ -12,53 +12,31 @@ export default function Sidebar() {
                 <defs>
                     {/* Blueprint diagonal hatch — tighter, consistent 45° lines */}
                     <pattern
-                        id="bp-hatch"
+                        id="sidebar-web-hatch"
                         x="0" y="0" width="8" height="8"
                         patternUnits="userSpaceOnUse"
                     >
                         <line
-                            x1="0" y1="8"
-                            x2="8" y2="0"
-                            stroke="var(--void-accent)"
-                            strokeWidth="0.9"
+                            x1="-4" y1="12"
+                            x2="12" y2="-4"
+                            stroke="var(--home-hatch-color)"
+                            strokeWidth="0.85"
+                            strokeLinecap="square"
                         />
                     </pattern>
-
-                    <clipPath id="web-clip">
-                        <text
-                            x="0" y="120"
-                            fontFamily="'Space Grotesk', monospace"
-                            fontSize="90" fontWeight="900"
-                            letterSpacing="18"
-                        >
-                            DINOWEB
-                        </text>
-                    </clipPath>
                 </defs>
-
-                {/* 
-                  Wider, taller rect to fully cover all letters including "B".
-                  The y-position is negative so the pattern extends above the
-                  text baseline, covering the full height of tall letters.
-                */}
-                <rect
-                    x="-20" y="-20" width="760" height="180"
-                    fill="url(#bp-hatch)"
-                    clipPath="url(#web-clip)"
-                    className="web-hatch"
-                />
 
                 <text
                     x="0" y="120"
                     fontFamily="'Space Grotesk', monospace"
-                    fontSize="90" fontWeight="900"
+                    fontSize="120" fontWeight="900"
                     letterSpacing="18"
                     className="dino-entrance"
                 >
                     <tspan fill={isDark ? '#ffffff' : '#0a0a0a'}>DINO</tspan>
                     <tspan
-                        fill="none"
-                        stroke="var(--void-accent)"
+                        fill="url(#sidebar-web-hatch)"
+                        stroke="var(--void-text-full)"
                         strokeWidth="2.0"
                         className="web-trace"
                     >

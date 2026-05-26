@@ -5,6 +5,7 @@ const PHONE_BASE_WIDTH = 430;
 const PHONE_BASE_HEIGHT = 932;
 const TABLET_MIN = 768;
 const DESKTOP_MIN = 1024;
+const DESKTOP_FULL = 1440;
 
 function clamp(value, min, max) {
     return Math.min(Math.max(value, min), max);
@@ -28,20 +29,37 @@ export function getHomeViewportLayout(width, height) {
         return {
             breakpoint: 'phone',
             restingX: width < 390 ? 0 : 0.02,
-            restingY: -0.5 * heightScale,
-            cubeScale: clamp(0.6 * fitScale, 0.5, 0.6),
+            restingY: -0.62 * heightScale,
+            cubeScale: clamp(0.58 * fitScale, 0.48, 0.58),
         };
     }
 
     if (width < DESKTOP_MIN) {
         const progress = clamp((width - TABLET_MIN) / (DESKTOP_MIN - TABLET_MIN), 0, 1);
-        const portraitOffset = height > width ? 1 : 0;
+        const isPortraitTablet = height > width * 1.08;
+        const heightScale = clamp(height / 770, 0.96, 1.04);
 
         return {
             breakpoint: 'tablet',
-            restingX: 0.45 + progress * 0.45 - portraitOffset * 0.1,
+            restingX: isPortraitTablet
+                ? 0.72 + progress * 0.18
+                : 1.22 + progress * 0.24,
             restingY: 0,
-            cubeScale: 0.58 + progress * 0.22 - portraitOffset * 0.06,
+            cubeScale: (isPortraitTablet
+                ? 0.5 + progress * 0.1
+                : 0.54 + progress * 0.14) * heightScale,
+        };
+    }
+
+    if (width < DESKTOP_FULL) {
+        const progress = clamp((width - DESKTOP_MIN) / (DESKTOP_FULL - DESKTOP_MIN), 0, 1);
+        const heightScale = clamp(height / 760, 0.86, 1);
+
+        return {
+            breakpoint: 'desktop',
+            restingX: 1.42 + progress * (CUBE_OFFSET_X - 1.42),
+            restingY: 0,
+            cubeScale: (0.78 + progress * 0.22) * heightScale,
         };
     }
 

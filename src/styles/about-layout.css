@@ -100,7 +100,7 @@
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
 }
 
-.about-profile-card > div {
+.about-profile-card>div {
     width: 100%;
     height: 100%;
 }
@@ -116,6 +116,29 @@
     overflow: auto;
     border-color: var(--void-border);
     background-color: var(--void-surface-80);
+}
+
+/* ── Resume-frame scrollbar — grey thumb for visibility on white preview ── */
+.about-resume-frame::-webkit-scrollbar {
+    width: 6px;
+}
+
+.about-resume-frame::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.about-resume-frame::-webkit-scrollbar-thumb {
+    background: rgba(128, 128, 128, 0.6);
+    border-radius: 3px;
+}
+
+.about-resume-frame::-webkit-scrollbar-thumb:hover {
+    background: rgba(128, 128, 128, 0.9);
+}
+
+.about-resume-frame {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(128, 128, 128, 0.6) transparent;
 }
 
 .about-resume-pdf {
@@ -177,6 +200,31 @@
         margin-bottom: -14px !important;
         margin-left: auto !important;
         margin-right: 14px !important;
+    }
+
+    .about-grid,
+    .about-bottom-grid {
+        grid-template-columns: minmax(0, 1fr) !important;
+    }
+
+    .about-introduction {
+        order: 1;
+    }
+
+    .about-profile-section {
+        order: 2;
+    }
+
+    .about-profile-wrap {
+        width: 100%;
+    }
+
+    .about-profile-card {
+        width: min(100%, 420px);
+        height: auto;
+        aspect-ratio: 1.04;
+        margin-right: auto;
+        margin-left: auto;
     }
 
     .about-resume-scale-layer {
