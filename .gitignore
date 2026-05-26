@@ -6,22 +6,101 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
+debug.log
+debug.log.*
 
-node_modules
-dist
+# Dependency directories
+node_modules/
+.pnp/
+.pnp.js
+
+# Build outputs
+dist/
+.build/
+.cache/
+.temp/
+.tmp/
+.eslintcache
+.stylelintcache
+.sass-cache/
+.libsass-cache/
+.tsbuildinfo
+.rpt2_cache/
+.rts2_cache/
+.parcel-cache/
+.next/
+.nuxt/
+.vuepress/
+.serverless/
+.fusebox/
+.dynamodb/
+.tern-port/
+
+# Environment variables
 .env
+.env.*
+!.env.example
 .env.local
-.DS_Store
+.env.*.local
+.env.development
+.env.production
+.env.test
+.env.staging
+
+# Test coverage
+coverage/
+.nyc_output/
+.jest/test-results/
+*.lcov
+*.lcov.info
+*.gcda
+*.gcno
+*.tcov
+*.tcs
 
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
 .idea
+*.sublime-workspace
+*.sublime-project
+*.sublime-session
+*.sublime-tabs
+*.sublime-meta
+*.sublime-build
+*.sublime-commands
+*.sublime-completions
+*.sublime-settings
+*.sublime-theme
+*.sublime-keymap
+*.sublime-menu
+*.sublime-mousemap
+
+# OS-generated files
 .DS_Store
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
-.vite
-dist
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs_vista.txt
+Desktop.ini
+Thumbs.db
+
+# Backup and temporary files
+*~
+*.bak
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+.*.swp
+.*.swo
+
+# Miscellaneous
+.npm
+.yarn
+.pnp.js
+.gitkeep
+
+# Vite specific (you already have .vite/ and dist/)
+.vite/
