@@ -9,80 +9,114 @@
    ══════════════════════════════════════════════════════ */
 :root,
 [data-theme='demain-soir-bleu'] {
+  /* ── Core surface ── */
   --void-bg: #002451;
   --void-surface: #00346e;
   --void-surface-80: rgba(0, 36, 81, 0.92);
   --void-border: rgba(187, 218, 255, 0.15);
   --void-border-dim: rgba(187, 218, 255, 0.07);
+
+  /* ── Grid ── */
   --void-grid: rgba(187, 218, 255, 0.04);
   --void-grid-drift: rgba(187, 218, 255, 0.07);
+  --void-overlay-grid: rgba(135, 206, 235, 0.08);
+
+  /* ── Text ── */
   --void-text: rgba(255, 255, 255, 0.85);
   --void-text-dim: rgba(187, 218, 255, 0.55);
   --void-text-muted: rgba(251, 251, 251, 0.808);
   --void-text-full: #ffffff;
   --void-accent: #eff6ff;
   --home-hatch-color: rgba(255, 255, 255, 0.36);
+
+  /* ── Status ── */
   --void-green: rgba(209, 241, 169, 0.75);
   --void-yellow: rgba(255, 197, 143, 0.75);
+
+  /* ── Chrome ── */
   --void-marker: rgba(255, 255, 255, 0.384);
   --void-scrubber: rgb(255, 255, 255);
   --void-btn-bg: rgba(0, 36, 81, 0.92);
   --void-btn-border: rgba(187, 218, 255, 0.15);
-  --void-overlay-grid: rgba(135, 206, 235, 0.08);
+
+  /* ── Cube ── */
   --cube-color: #dddddd;
   --cube-edge-color: #ffffff;
   --cube-edge-opacity: 0.35;
-  --overlay-bg: rgba(0, 18, 51, 0.88);
   --cube-text-default: #1a2332;
   --cube-text-hover: #000000;
   --cube-text-accent: #000000;
   --cube-ticks-idle: rgba(255, 255, 255, 0.35);
   --cube-ticks-hover: rgba(255, 255, 255, 0.9);
   --cube-ticks-hover-scale: 1.05;
+
+  /* ── Cards ── */
   --skill-card-bg-hover: rgba(106, 187, 231, 0.268);
   --skill-card-bg: rgba(14, 129, 191, 0.268);
+
+  /* ── Resume viewer ── */
   --resume-bg: rgba(0, 24, 56, 0.85);
-  /* ← NEW: dark blue shade for resume container */
+
+  /* ── Scrollbar (desktop) ── */
+  --scrollbar-thumb: rgb(255, 255, 255);
+  --scrollbar-thumb-outline: rgb(0, 0, 0);
 }
 
 /* ══════════════════════════════════════════════════════
    THEME 02 — Clair obscur
    ══════════════════════════════════════════════════════ */
 [data-theme='clair-obscur'] {
+  /* ── Core surface ── */
   --void-bg: #e8e6e1;
   --void-surface: #f5f3ef;
   --void-surface-80: rgba(245, 243, 239, 0.95);
   --void-border: rgba(0, 0, 0, 0.25);
   --void-border-dim: rgba(0, 0, 0, 0.14);
+
+  /* ── Grid ── */
   --void-grid: rgba(0, 0, 0, 0.10);
   --void-grid-drift: rgba(0, 0, 0, 0.14);
+  --void-overlay-grid: rgba(93, 93, 93, 0.186);
+
+  /* ── Text ── */
   --void-text: rgba(20, 20, 20, 0.92);
   --void-text-dim: rgba(40, 40, 40, 0.75);
   --void-text-muted: rgba(15, 15, 15, 0.986);
   --void-text-full: #0a0a0a;
   --void-accent: #1a1a1a;
   --home-hatch-color: rgba(10, 10, 10, 0.36);
+
+  /* ── Status ── */
   --void-green: rgba(40, 100, 40, 0.85);
   --void-yellow: rgba(160, 100, 20, 0.85);
+
+  /* ── Chrome ── */
   --void-marker: rgba(0, 0, 0, 0.45);
   --void-scrubber: rgb(0, 0, 0);
   --void-btn-bg: rgba(210, 207, 201, 0.95);
   --void-btn-border: rgba(0, 0, 0, 0.28);
-  --void-overlay-grid: rgba(93, 93, 93, 0.186);
+
+  /* ── Cube ── */
   --cube-color: #3d3d3d;
   --cube-edge-color: #4a4a4a;
   --cube-edge-opacity: 0.40;
-  --overlay-bg: rgba(220, 218, 213, 0.95);
   --cube-text-default: #e8e6e1;
   --cube-text-hover: #ffffff;
   --cube-text-accent: #c8c6c1;
   --cube-ticks-idle: rgb(48, 48, 48);
   --cube-ticks-hover: rgba(0, 0, 0, 0.95);
   --cube-ticks-hover-scale: 1.05;
+
+  /* ── Cards ── */
   --skill-card-bg-hover: rgb(249, 249, 249);
   --skill-card-bg: rgb(255, 255, 255);
+
+  /* ── Resume viewer ── */
   --resume-bg: rgba(180, 178, 172, 0.55);
-  /* ← NEW: warm gray shade for resume container */
+
+  /* ── Scrollbar (desktop) ── */
+  --scrollbar-thumb: rgb(0, 0, 0);
+  --scrollbar-thumb-outline: rgb(0, 0, 0);
 }
 
 /* ═════════════════════════════════════
