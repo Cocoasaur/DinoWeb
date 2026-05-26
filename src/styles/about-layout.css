@@ -111,45 +111,74 @@
     background-color: #ffffff;
 }
 
+/* ═══════════════════════════════════════════════════════
+   RESUME VIEWER — clean image-only look on all viewports
+   ═══════════════════════════════════════════════════════ */
 .about-resume-frame {
     height: 600px;
     overflow: auto;
-    border-color: var(--void-border);
-    background-color: var(--void-surface-80);
+    border: none;
+    background-color: transparent;
 }
 
-/* ── Resume-frame scrollbar — grey thumb for visibility on white preview ── */
+/* ── Resume-frame scrollbar — white track, gray thumb, no arrows ── */
 .about-resume-frame::-webkit-scrollbar {
     width: 6px;
+    background: #ffffff;
 }
 
 .about-resume-frame::-webkit-scrollbar-track {
-    background: transparent;
+    background: #ffffff;
+    margin: 0;
+}
+
+.about-resume-frame::-webkit-scrollbar-track-piece {
+    background: #ffffff;
 }
 
 .about-resume-frame::-webkit-scrollbar-thumb {
     background: rgba(128, 128, 128, 0.6);
     border-radius: 3px;
+    border: none;
 }
 
 .about-resume-frame::-webkit-scrollbar-thumb:hover {
     background: rgba(128, 128, 128, 0.9);
 }
 
+.about-resume-frame::-webkit-scrollbar-button {
+    display: none;
+    width: 0;
+    height: 0;
+    background: transparent;
+}
+
+.about-resume-frame::-webkit-scrollbar-corner {
+    background: #ffffff;
+}
+
 .about-resume-frame {
     scrollbar-width: thin;
-    scrollbar-color: rgba(128, 128, 128, 0.6) transparent;
+    scrollbar-color: rgba(128, 128, 128, 0.6) #ffffff;
+}
+
+.about-resume-scale-layer {
+    width: 100% !important;
+    height: auto !important;
+    transform: none !important;
+    transition: none !important;
 }
 
 .about-resume-pdf {
-    display: block;
+    display: none !important;
 }
 
 .about-resume-preview {
-    display: none;
-    max-width: none;
+    display: block;
+    width: 100%;
     height: auto;
     background-color: #ffffff;
+    transition: width 0.2s ease-out;
 }
 
 .about-resume-button {
@@ -256,22 +285,6 @@
         aspect-ratio: 1.04;
         margin-right: auto;
         margin-left: auto;
-    }
-
-    .about-resume-scale-layer {
-        width: 100% !important;
-        height: auto !important;
-        transform: none !important;
-        transition: none !important;
-    }
-
-    .about-resume-pdf {
-        display: none !important;
-    }
-
-    .about-resume-preview {
-        display: block;
-        transition: width 0.2s ease-out;
     }
 }
 
