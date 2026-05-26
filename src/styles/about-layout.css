@@ -118,22 +118,22 @@
     height: 600px;
     overflow: auto;
     border: none;
-    background-color: transparent;
+    display: flex;
+    flex-direction: column;
 }
 
-/* ── Resume-frame scrollbar — white track, gray thumb, no arrows ── */
+/* ── Resume-frame scrollbar — track matches --resume-bg, gray thumb, no arrows ── */
 .about-resume-frame::-webkit-scrollbar {
     width: 6px;
-    background: #ffffff;
 }
 
 .about-resume-frame::-webkit-scrollbar-track {
-    background: #ffffff;
+    background: var(--resume-bg);
     margin: 0;
 }
 
 .about-resume-frame::-webkit-scrollbar-track-piece {
-    background: #ffffff;
+    background: var(--resume-bg);
 }
 
 .about-resume-frame::-webkit-scrollbar-thumb {
@@ -154,57 +154,48 @@
 }
 
 .about-resume-frame::-webkit-scrollbar-corner {
-    background: #ffffff;
+    background: var(--resume-bg);
 }
 
 .about-resume-frame {
     scrollbar-width: thin;
-    scrollbar-color: rgba(128, 128, 128, 0.6) #ffffff;
+    scrollbar-color: rgba(128, 128, 128, 0.6) var(--resume-bg);
 }
 
 .about-resume-scale-layer {
-    width: 100% !important;
-    height: auto !important;
-    transform: none !important;
-    transition: none !important;
-}
-
-.about-resume-pdf {
-    display: none !important;
+    width: 100%;
 }
 
 .about-resume-preview {
     display: block;
-    width: 100%;
     height: auto;
     background-color: #ffffff;
-    transition: width 0.2s ease-out;
 }
 
 .about-resume-button {
-    border-color: var(--void-border);
-    background-color: var(--void-surface-80);
-    color: var(--void-text-full);
+    border-color: 'var(--void-border)';
+    background-color: 'var(--void-surface-80)';
+    color: 'var(--void-text-full)';
 }
 
 .about-resume-button--muted {
-    color: var(--void-text-muted);
+    color: 'var(--void-text-muted)';
 }
 
 .about-resume-button:hover {
-    border-color: var(--void-text-dim);
+    border-color: 'var(--void-text-dim)';
 }
 
 .about-resume-download {
     font-family: 'Space Grotesk', monospace;
-    color: var(--void-text-dim);
-    border-color: var(--void-border);
+    color: 'var(--void-text-dim)';
+    border-color: 'var(--void-border)';
     text-decoration: none;
 }
 
 .about-resume-download:hover {
-    color: var(--void-text-full);
-    border-color: var(--void-text-dim);
+    color: 'var(--void-text-full)';
+    border-color: 'var(--void-text-dim)';
 }
 
 .about-parameter-row {

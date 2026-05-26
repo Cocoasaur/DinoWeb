@@ -41,6 +41,8 @@
   --cube-ticks-hover-scale: 1.05;
   --skill-card-bg-hover: rgba(106, 187, 231, 0.268);
   --skill-card-bg: rgba(14, 129, 191, 0.268);
+  --resume-bg: rgba(0, 24, 56, 0.85);
+  /* ← NEW: dark blue shade for resume container */
 }
 
 /* ══════════════════════════════════════════════════════
@@ -79,6 +81,8 @@
   --cube-ticks-hover-scale: 1.05;
   --skill-card-bg-hover: rgb(249, 249, 249);
   --skill-card-bg: rgb(255, 255, 255);
+  --resume-bg: rgba(180, 178, 172, 0.55);
+  /* ← NEW: warm gray shade for resume container */
 }
 
 /* ═════════════════════════════════════

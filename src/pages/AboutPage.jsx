@@ -134,10 +134,6 @@ function ResumeViewer() {
     const zoomOut = () => setScale(s => Math.max(s - 0.1, 0.5));
     const resetZoom = () => setScale(1.0);
 
-    // Inversely scale width/height so the scaled content fits in the viewport
-    const iframeWidth = `${100 / scale}%`;
-    const iframeHeight = `${100 / scale}%`;
-
     return (
         <div className="about-resume-viewer">
             {/* Toolbar */}
@@ -216,48 +212,42 @@ function ResumeViewer() {
                 </a>
             </div>
 
-            {/* PDF Viewer — fixed zoom approach */}
+            {/* Preview Container — uses --resume-bg for the shaded background */}
             <div
                 className="about-resume-frame border"
                 style={{
                     borderColor: 'var(--void-border)',
-                    backgroundColor: 'var(--void-surface-80)',
+                    backgroundColor: 'var(--resume-bg)',  /* ← CHANGED from --void-surface-80 */
                     overflow: 'auto',
+                    display: 'flex',
+                    flexDirection: 'column',
                 }}
             >
                 <div
                     className="about-resume-scale-layer"
                     style={{
-                        '--resume-scale': scale,
+                        marginTop: 'auto',
+                        marginBottom: 'auto',
                         width: '100%',
-                        height: '100%',
-                        transform: `scale(${scale})`,
-                        transformOrigin: 'top left',
-                        transition: 'transform 0.2s ease-out',
                     }}
                 >
-                    <iframe
-                        src={`${RESUME_PDF_URL}#toolbar=0&navpanes=0`}
-                        title="Resume PDF"
-                        className="about-resume-pdf border-0"
-                        style={{
-                            width: iframeWidth,
-                            height: iframeHeight,
-                            minWidth: '100%',
-                            minHeight: '100%',
-                        }}
-                    />
                     <img
                         src={RESUME_PREVIEW_URL}
                         alt="Resume preview"
                         className="about-resume-preview"
-                        style={{ width: `${scale * 100}%` }}
+                        style={{
+                            width: `${scale * 100}%`,
+                            maxWidth: 'none',
+                            display: 'block',
+                            margin: '0 auto',
+                            transition: 'width 0.2s ease-out',
+                        }}
                         draggable={false}
                     />
                 </div>
             </div>
 
-            {/* Linked text below viewer */}
+            {/* Footer links */}
             <div className="about-resume-footer mt-4 flex items-center justify-between">
                 <a
                     href={RESUME_PDF_URL}
