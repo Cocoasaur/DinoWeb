@@ -29,8 +29,8 @@ export function getHomeViewportLayout(width, height) {
         return {
             breakpoint: 'phone',
             restingX: width < 390 ? 0 : 0.02,
-            restingY: -0.62 * heightScale,
-            cubeScale: clamp(0.58 * fitScale, 0.48, 0.58),
+            restingY: -0.70 * heightScale,
+            cubeScale: clamp(0.62 * fitScale, 0.52, 0.62),
         };
     }
 
@@ -59,7 +59,7 @@ export function getHomeViewportLayout(width, height) {
             breakpoint: 'desktop',
             restingX: 1.42 + progress * (CUBE_OFFSET_X - 1.42),
             restingY: 0,
-            cubeScale: (0.78 + progress * 0.22) * heightScale,
+            cubeScale: (0.95 + progress * 0.30) * heightScale,
         };
     }
 
@@ -67,7 +67,7 @@ export function getHomeViewportLayout(width, height) {
         breakpoint: 'desktop',
         restingX: CUBE_OFFSET_X,
         restingY: 0,
-        cubeScale: 1,
+        cubeScale: 1.25,
     };
 }
 

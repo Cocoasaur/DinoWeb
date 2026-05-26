@@ -186,7 +186,7 @@
 
 .rotate-prompt {
     position: fixed;
-    bottom: 96px;
+    bottom: 54px;
     left: 0;
     z-index: 30;
     display: flex;
@@ -200,22 +200,22 @@
 }
 
 .rotate-prompt__dot {
-    width: 8px;
-    height: 8px;
+    width: 6px;
+    height: 6px;
     border-radius: 999px;
     background-color: var(--void-text-full);
 }
 
 .rotate-prompt__line {
     width: 1px;
-    height: 48px;
+    height: 28px;
     background-color: var(--void-text-dim);
 }
 
 .rotate-prompt__label {
-    margin-top: 14px;
-    font-size: 14px;
-    letter-spacing: 0;
+    margin-top: 8px;
+    font-size: 11px;
+    letter-spacing: 0.05em;
     line-height: 1;
     text-transform: uppercase;
 }
