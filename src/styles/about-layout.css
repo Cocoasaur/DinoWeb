@@ -122,7 +122,7 @@
     flex-direction: column;
 }
 
-/* ── Resume-frame scrollbar — track matches --resume-bg, gray thumb, no arrows ── */
+/* ── Resume-frame scrollbar — track matches --resume-bg, theme-aware thumb ── */
 .about-resume-frame::-webkit-scrollbar {
     width: 6px;
 }
@@ -137,13 +137,14 @@
 }
 
 .about-resume-frame::-webkit-scrollbar-thumb {
-    background: rgba(128, 128, 128, 0.6);
+    background: var(--void-accent);
+    opacity: 0.6;
     border-radius: 3px;
     border: none;
 }
 
 .about-resume-frame::-webkit-scrollbar-thumb:hover {
-    background: rgba(128, 128, 128, 0.9);
+    opacity: 0.9;
 }
 
 .about-resume-frame::-webkit-scrollbar-button {
@@ -159,7 +160,7 @@
 
 .about-resume-frame {
     scrollbar-width: thin;
-    scrollbar-color: rgba(128, 128, 128, 0.6) var(--resume-bg);
+    scrollbar-color: var(--void-text-full) var(--resume-bg);
 }
 
 .about-resume-scale-layer {
