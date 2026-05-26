@@ -191,6 +191,37 @@
     font-size: 14px;
 }
 
+/* ═══════════════════════════════════════════════════════
+   LANDSCAPE MOBILE: expand overlay panel
+   ═══════════════════════════════════════════════════════ */
+@media (max-width: 750px) and (orientation: landscape) {
+    .portfolio-overlay-panel {
+        width: 94vw !important;
+        max-width: 900px !important;
+        max-height: 92vh !important;
+    }
+
+    .portfolio-overlay-content {
+        padding: 16px 20px 24px !important;
+    }
+
+    .portfolio-overlay-close {
+        top: 12px !important;
+        right: 12px !important;
+        width: 28px !important;
+        height: 28px !important;
+        font-size: 16px !important;
+        line-height: 1 !important;
+    }
+}
+
+/* Short landscape viewports (e.g. modern phones rotated) */
+@media (orientation: landscape) and (max-height: 500px) {
+    .portfolio-overlay-panel {
+        max-height: 94vh !important;
+    }
+}
+
 @media (max-width: 1023px) {
     .portfolio-overlay-close {
         position: sticky !important;
@@ -471,5 +502,40 @@
         max-width: 180px;
         text-align: right;
         font-size: 13px !important;
+    }
+}
+
+/* ═══════════════════════════════════════════════════════
+   MOBILE LANDSCAPE OVERRIDE — appended last so it wins
+   the cascade against the generic (max-width: 767px) rules
+   ═══════════════════════════════════════════════════════ */
+@media (max-width: 767px) and (orientation: landscape) {
+    .portfolio-overlay-panel {
+        width: 96vw !important;
+        max-width: 960px !important;
+        max-height: 94vh !important;
+    }
+
+    .portfolio-overlay-content {
+        padding: 20px 24px 28px !important;
+    }
+
+    .portfolio-overlay-close {
+        top: 16px !important;
+        right: 16px !important;
+        width: 32px !important;
+        height: 32px !important;
+        font-size: 18px !important;
+    }
+}
+
+/* Extra-short landscape viewports (e.g. phones with notches) */
+@media (orientation: landscape) and (max-height: 420px) {
+    .portfolio-overlay-panel {
+        max-height: 96vh !important;
+    }
+
+    .portfolio-overlay-content {
+        padding: 14px 18px 22px !important;
     }
 }

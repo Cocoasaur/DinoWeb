@@ -4,8 +4,9 @@
 
 .home-coordinate {
     position: fixed;
-    top: 21px;
-    left: 21px;
+    /* ══ Increased inset so text never touches the corner brackets ══ */
+    top: 32px;
+    left: 32px;
     z-index: 40;
     max-width: 214px;
     overflow: hidden;
@@ -32,8 +33,9 @@
 
 .home-theme-label {
     position: fixed;
-    top: 21px;
-    right: 21px;
+    /* ══ Symmetrical inset on the right ══ */
+    top: 32px;
+    right: 32px;
     z-index: 40;
     max-width: 154px;
     overflow: hidden;
@@ -90,9 +92,10 @@
 
 .home-footer {
     position: fixed;
-    left: 21px;
-    right: 21px;
-    bottom: 22px;
+    /* ══ Raised inward so the footer text clears the bottom corner brackets ══ */
+    left: 32px;
+    right: 32px;
+    bottom: 32px;
     z-index: 40;
     display: flex;
     align-items: flex-end;
@@ -244,6 +247,86 @@
     text-transform: uppercase;
 }
 
+/* ═══════════════════════════════════════════════════════
+   LANDSCAPE MOBILE: force desktop-like chrome
+   ═══════════════════════════════════════════════════════ */
+@media (orientation: landscape) and (max-width: 767px) {
+
+    .mobile-branding,
+    .rotate-prompt {
+        display: none !important;
+    }
+
+    .sidebar-home {
+        display: flex !important;
+        top: 50% !important;
+        left: clamp(12px, 2.5vw, 20px) !important;
+        transform: translateY(-50%) !important;
+    }
+
+    .sidebar-home__logo {
+        width: clamp(180px, 28vw, 300px) !important;
+    }
+
+    .sidebar-home__subtitle {
+        font-size: clamp(9px, 1.1vw, 12px) !important;
+        line-height: 1.3 !important;
+    }
+
+    .corner-marker {
+        width: 28px !important;
+        height: 14px !important;
+    }
+
+    .corner-marker--top-left {
+        top: 10px !important;
+        left: 10px !important;
+    }
+
+    .corner-marker--top-right {
+        top: 10px !important;
+        right: 10px !important;
+    }
+
+    .corner-marker--bottom-left {
+        bottom: 10px !important;
+        left: 10px !important;
+    }
+
+    .corner-marker--bottom-right {
+        bottom: 10px !important;
+        right: 10px !important;
+    }
+
+    /* ══ Keep text elements well inside the corner brackets ══ */
+    .home-footer {
+        left: 24px !important;
+        right: 24px !important;
+        bottom: 24px !important;
+        font-size: 9px !important;
+    }
+
+    .home-coordinate {
+        top: 24px !important;
+        left: 24px !important;
+        max-width: 180px !important;
+    }
+
+    .home-coordinate__value {
+        font-size: 9px !important;
+    }
+
+    .home-theme-label {
+        top: 24px !important;
+        right: 24px !important;
+        max-width: 180px !important;
+    }
+
+    .home-theme-label__value {
+        font-size: 9px !important;
+    }
+}
+
 @media (max-width: 767px) {
     .void-grid {
         background-size: 45px 75px;
@@ -267,9 +350,10 @@
         --mobile-branding-scale: 0.9;
     }
 
+    /* ══ Tight screens still keep a safe gap from the 14 px corners ══ */
     .home-coordinate {
-        top: 21px;
-        left: 21px;
+        top: 28px;
+        left: 28px;
         max-width: 142px;
     }
 
@@ -280,8 +364,8 @@
     }
 
     .home-theme-label {
-        top: 21px;
-        right: 21px;
+        top: 28px;
+        right: 28px;
         max-width: 132px;
     }
 
@@ -299,8 +383,9 @@
 
 @media (min-width: 768px) {
     .home-coordinate {
-        top: 40px;
-        left: 40px;
+        /* ══ 16 px gap from the 32 px corner markers ══ */
+        top: 48px;
+        left: 48px;
         max-width: 260px;
     }
 
@@ -309,8 +394,8 @@
     }
 
     .home-theme-label {
-        top: 40px;
-        right: 40px;
+        top: 48px;
+        right: 48px;
         max-width: 220px;
     }
 
@@ -344,9 +429,9 @@
     }
 
     .home-footer {
-        right: 39px;
-        bottom: 39px;
-        left: 39px;
+        right: 48px;
+        bottom: 48px;
+        left: 48px;
         font-size: 10px;
     }
 
@@ -427,8 +512,9 @@
 
 @media (min-width: 1024px) {
     .home-coordinate {
-        top: 48px;
-        left: 48px;
+        /* ══ 20 px gap from the 40 px corner markers ══ */
+        top: 60px;
+        left: 60px;
         max-width: 340px;
     }
 
@@ -437,8 +523,8 @@
     }
 
     .home-theme-label {
-        top: 48px;
-        right: 48px;
+        top: 60px;
+        right: 60px;
         max-width: 320px;
     }
 
@@ -472,9 +558,9 @@
     }
 
     .home-footer {
-        right: 48px;
-        bottom: 48px;
-        left: 48px;
+        right: 60px;
+        bottom: 60px;
+        left: 60px;
     }
 
     .sidebar-home {

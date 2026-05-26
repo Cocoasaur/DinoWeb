@@ -21,6 +21,24 @@ function sameLayout(a, b) {
 }
 
 export function getHomeViewportLayout(width, height) {
+    const isLandscape = width > height;
+
+    // ═══════════════════════════════════════════════════════
+    // LANDSCAPE MOBILE → Desktop-like treatment
+    // Wide but short viewports should feel like desktop:
+    // sidebar visible, cube centered vertically, larger scale
+    // ═══════════════════════════════════════════════════════
+    if (isLandscape && width >= 568) {
+        const progress = clamp((width - DESKTOP_MIN) / (DESKTOP_FULL - DESKTOP_MIN), 0, 1);
+        const heightScale = clamp(height / 760, 0.80, 1);
+        return {
+            breakpoint: 'desktop',
+            restingX: 1.42 + progress * (CUBE_OFFSET_X - 1.42),
+            restingY: 0,
+            cubeScale: (0.95 + progress * 0.30) * heightScale,
+        };
+    }
+
     if (width < TABLET_MIN) {
         const widthScale = clamp(width / PHONE_BASE_WIDTH, 0.84, 1);
         const heightScale = clamp(height / PHONE_BASE_HEIGHT, 0.84, 1.03);
@@ -29,7 +47,7 @@ export function getHomeViewportLayout(width, height) {
         return {
             breakpoint: 'phone',
             restingX: width < 390 ? 0 : 0.02,
-            restingY: -0.70 * heightScale,
+            restingY: -0.55 * heightScale,
             cubeScale: clamp(0.62 * fitScale, 0.52, 0.62),
         };
     }
