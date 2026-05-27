@@ -33,7 +33,8 @@ function getZoomedCameraZ(camera, cubeScale, breakpoint) {
 export default function InteractiveCube({
     onFaceClick, onFacePressStart, targetRotation, isZoomed, isZoomingOut,
     zoomZ, onRotationChange, isDraggingRef, onPinchZoom,
-    onZoomComplete, onZoomOutComplete
+    onZoomComplete, onZoomOutComplete,
+    activeFace,                 // ← ADDED
 }) {
     const groupRef = useRef();
     const rotationRef = useRef({
@@ -377,7 +378,6 @@ export default function InteractiveCube({
             camera.position.z = THREE.MathUtils.lerp(camera.position.z, 5 * (1 + zoomZ / 1000), 0.08);
         }
 
-        // Apply press scale on top of responsive cube scale
         const finalScale = cubeScale * pressScale;
         groupRef.current.scale.setScalar(finalScale);
 
@@ -407,6 +407,8 @@ export default function InteractiveCube({
                 <CubeFace key={face.name} {...face}
                     onFaceClick={handleFaceClickWithPress}
                     isZoomed={isZoomed}
+                    isZoomingOut={isZoomingOut}   // ← ADDED
+                    activeFace={activeFace}       // ← ADDED
                     lastPointerDownFaceName={lastPointerDownFaceName}
                     suppressFaceClickRef={suppressFaceClickRef} />
             ))}

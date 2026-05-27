@@ -1,7 +1,7 @@
 import React, { useRef, useState, useCallback } from 'react';
 import { useTexture } from '@react-three/drei';
 import * as THREE from 'three';
-import CubeFaceText from './CubeFaceText';  // ← NEW IMPORT
+import CubeFaceText from './CubeFaceText';
 import { DRAG_THRESHOLD } from '../../constants/cubeConfig';
 import dinoIcon from '../../assets/brand/dino-icon.png';
 
@@ -17,11 +17,15 @@ function HomeIcon() {
 
 export default function CubeFace({
     name, position, rotation, text,
-    onFaceClick, isZoomed, lastPointerDownFaceName, suppressFaceClickRef
+    onFaceClick, isZoomed, isZoomingOut, activeFace,   // ← ADDED isZoomingOut & activeFace
+    lastPointerDownFaceName, suppressFaceClickRef
 }) {
     const [hovered, setHovered] = useState(false);
     const pointerDownPos = useRef({ x: 0, y: 0 });
     const isHome = name === 'home';
+
+    // Lock highlight while this face is the active one during zoom in / zoom out
+    const forceHighlight = (name === activeFace) && (isZoomed || isZoomingOut);  // ← ADDED
 
     const handlePointerDown = useCallback((e) => {
         e.stopPropagation();
@@ -89,6 +93,7 @@ export default function CubeFace({
                 <CubeFaceText
                     text={text}
                     hovered={hovered}
+                    forceHighlight={forceHighlight}   // ← ADDED
                 />
             )}
         </group>

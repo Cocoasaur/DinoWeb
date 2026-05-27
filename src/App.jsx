@@ -56,12 +56,8 @@ export default function App() {
   } = useCubeInteraction();
 
   // ── Lifted project selection state ────────────────────────────────────────
-  // Keeping this in App lets the close button logic read it directly and lets
-  // the back action clear it without needing a ref-callback indirection.
   const [selectedProject, setSelectedProject] = useState(null);
 
-  // Clear selected project whenever the overlay is fully dismissed so a
-  // subsequent open of the projects face starts on the list view.
   useEffect(() => {
     if (!showOverlay) setSelectedProject(null);
   }, [showOverlay]);
@@ -145,6 +141,7 @@ export default function App() {
               targetRotation={targetRotation}
               isZoomed={isZoomed}
               isZoomingOut={isZoomingOut}
+              activeFace={activeFace}        // ← ADDED
               zoomZ={zoomZ}
               onRotationChange={handleRotationChange}
               isDraggingRef={isDraggingRef}
@@ -171,13 +168,8 @@ export default function App() {
         onClose={handleCloseOverlay}
         onCloseComplete={handleOverlayCloseComplete}
         reducedMotion={reducedMotion}
-        // ── Project selection (lifted state) ──────────────────────────────
-        // Overlay passes these straight down to ProjectsPage so the list
-        // and modal view are controlled from here rather than inside the page.
         selectedProject={selectedProject}
         onSelectProject={setSelectedProject}
-        // ── Custom sticky button for the projects face ─────────────────────
-        // Shows ← when a project detail is open, ✕ otherwise.
         renderCloseButton={activeFace === 'projects' ? ({ onClose }) => (
           <button
             onClick={selectedProject ? () => setSelectedProject(null) : onClose}

@@ -244,6 +244,7 @@ const UnderlineEffect = forwardRef(function UnderlineEffect({ textWidth, fontSiz
 export default function CubeFaceText({
     text,
     hovered,
+    forceHighlight = false,   // ← ADDED
     fontSize = 0.22,
     letterSpacing = 0.15,
 }) {
@@ -306,10 +307,10 @@ export default function CubeFaceText({
     }, [idleTex, hoverTex]);
 
     useFrame(() => {
-        const target = hovered ? 1 : 0;
+        const target = (hovered || forceHighlight) ? 1 : 0;   // ← CHANGED
         const diff = target - progressRef.current;
         const isProgressSettled = Math.abs(diff) < 0.001;
-        const targetScale = hovered ? 1.10 : 1.0;
+        const targetScale = (hovered || forceHighlight) ? 1.10 : 1.0;   // ← CHANGED
         const isScaleSettled = Math.abs(scaleRef.current - targetScale) < 0.001;
 
         if (isProgressSettled && (reducedMotion || isScaleSettled)) {
@@ -318,7 +319,7 @@ export default function CubeFaceText({
                 const p = target;
                 if (idleMatRef.current) idleMatRef.current.opacity = 1 - p;
                 if (hoverMatRef.current) hoverMatRef.current.opacity = p;
-                ticksRef.current?.update(p, hovered ? colors.ticksHoverScale : 1);
+                ticksRef.current?.update(p, (hovered || forceHighlight) ? colors.ticksHoverScale : 1);   // ← CHANGED
                 underlineRef.current?.update(p);
             }
             return;
