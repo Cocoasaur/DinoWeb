@@ -24,7 +24,7 @@ function getZoomedCameraZ(camera, cubeScale, breakpoint) {
         ? 1.55
         : breakpoint === 'tablet'
             ? 1.45
-            : 1.35;
+            : 1.65;
     const fitDistance = faceHalfSize / (Math.tan(halfFov) * Math.max(1, aspect) * overscan);
 
     return Math.max(faceDepth + fitDistance, faceDepth + camera.near + 0.16);

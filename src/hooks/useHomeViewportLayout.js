@@ -24,18 +24,17 @@ export function getHomeViewportLayout(width, height) {
     const isLandscape = width > height;
 
     // ═══════════════════════════════════════════════════════
-    // LANDSCAPE MOBILE → Desktop-like treatment
-    // Wide but short viewports should feel like desktop:
-    // sidebar visible, cube centered vertically, larger scale
+    // LANDSCAPE MOBILE → Only match small landscape phones (568-767px)
+    // NOT laptops/desktops. Must stay BELOW tablet threshold.
     // ═══════════════════════════════════════════════════════
-    if (isLandscape && width >= 568) {
-        const progress = clamp((width - DESKTOP_MIN) / (DESKTOP_FULL - DESKTOP_MIN), 0, 1);
+    if (isLandscape && width >= 568 && width < TABLET_MIN) {
+        const progress = clamp((width - 568) / (TABLET_MIN - 568), 0, 1);
         const heightScale = clamp(height / 760, 0.80, 1);
         return {
-            breakpoint: 'desktop',
-            restingX: 1.42 + progress * (CUBE_OFFSET_X - 1.42),
+            breakpoint: 'phone',
+            restingX: 0.5 + progress * 0.5,
             restingY: 0,
-            cubeScale: (0.95 + progress * 0.30) * heightScale,
+            cubeScale: clamp(0.55 + progress * 0.15, 0.55, 0.70) * heightScale,
         };
     }
 
@@ -55,7 +54,7 @@ export function getHomeViewportLayout(width, height) {
     if (width < DESKTOP_MIN) {
         const progress = clamp((width - TABLET_MIN) / (DESKTOP_MIN - TABLET_MIN), 0, 1);
         const isPortraitTablet = height > width * 1.08;
-        const heightScale = clamp(height / 770, 0.96, 1.04);
+        const heightScale = clamp(height / 760, 0.86, 1);
 
         return {
             breakpoint: 'tablet',
@@ -69,15 +68,16 @@ export function getHomeViewportLayout(width, height) {
         };
     }
 
+    // ── Desktop: heightScale is needed for both branches ──
+    const heightScale = clamp(height / 760, 0.86, 1);
+
     if (width < DESKTOP_FULL) {
         const progress = clamp((width - DESKTOP_MIN) / (DESKTOP_FULL - DESKTOP_MIN), 0, 1);
-        const heightScale = clamp(height / 760, 0.86, 1);
-
         return {
             breakpoint: 'desktop',
             restingX: 1.42 + progress * (CUBE_OFFSET_X - 1.42),
             restingY: 0,
-            cubeScale: (0.95 + progress * 0.30) * heightScale,
+            cubeScale: (0.60 + progress * 0.40) * heightScale,
         };
     }
 
@@ -85,7 +85,7 @@ export function getHomeViewportLayout(width, height) {
         breakpoint: 'desktop',
         restingX: CUBE_OFFSET_X,
         restingY: 0,
-        cubeScale: 1.25,
+        cubeScale: 1.0 * heightScale,
     };
 }
 
