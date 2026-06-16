@@ -135,7 +135,7 @@ function GitHubButton({ isPublic, url }) {
 }
 
 export default function ProjectModal({ project }) {
-    const { id, name, status, fullDesc, tools, role, github, images, imageCount } = project;
+    const { id, name, status, fullDesc, tools, role, github, projectURL, images, imageCount } = project;
 
     return (
         <div className="project-modal h-full flex flex-col">
@@ -255,6 +255,41 @@ export default function ProjectModal({ project }) {
                             >
                                 {role}
                             </span>
+                        </div>
+
+                        {/* Project URL row */}
+                        <div
+                            className="flex justify-between items-center py-3 border-b"
+                            style={{ borderColor: 'var(--void-border-dim)' }}
+                        >
+                            <span
+                                className="uppercase text-[10px] tracking-[0.2em]"
+                                style={{ fontFamily: "'Space Grotesk', monospace", color: 'var(--void-text-muted)' }}
+                            >
+                                PROJECT URL
+                            </span>
+                            {projectURL ? (
+                                <a
+                                    href={projectURL}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-[13px] transition-colors duration-300 hover:underline"
+                                    style={{
+                                        fontFamily: "'Inter', sans-serif",
+                                        color: 'var(--void-text-full)',
+                                        textUnderlineOffset: '3px',
+                                    }}
+                                >
+                                    {projectURL}
+                                </a>
+                            ) : (
+                                <span
+                                    className="text-[13px]"
+                                    style={{ fontFamily: "'Inter', sans-serif", color: 'var(--void-text-muted)' }}
+                                >
+                                    Not Available
+                                </span>
+                            )}
                         </div>
 
                         {/* Repo visibility row */}

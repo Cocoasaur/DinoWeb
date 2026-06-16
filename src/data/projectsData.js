@@ -3,28 +3,39 @@
    ═══════════════════════════════════════════════════════════════ */
 
 // ── Tool icons ──
-import reactIcon from '../assets/icons/skills/frontend/React.png';
-import pythonIcon from '../assets/icons/skills/backend/Python.png';
-import figmaIcon from '../assets/icons/skills/tools/Figma.png';
-import vscodeIcon from '../assets/icons/skills/tools/Visual_Studio_Code.png';
-import gitIcon from '../assets/icons/skills/tools/Git.png';
-import githubIcon from '../assets/icons/skills/tools/Github.png';
-import kimiIcon from '../assets/icons/skills/tools/Kimi.png';
-import viteIcon from '../assets/icons/skills/frontend/Vite.png';
-import nodejsIcon from '../assets/icons/skills/backend/Node.js.png';
-import tsIcon from '../assets/icons/skills/frontend/TypeScript.png';
-import tailwindIcon from '../assets/icons/skills/frontend/TailwindCSS.png';
-import tkinterIcon from '../assets/icons/skills/frontend/Tkinter.png';
-import threejsBlack from '../assets/icons/skills/frontend/Three.js_black.png';
-import threejsWhite from '../assets/icons/skills/frontend/Three.js_white.png';
-import firebaseIcon from '../assets/icons/skills/backend/Firebase.png';
+// Frontend
 import html5Icon from '../assets/icons/skills/frontend/HTML5.png';
 import css3Icon from '../assets/icons/skills/frontend/CSS3.png';
 import jsIcon from '../assets/icons/skills/frontend/JavaScript.png';
+import tsIcon from '../assets/icons/skills/frontend/TypeScript.png';
+import tailwindIcon from '../assets/icons/skills/frontend/TailwindCSS.png';
+import tkinterIcon from '../assets/icons/skills/frontend/Tkinter.png';
+import reactIcon from '../assets/icons/skills/frontend/React.png';
+import threejsBlackIcon from '../assets/icons/skills/frontend/Three.js_black.png';
+import threejsWhiteIcon from '../assets/icons/skills/frontend/Three.js_white.png';
+import viteIcon from '../assets/icons/skills/frontend/Vite.png';
+
+// Backend
+import pythonIcon from '../assets/icons/skills/backend/Python.png';
 import javaIcon from '../assets/icons/skills/backend/Java.png';
+import nodejsIcon from '../assets/icons/skills/backend/Node.js.png';
+import firebaseIcon from '../assets/icons/skills/backend/Firebase.png';
+
+// Database
 import sqliteIcon from '../assets/icons/skills/database/SQLite.png';
 import mysqlIcon from '../assets/icons/skills/database/MySQL.png';
+import firestoreIcon from '../assets/icons/skills/database/Firestore.png';
+
+// Tools
+import figmaIcon from '../assets/icons/skills/tools/Figma.png';
+import canvaIcon from '../assets/icons/skills/tools/Canva.png';
+import postmanIcon from '../assets/icons/skills/tools/Postman.png';
+import vscodeIcon from '../assets/icons/skills/tools/Visual_Studio_Code.png';
+import kimiIcon from '../assets/icons/skills/tools/Kimi.png';
+import claudeIcon from '../assets/icons/skills/tools/Claude.png';
 import godotengineIcon from '../assets/icons/skills/tools/Godot_Engine.png';
+import gitIcon from '../assets/icons/skills/tools/Git.png';
+import githubIcon from '../assets/icons/skills/tools/Github.png';
 
 // ── Project screenshots ──
 import tipAirlines1 from '../assets/projects_screenshots/tip_airlines/TIP_Airlines.png';
@@ -43,6 +54,14 @@ import earthArcade3 from '../assets/projects_screenshots/earth_arcade/Earth_Arca
 import earthArcade4 from '../assets/projects_screenshots/earth_arcade/Earth_Arcade3.png';
 import earthArcade5 from '../assets/projects_screenshots/earth_arcade/Earth_Arcade4.png';
 
+import quarto1 from '../assets/projects_screenshots/quarto/Quarto.png';
+import quarto2 from '../assets/projects_screenshots/quarto/Quarto1.png';
+import quarto3 from '../assets/projects_screenshots/quarto/Quarto2.png';
+import quarto4 from '../assets/projects_screenshots/quarto/Quarto3.png';
+import quarto5 from '../assets/projects_screenshots/quarto/Quarto4.png';
+import quarto6 from '../assets/projects_screenshots/quarto/Quarto5.png';
+import quarto7 from '../assets/projects_screenshots/quarto/Quarto6.png';
+import quarto8 from '../assets/projects_screenshots/quarto/Quarto7.png';
 
 export const STATUS_COLORS = {
     Complete: '#22c55e',
@@ -84,6 +103,7 @@ export const PROJECTS = [
             isPublic: false,
             url: 'https://github.com/FlimsyOwl12/Project_CompProg_DataBase.git',
         },
+        projectURL: '',
         images: [
             tipAirlines2,
             tipAirlines3,
@@ -122,6 +142,7 @@ export const PROJECTS = [
             isPublic: false,
             url: null,
         },
+        projectURL: '',
         images: [
             pastryShopManagementSystem1,
             pastryShopManagementSystem2,
@@ -137,8 +158,10 @@ export const PROJECTS = [
         shortDesc:
             `Earth arcade is a 2D progressive arcade game experience that combines all the fun mini-games with lessons in environmental awareness.`,
         fullDesc: [
-            `A 2D progressive arcade game experience that combines all the fun mini-games with lessons in environmental awareness. Players enter the game and progress through levels, each representing a simple eco-friendly action such as throwing trash properly, planting, and fishing trash out the ocean.`,
-            `By tying gameplay to real-world habits, the game promotes sustainability and healthy practices in an engaging way. The progressive design keeps players motivated while reinforcing the message that small actions, when continued over time, can make a big difference for health, wellbeing, and the planet.`,
+            `A 2D progressive arcade game experience that combines all the fun mini-games with lessons in environmental awareness. Players enter the game and progress through levels, 
+            each representing a simple eco-friendly action such as throwing trash properly, and planting trees.`,
+            `By tying gameplay to real-world habits, the game promotes sustainability and healthy practices in an engaging way. The progressive design keeps players motivated 
+            while reinforcing the message that small actions, when continued over time, can make a big difference for health, wellbeing, and the planet.`,
         ],
         stack: ['Godot Engine', 'Git', 'Github'],
         tools: [
@@ -151,6 +174,7 @@ export const PROJECTS = [
             isPublic: true,
             url: 'https://github.com/FlimsyOwl12/GAME-ON-Hackathon-Earth-Arcade.git',
         },
+        projectURL: '',
         images: [
             earthArcade1,
             earthArcade2,
@@ -160,6 +184,44 @@ export const PROJECTS = [
         ],
         imageCount: 5,
     },
-
+    {
+        id: '04',
+        name: 'QUARTO',
+        status: 'Complete',
+        shortDesc:
+            `A modern, intuitive web application designed to streamline the management of boarding houses.`,
+        fullDesc: [
+            `A modern, intuitive web application designed to streamline the management of boarding houses. Quarto provides comprehensive tools for 
+            administrators and tenants to efficiently manage rooms, payments, tenants, and maintenance requests.`,
+            `Quarto is a lightweight, modern system designed to simplify daily operations in apartments, boarding houses, and lodging establishments. 
+            Quarto helps you maintain efficiency, control, and organization whether you're managing a residential property or a complex of apartments.`,
+        ],
+        stack: ['HTML', 'CSS', 'JavaScript', 'Python', 'Git', 'Github'],
+        tools: [
+            { name: 'HTML', icon: html5Icon },
+            { name: 'CSS', icon: css3Icon },
+            { name: 'JavaScript', icon: jsIcon },
+            { name: 'Python', icon: pythonIcon },
+            { name: 'Git', icon: gitIcon },
+            { name: 'Github', icon: githubIcon },
+        ],
+        role: 'Full-Stack Developer',
+        github: {
+            isPublic: false,
+            url: 'https://github.com/FlimsyOwl12/GAME-ON-Hackathon-Earth-Arcade.git',
+        },
+        projectURL: 'https://quarto-4d613.web.app',
+        images: [
+            quarto1,
+            quarto2,
+            quarto3,
+            quarto4,
+            quarto5,
+            quarto6,
+            quarto7,
+            quarto8,
+        ],
+        imageCount: 8,
+    },
 
 ];
