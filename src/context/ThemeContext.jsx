@@ -18,7 +18,7 @@ export function ThemeProvider({ children }) {
     }, [theme]);
 
     const toggle = () => setTheme(prev =>
-        prev === THEME_DEMAIN ? THEME_CLAIR : THEME_DEMAIN
+        prev === THEME_CLAIR ? THEME_DEMAIN : THEME_CLAIR // toggle between themes switch the first and second theme names to change the default theme
     );
 
     // isDark preserves backward compatibility for components that check theme brightness

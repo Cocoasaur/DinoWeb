@@ -379,9 +379,10 @@
     }
 }
 
-@media (max-width: 1023px) {
-    /* Screenshot lightbox arrows move underneath the image so they
-       never obscure it (selector outranks the Tailwind utilities). */
+@media (max-width: 1023px) and (orientation: portrait) {
+    /* Mobile portrait: screenshot lightbox arrows move underneath the
+       image so they never obscure it (selector outranks the Tailwind
+       utilities). Landscape keeps the buttons at the image sides. */
     .lightbox-figure .lightbox-arrow {
         top: calc(100% + 12px);
     }
@@ -397,15 +398,43 @@
     }
 }
 
+/* Mobile landscape: arrows sit outside the image edges (like the lg:
+   layout) so they never obstruct the screenshot. The figure shrinks
+   enough that image + both buttons fit the viewport. */
+@media (max-width: 1023px) and (orientation: landscape) {
+    .lightbox-figure {
+        max-width: min(92vw, calc(100vw - 104px));
+    }
+
+    .lightbox-figure .lightbox-arrow--prev {
+        left: -48px;
+        right: auto;
+    }
+
+    .lightbox-figure .lightbox-arrow--next {
+        right: -48px;
+        left: auto;
+    }
+}
+
 /* Close button floats at the viewport corner, outside the image box —
    on short viewports keep the image clear of it (88vh's 6vh top margin
    is smaller than the 52px the 40px corner button occupies). The same
-   reserve holds the arrows that sit below the image on small screens
-   (12px gap + 36px button), and dvh tracks the visible viewport so the
-   buttons never fall behind mobile browser chrome. */
+   reserve holds the arrows that sit below the image on small portrait
+   screens (12px gap + 36px button), and dvh tracks the visible
+   viewport so the buttons never fall behind mobile browser chrome. */
 @media (max-height: 899px) {
     .cert-lightbox-in {
         max-height: calc(100vh - 144px) !important;
         max-height: calc(100dvh - 144px) !important;
+    }
+}
+
+/* Landscape: the arrows are back at the image sides, so the box only
+   needs to clear the corner close button — a bit more image fits. */
+@media (orientation: landscape) and (max-height: 899px) {
+    .cert-lightbox-in {
+        max-height: calc(100vh - 116px) !important;
+        max-height: calc(100dvh - 116px) !important;
     }
 }

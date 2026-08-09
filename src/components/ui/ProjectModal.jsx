@@ -281,7 +281,7 @@ export default function ProjectModal({ project }) {
                             <img
                                 src={images[lightboxIndex]}
                                 alt={`${name} screenshot ${lightboxIndex + 1}`}
-                                className="max-w-[92vw] max-h-[88vh] object-contain"
+                                className="min-w-0 max-w-[92vw] max-h-[88vh] object-contain"
                                 draggable={false}
                             />
 
