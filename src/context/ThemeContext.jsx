@@ -9,7 +9,7 @@ const THEME_CLAIR = 'clair-obscur';
 export function ThemeProvider({ children }) {
     const [theme, setTheme] = useState(() => {
         const stored = localStorage.getItem(THEME_KEY);
-        return stored === THEME_CLAIR ? THEME_CLAIR : THEME_DEMAIN;
+        return stored === THEME_DEMAIN ? THEME_DEMAIN : THEME_CLAIR; // Default to THEME_CLAIR if no stored value or invalid value
     });
 
     useEffect(() => {
@@ -18,7 +18,7 @@ export function ThemeProvider({ children }) {
     }, [theme]);
 
     const toggle = () => setTheme(prev =>
-        prev === THEME_CLAIR ? THEME_DEMAIN : THEME_CLAIR // toggle between themes switch the first and second theme names to change the default theme
+        prev === THEME_DEMAIN ? THEME_CLAIR : THEME_DEMAIN
     );
 
     // isDark preserves backward compatibility for components that check theme brightness
