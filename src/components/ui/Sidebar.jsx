@@ -47,10 +47,16 @@ export default function Sidebar() {
 
             <div
                 className="sidebar-home__subtitle subtitle-entrance"
-                style={{ fontFamily: "'Space Grotesk', monospace", color: 'var(--void-text-dim)' }}
+                style={{ fontFamily: "'Inter', sans-serif", color: 'var(--void-text-dim)' }}
             >
                 VERSION: NOT_A_FOSSIL_YET<br />
                 JL's Dev Den
+            </div>
+
+            <div className="sidebar-home__rotate-hint">
+                <span className="sidebar-home__rotate-label">ROTATE THE CUBE</span>
+                <span className="sidebar-home__rotate-line" />
+                <span className="sidebar-home__rotate-dot" />
             </div>
         </div>
     );

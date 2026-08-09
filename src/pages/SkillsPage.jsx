@@ -80,6 +80,8 @@ function SkillCard({ name, icon }) {
                 src={icon}
                 alt={name}
                 className="w-6 h-6 object-contain"
+                loading="lazy"
+                decoding="async"
                 draggable={false}
                 style={{
                     filter: isHovered ? 'brightness(1.1)' : 'none',
@@ -182,7 +184,7 @@ export default function SkillsPage() {
             </div>
 
             {/* 2x2 Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 min-[1024px]:grid-cols-2 gap-8">
                 {SKILL_CATEGORIES.map(({ title, skills }) => (
                     <CategorySection key={title} title={title} skills={skills} />
                 ))}

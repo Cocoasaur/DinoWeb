@@ -1,5 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;700&family=Inter:wght@400;500;700&display=swap');
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -33,6 +31,13 @@
   --void-green: rgba(209, 241, 169, 0.75);
   --void-yellow: rgba(255, 197, 143, 0.75);
 
+  /* ── GitHub contributions ── */
+  --contrib-level-0: rgba(187, 218, 255, 0.12);
+  --contrib-level-1: #0e4429;
+  --contrib-level-2: #006d32;
+  --contrib-level-3: #26a641;
+  --contrib-level-4: #39d353;
+
   /* ── Chrome ── */
   --void-marker: rgba(255, 255, 255, 0.384);
   --void-scrubber: rgb(255, 255, 255);
@@ -53,9 +58,6 @@
   /* ── Cards ── */
   --skill-card-bg-hover: rgba(106, 187, 231, 0.268);
   --skill-card-bg: rgba(14, 129, 191, 0.268);
-
-  /* ── Resume viewer ── */
-  --resume-bg: rgba(0, 24, 56, 0.85);
 
   /* ── Scrollbar (desktop) ── */
   --scrollbar-thumb: rgb(255, 255, 255);
@@ -90,6 +92,13 @@
   --void-green: rgba(40, 100, 40, 0.85);
   --void-yellow: rgba(160, 100, 20, 0.85);
 
+  /* ── GitHub contributions ── */
+  --contrib-level-0: #e6e4df;
+  --contrib-level-1: #9be9a8;
+  --contrib-level-2: #40c463;
+  --contrib-level-3: #30a14e;
+  --contrib-level-4: #216e39;
+
   /* ── Chrome ── */
   --void-marker: rgba(0, 0, 0, 0.45);
   --void-scrubber: rgb(0, 0, 0);
@@ -110,9 +119,6 @@
   /* ── Cards ── */
   --skill-card-bg-hover: rgb(249, 249, 249);
   --skill-card-bg: rgb(255, 255, 255);
-
-  /* ── Resume viewer ── */
-  --resume-bg: rgba(180, 178, 172, 0.55);
 
   /* ── Scrollbar (desktop) ── */
   --scrollbar-thumb: rgb(0, 0, 0);
@@ -152,6 +158,52 @@
   transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* ══════════════════════════════════════════════════════
+   THEME CROSSFADE — smooth color transitions for the
+   home-screen chrome when data-theme swaps. CSS custom
+   properties themselves don't interpolate, so each themed
+   property gets an explicit transition. Duration matches
+   the theme wipe fade-out (see entrance-animations.css).
+   ══════════════════════════════════════════════════════ */
+.home-coordinate__value,
+.home-theme-label__value,
+.sidebar-home__subtitle,
+.mobile-branding__version,
+.mobile-branding__den {
+  transition: color 0.7s ease;
+}
+
+/* These elements also carry their *-entrance class (overlay fade), so the
+   opacity transition from the uniform block must be merged in — otherwise
+   this color rule would override and break the overlay fade. */
+.home-footer,
+.mobile-branding,
+.rotate-prompt {
+  transition:
+    opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+    color 0.7s ease;
+}
+
+.corner-marker {
+  transition:
+    opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+    border-color 0.7s ease;
+}
+
+/* SVG strokes/fills live on the elements inside the logos (tspan/line/text),
+   so the transitions go on those, not on the wrapping <svg>. */
+.sidebar-home__logo tspan,
+.sidebar-home__logo line,
+.mobile-branding__web text,
+.mobile-branding__web line {
+  transition: fill 0.7s ease, stroke 0.7s ease;
+}
+
+.rotate-prompt__dot,
+.rotate-prompt__line {
+  transition: background-color 0.7s ease;
+}
+
 @layer base {
   body {
     margin: 0;
@@ -168,10 +220,20 @@
     cursor: grabbing;
   }
 
-  .overlay-panel,
-  .overlay-panel * {
+  .portfolio-overlay-panel,
+  .portfolio-overlay-panel * {
     user-select: text;
     -webkit-user-select: text;
+    cursor: auto;
+  }
+
+  .portfolio-overlay-panel a,
+  .portfolio-overlay-panel button {
+    cursor: pointer;
+  }
+
+  .portfolio-overlay-panel input {
+    cursor: text;
   }
 }
 

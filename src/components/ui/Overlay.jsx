@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, Suspense, lazy } from 'react';
+import OverlayNavIcon from './OverlayNavIcon';
 
 const AboutPage = lazy(() => import('../../pages/AboutPage'));
 const ContactsPage = lazy(() => import('../../pages/ContactsPage'));
@@ -10,6 +11,18 @@ const PAGE_MAP = {
     skills: <SkillsPage />,
     contacts: <ContactsPage />,
 };
+
+// ── IDLE PREFETCH — warm up lazy page chunks when the browser is idle ──
+const PREFETCH_CHUNKS = [
+    () => import('../../pages/AboutPage'),
+    () => import('../../pages/ContactsPage'),
+    () => import('../../pages/ProjectsPage'),
+    () => import('../../pages/SkillsPage'),
+];
+
+function prefetchLazyChunks() {
+    PREFETCH_CHUNKS.forEach((load) => load().catch(() => {}));
+}
 
 export default function Overlay({
     active,
@@ -26,6 +39,30 @@ export default function Overlay({
     const [entering, setEntering] = useState(false);
     const closeCompleteCalledRef = useRef(false);
     const scrollPanelRef = useRef(null); // ← ref for the scrollable panel
+
+    // ── IDLE PREFETCH — warm up lazy page chunks when the browser is idle ──
+    // Production only: in dev, chunks don't exist (Vite serves modules unbundled),
+    // so prefetching would flood the dev server with ~100 requests for no benefit.
+    function schedulePrefetch() {
+        if (typeof window.requestIdleCallback === 'function') {
+            window.requestIdleCallback(prefetchLazyChunks, { timeout: 3000 });
+        } else {
+            setTimeout(prefetchLazyChunks, 3000);
+        }
+    }
+
+    useEffect(() => {
+        if (import.meta.env.DEV) return;
+        if (document.readyState !== 'complete') {
+            const onLoad = () => {
+                window.removeEventListener('load', onLoad);
+                schedulePrefetch();
+            };
+            window.addEventListener('load', onLoad);
+            return () => window.removeEventListener('load', onLoad);
+        }
+        schedulePrefetch();
+    }, []);
 
     useEffect(() => {
         if (active) {
@@ -116,6 +153,7 @@ export default function Overlay({
                 style={{
                     backgroundColor: 'var(--void-surface)',
                     borderColor: 'var(--void-border)',
+                    maxHeight: '85dvh', // ← iOS: tracks the visible viewport (falls back to max-h-[85vh] where unsupported)
                     opacity: isVisible ? 1 : 0,
                     transform: isVisible ? 'translateY(0) scale(1)' : 'translateY(-16px) scale(1.02)',
                     filter: reducedMotion ? 'none' : (isVisible ? 'blur(0px)' : 'blur(8px)'),
@@ -130,7 +168,7 @@ export default function Overlay({
                 {renderCloseButton ? renderCloseButton({ onClose }) : (
                     <button
                         onClick={onClose}
-                        className="portfolio-overlay-close sticky top-5 right-5 z-20 ml-auto text-xl w-10 h-10 flex items-center justify-center border transition-all duration-300 cursor-pointer"
+                        className="portfolio-overlay-close sticky top-5 right-5 z-20 ml-auto text-xl leading-none w-10 h-10 flex items-center justify-center border transition-all duration-300 cursor-pointer"
                         style={{
                             fontFamily: "'Space Grotesk', monospace",
                             color: 'var(--void-text-full)',
@@ -146,7 +184,7 @@ export default function Overlay({
                             e.currentTarget.style.borderColor = 'var(--void-btn-border)';
                         }}
                     >
-                        ✕
+                        <OverlayNavIcon variant="close" />
                     </button>
                 )}
                 <div className="portfolio-overlay-content p-12 pt-8">

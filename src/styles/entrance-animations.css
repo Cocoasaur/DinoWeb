@@ -25,7 +25,9 @@
     }
 
     .mobile-branding-entrance,
-    .rotate-prompt-entrance {
+    .rotate-prompt-entrance,
+    .cert-lightbox-in,
+    .cert-lightbox {
         animation: none !important;
         opacity: 1 !important;
         transform: none !important;
@@ -187,8 +189,8 @@
 }
 
 .web-trace {
-    stroke-dasharray: 1500;
-    stroke-dashoffset: 1500;
+    stroke-dasharray: var(--web-trace-length, 3000);
+    stroke-dashoffset: var(--web-trace-length, 3000);
     opacity: 0.85;
     animation:
         blueprint-draw 2.2s cubic-bezier(0.4, 0, 0.2, 1) 0.3s forwards,
@@ -198,6 +200,17 @@
 @keyframes blueprint-draw {
     to {
         stroke-dashoffset: 0;
+    }
+}
+
+@keyframes blueprint-undraw {
+    from {
+        stroke-dashoffset: 0;
+        /* explicit start: fully drawn */
+    }
+
+    to {
+        stroke-dashoffset: var(--web-trace-length, 3000);
     }
 }
 
@@ -238,10 +251,15 @@
 }
 
 /* ══════════════════════════════════════════════════════
-   VIEW TRANSITION — directional iris wipe from cube origin
-   ══════════════════════════════════════════════════════ */
+   VIEW TRANSITION — directional iris reveal from the cube
+   ══════════════════════════════════════════════════════
+   App.jsx wraps the theme swap in document.startViewTransition:
+   the old page is captured as a snapshot (outside the circle),
+   the new theme renders inside the circle expanding from the
+   cube's screen position — elements transform as the edge
+   touches them, nothing is ever covered by the circle. */
 :root {
-    --theme-transition-duration: 1.6s;
+    --theme-transition-duration: 2.0s;
     --theme-transition-easing: cubic-bezier(0.76, 0, 0.24, 1);
 }
 
@@ -285,6 +303,23 @@
     }
 }
 
+/* Elements with INFINITE CSS animations are excluded from view-transition
+   snapshots (they render live and would flip to the new theme instantly).
+   App.jsx adds .theme-transitioning to <html> before the transition starts;
+   freezing those animations lets them be captured in the old theme. */
+.theme-transitioning .void-grid-drift {
+    animation: none !important;
+}
+
+/* The "WEB" trace is also excluded from snapshots (blueprint-idle is
+   infinite), so it renders live on top of the transition: instead of
+   freezing it, let it UNDRAW in reverse while the theme changes. When
+   .theme-transitioning is removed, blueprint-draw restarts and the
+   outline draws forward again. */
+.theme-transitioning .web-trace {
+    animation: blueprint-undraw 0.45s ease-in forwards;
+}
+
 /* ── Mobile branding ── */
 .mobile-branding-entrance {
     opacity: 0;
@@ -295,4 +330,82 @@
 .rotate-prompt-entrance {
     opacity: 0;
     animation: fade-in 0.6s ease-out 1.0s forwards;
+}
+
+/* ── Certification lightbox (About page) ── */
+.cert-lightbox {
+    opacity: 0;
+    animation: lightbox-fade 0.2s ease forwards;
+}
+
+.cert-lightbox-in {
+    opacity: 0;
+    animation: lightbox-in 0.25s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes lightbox-fade {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes lightbox-in {
+    from {
+        opacity: 0;
+        transform: scale(0.97);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* ── Lightbox controls (certificate + screenshot viewers) ──
+   The close button floats at the viewport corner, outside the image
+   box. The figure wrapper lets the screenshot arrows sit underneath
+   the image on small screens. */
+.lightbox-figure {
+    max-width: 92vw;
+}
+
+@media (min-width: 1024px) {
+    .lightbox-figure {
+        max-width: min(92vw, calc(100vw - 128px));
+    }
+}
+
+@media (max-width: 1023px) {
+    /* Screenshot lightbox arrows move underneath the image so they
+       never obscure it (selector outranks the Tailwind utilities). */
+    .lightbox-figure .lightbox-arrow {
+        top: calc(100% + 12px);
+    }
+
+    .lightbox-figure .lightbox-arrow--prev {
+        left: 50%;
+        transform: translateX(calc(-100% - 6px));
+    }
+
+    .lightbox-figure .lightbox-arrow--next {
+        left: 50%;
+        transform: translateX(6px);
+    }
+}
+
+/* Close button floats at the viewport corner, outside the image box —
+   on short viewports keep the image clear of it (88vh's 6vh top margin
+   is smaller than the 52px the 40px corner button occupies). The same
+   reserve holds the arrows that sit below the image on small screens
+   (12px gap + 36px button), and dvh tracks the visible viewport so the
+   buttons never fall behind mobile browser chrome. */
+@media (max-height: 899px) {
+    .cert-lightbox-in {
+        max-height: calc(100vh - 144px) !important;
+        max-height: calc(100dvh - 144px) !important;
+    }
 }

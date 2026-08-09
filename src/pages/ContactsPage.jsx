@@ -162,7 +162,7 @@ export default function ContactsPage() {
                 </h2>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+            <div className="grid grid-cols-1 min-[1024px]:grid-cols-2 gap-12">
                 {/* ── Left: Channels ── */}
                 <div>
                     <h3 className="uppercase mb-6" style={{ fontFamily: "'Space Grotesk', monospace", color: 'var(--void-text-dim)', fontSize: '10px', letterSpacing: '0.3em' }}>

@@ -112,112 +112,18 @@
 }
 
 /* ═══════════════════════════════════════════════════════
-   RESUME VIEWER — clean image-only look on all viewports
+   RESUME DOWNLOAD — used on the Introduction section
    ═══════════════════════════════════════════════════════ */
-.about-resume-frame {
-    height: 600px;
-    overflow: auto;
-    border: none;
-    display: flex;
-    flex-direction: column;
-}
-
-/* ── Resume-frame scrollbar (desktop) ─────────────────────────────────────
-   Track matches --resume-bg. Thumb uses theme-aware color from index.css.
-   The inset box-shadow creates an outline inside the thumb because WebKit
-   ignores `border` on scrollbar pseudo-elements.                      ── */
-.about-resume-frame::-webkit-scrollbar {
-    width: 6px;
-}
-
-.about-resume-frame::-webkit-scrollbar-track {
-    background: var(--resume-bg);
-    margin: 0;
-}
-
-.about-resume-frame::-webkit-scrollbar-track-piece {
-    background: var(--resume-bg);
-}
-
-.about-resume-frame::-webkit-scrollbar-thumb {
-    background: var(--scrollbar-thumb);
-    border-radius: 3px;
-    box-shadow: inset 0 0 0 1.5px var(--scrollbar-thumb-outline);
-}
-
-.about-resume-frame::-webkit-scrollbar-thumb:hover {
-    opacity: 0.9;
-}
-
-.about-resume-frame::-webkit-scrollbar-button {
-    display: none;
-    width: 0;
-    height: 0;
-    background: transparent;
-}
-
-.about-resume-frame::-webkit-scrollbar-corner {
-    background: var(--resume-bg);
-}
-
-.about-resume-frame {
-    scrollbar-width: thin;
-    scrollbar-color: var(--scrollbar-thumb) var(--resume-bg);
-}
-
-/* ── Mobile / Tablet: consistent gray thumb ───────────────────────────────
-   Gray is used instead of theme-specific colors so the scrollbar remains
-   clearly visible on both Demain soir bleu (dark track) and Clair obscur
-   (light track). The inset shadow adds subtle shape definition.       ── */
-@media (max-width: 1023px) {
-    .about-resume-frame::-webkit-scrollbar {
-        width: 8px;
-    }
-
-    .about-resume-frame::-webkit-scrollbar-thumb {
-        background: rgb(150, 150, 150);
-        box-shadow: inset 0 0 0 1.5px rgba(100, 100, 100, 0.6);
-    }
-
-    .about-resume-frame {
-        scrollbar-color: rgb(150, 150, 150) var(--resume-bg);
-    }
-}
-
-.about-resume-scale-layer {
-    width: 100%;
-}
-
-.about-resume-preview {
-    display: block;
-    height: auto;
-    background-color: #ffffff;
-}
-
-.about-resume-button {
-    border-color: 'var(--void-border)';
-    background-color: 'var(--void-surface-80)';
-    color: 'var(--void-text-full)';
-}
-
-.about-resume-button--muted {
-    color: 'var(--void-text-muted)';
-}
-
-.about-resume-button:hover {
-    border-color: 'var(--void-text-dim)';
-}
-
 .about-resume-download {
     font-family: 'Space Grotesk', monospace;
-    color: 'var(--void-text-dim)';
-    border-color: 'var(--void-border)';
+    color: var(--void-text-dim);
+    border-color: var(--void-border);
     text-decoration: none;
 }
 
 .about-resume-download:hover {
-    color: 'var(--void-text-full)';
-    border-color: 'var(--void-text-dim)';
+    color: var(--void-text-full);
+    border-color: var(--void-text-dim);
 }
 
 .about-parameter-row {
@@ -234,31 +140,78 @@
 }
 
 /* ═══════════════════════════════════════════════════════
-   LANDSCAPE MOBILE: expand overlay panel
+   CERTIFICATION PAGINATION — fixed switcher under the grid
    ═══════════════════════════════════════════════════════ */
-@media (max-width: 750px) and (orientation: landscape) {
+.about-certifications-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 20px;
+}
+
+.about-cert-pagination-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 34px;
+    height: 34px;
+    padding: 0 10px;
+    font-family: 'Space Grotesk', monospace;
+    font-size: 12px;
+    letter-spacing: 0.06em;
+    color: var(--void-text-dim);
+    background-color: var(--void-surface-80);
+    border: 1px solid var(--void-border);
+    cursor: pointer;
+    transition: border-color 0.2s, color 0.2s, background-color 0.2s;
+}
+
+.about-cert-pagination-btn:hover:not(:disabled):not(.about-cert-pagination-btn--active) {
+    border-color: var(--void-text-dim);
+    color: var(--void-text-full);
+}
+
+.about-cert-pagination-btn--active {
+    background-color: var(--void-text-full);
+    border-color: var(--void-text-full);
+    color: var(--void-surface-80);
+    cursor: default;
+}
+
+.about-cert-pagination-btn:disabled {
+    opacity: 0.35;
+    cursor: default;
+}
+
+.about-cert-pagination-arrow svg {
+    width: 14px;
+    height: 14px;
+    stroke: currentColor;
+}
+
+/* ═══════════════════════════════════════════════════════
+   LANDSCAPE TABLET: expand overlay panel + tighten padding
+   ═══════════════════════════════════════════════════════ */
+@media (min-width: 768px) and (max-width: 1023px) and (orientation: landscape) {
     .portfolio-overlay-panel {
-        width: 94vw !important;
-        max-width: 900px !important;
-        max-height: 92vh !important;
+        max-height: 94vh !important;
     }
 
     .portfolio-overlay-content {
-        padding: 16px 20px 24px !important;
-    }
-
-    .portfolio-overlay-close {
-        top: 12px !important;
-        right: 12px !important;
-        width: 36px !important;
-        height: 36px !important;
-        font-size: 20px !important;
-        line-height: 1 !important;
+        padding: 20px 28px 28px !important;
     }
 }
 
 /* Short landscape viewports (e.g. modern phones rotated) */
 @media (orientation: landscape) and (max-height: 500px) {
+    .portfolio-overlay-panel {
+        max-height: 94vh !important;
+    }
+}
+
+/* Short landscape desktops / laptops (e.g. 1024×768, 1366×768) */
+@media (min-width: 1024px) and (orientation: landscape) and (max-height: 800px) {
     .portfolio-overlay-panel {
         max-height: 94vh !important;
     }
@@ -425,58 +378,10 @@
         width: 28px;
     }
 
-    .about-resume-toolbar {
-        margin-bottom: 12px !important;
-        gap: 10px;
-    }
-
-    .about-resume-controls {
-        gap: 6px !important;
-    }
-
-    .about-resume-button {
-        width: 16px !important;
-        height: 16px !important;
-        font-size: 12px !important;
-    }
-
-    .about-resume-reset {
-        margin-left: 2px !important;
-    }
-
-    .about-resume-scale {
-        padding-right: 6px !important;
-        padding-left: 6px !important;
-        font-size: 10px !important;
-        letter-spacing: 0.16em !important;
-    }
-
     .about-resume-download {
         padding: 5px 10px !important;
         font-size: 9px !important;
         letter-spacing: 0.18em !important;
-    }
-
-    .about-resume-frame {
-        height: 260px;
-    }
-
-    .about-resume-footer {
-        margin-top: 10px !important;
-        gap: 12px;
-    }
-
-    .about-resume-link {
-        font-size: 11px !important;
-    }
-
-    .about-resume-file {
-        max-width: 148px;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-        font-size: 8px !important;
-        letter-spacing: 0.08em !important;
     }
 
     .about-timeline-item {
@@ -485,7 +390,14 @@
     }
 
     .about-timeline-line {
-        left: 5px !important;
+        left: 4px !important;
+        transform: translateX(-50%) !important;
+        top: 10px !important;
+        bottom: -10px !important;
+    }
+
+    .about-timeline-item:last-child .about-timeline-line {
+        bottom: 0 !important;
     }
 
     .about-timeline-dot {
@@ -532,6 +444,67 @@
         text-align: right;
         font-size: 13px !important;
     }
+
+    /* GitHub contribution calendar — compact cells, weekday labels
+       dropped, smooth horizontal scroll with a themed thin scrollbar */
+    .about-contributions-grid {
+        grid-template-columns: 0 repeat(var(--weeks), 8px);
+        grid-auto-rows: 8px;
+        column-gap: 1px;
+    }
+
+    .about-contributions-day {
+        width: 8px;
+        height: 8px;
+    }
+
+    .about-contributions-weekday {
+        display: none;
+    }
+
+    .about-contributions-month-label {
+        font-size: 8px;
+    }
+
+    .about-contributions-legend {
+        font-size: 8px;
+        background-color: var(--void-surface-80);
+        padding-left: 6px;
+    }
+
+    .about-contributions-calendar {
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: thin;
+        scrollbar-color: var(--void-text-full) transparent;
+    }
+
+    .about-contributions-calendar::-webkit-scrollbar {
+        height: 6px;
+    }
+
+    .about-contributions-calendar::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .about-contributions-calendar::-webkit-scrollbar-thumb {
+        background: var(--void-text-full);
+        border-radius: 3px;
+        opacity: 0.6;
+    }
+
+    .about-contributions-calendar::-webkit-scrollbar-thumb:hover {
+        opacity: 1;
+    }
+
+    .about-contributions-calendar::-webkit-scrollbar-button {
+        display: none;
+        width: 0;
+        height: 0;
+    }
+
+    .about-contributions-calendar::-webkit-scrollbar-corner {
+        background: transparent;
+    }
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -567,4 +540,293 @@
     .portfolio-overlay-content {
         padding: 14px 18px 22px !important;
     }
+}
+
+/* ═══════════════════════════════════════════════════════
+   GITHUB CONTRIBUTIONS — About page
+   ═══════════════════════════════════════════════════════ */
+.about-contributions-cell {
+    border-color: var(--void-border);
+    background-color: var(--void-surface-80);
+}
+
+.about-contributions-fallback {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+
+.about-contributions-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.about-contributions-total {
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    color: var(--void-text);
+}
+
+.about-contributions-select-wrap {
+    position: relative;
+    flex-shrink: 0;
+}
+
+.about-contributions-select {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'Space Grotesk', monospace;
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--void-text-full);
+    background-color: transparent;
+    border: 1px solid var(--void-border);
+    padding: 6px 10px;
+    cursor: pointer;
+    outline: none;
+    transition: border-color 0.25s ease;
+}
+
+.about-contributions-select:hover,
+.about-contributions-select:focus-visible {
+    border-color: var(--void-text-dim);
+}
+
+.about-contributions-select-chevron {
+    color: var(--void-text-muted);
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.about-contributions-select-chevron--open {
+    transform: rotate(180deg);
+}
+
+.about-contributions-select-panel {
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    min-width: 100%;
+    margin: 0;
+    padding: 4px;
+    list-style: none;
+    background-color: var(--void-surface-80);
+    border: 1px solid var(--void-border);
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.28);
+    z-index: 30;
+}
+
+.about-contributions-select-option {
+    padding: 7px 12px;
+    font-family: 'Space Grotesk', monospace;
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--void-text-dim);
+    cursor: pointer;
+    transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.about-contributions-select-option:hover,
+.about-contributions-select-option--highlighted {
+    background-color: var(--void-btn-bg);
+    color: var(--void-text-full);
+}
+
+.about-contributions-select-option--selected {
+    color: var(--void-text-full);
+}
+
+.about-contributions-calendar {
+    overflow-x: auto;
+    padding-bottom: 4px;
+    /* Grid scrollport: a single max-content track so the legend's grid
+       area spans the full graph width — its static right edge then sits
+       past the scrollport edge, which is what makes sticky right bind. */
+    display: grid;
+    grid-template-columns: max-content;
+}
+
+/* CSS grid: col 1 = weekday labels, cols 2..N+1 = one 11px column per week.
+   Every day cell is exactly 11px × 11px by construction. */
+.about-contributions-grid {
+    display: grid;
+    grid-template-columns: 34px repeat(var(--weeks), 11px);
+    grid-auto-rows: 11px;
+    column-gap: 2px;
+    row-gap: 2px;
+    width: max-content;
+    padding-bottom: 2px;
+}
+
+.about-contributions-month-label {
+    font-family: 'Space Grotesk', monospace;
+    font-size: 9px;
+    letter-spacing: 0.08em;
+    color: var(--void-text-dim);
+    white-space: nowrap;
+    overflow: hidden;
+    align-self: center;
+    line-height: 1;
+}
+
+.about-contributions-month-label--empty {
+    color: transparent;
+}
+
+.about-contributions-weekday {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding-right: 6px;
+    font-family: 'Space Grotesk', monospace;
+    font-size: 9px;
+    letter-spacing: 0.08em;
+    color: var(--void-text-muted);
+    white-space: nowrap;
+}
+
+.about-contributions-day {
+    width: 11px;
+    height: 11px;
+    border-radius: 2px;
+}
+
+.about-contributions-day--pad {
+    background-color: transparent;
+}
+
+.about-contributions-day--l0 {
+    background-color: var(--contrib-level-0);
+}
+
+.about-contributions-day--l1 {
+    background-color: var(--contrib-level-1);
+}
+
+.about-contributions-day--l2 {
+    background-color: var(--contrib-level-2);
+}
+
+.about-contributions-day--l3 {
+    background-color: var(--contrib-level-3);
+}
+
+.about-contributions-day--l4 {
+    background-color: var(--contrib-level-4);
+}
+
+.about-contributions-legend {
+    grid-column: 1;
+    grid-row: 2;
+    position: sticky;
+    right: 0;
+    width: max-content;
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 4px;
+    margin-top: 10px;
+    font-family: 'Space Grotesk', monospace;
+    font-size: 9px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--void-text-muted);
+}
+
+/* ── Desktop: stretch the graph across the full container width —
+   square cells kept, extra space distributed between columns, and
+   the legend's right edge aligned under the year dropdown ── */
+@media (min-width: 1024px) {
+    .about-contributions-calendar {
+        grid-template-columns: 100%;
+    }
+
+    .about-contributions-grid {
+        width: 100%;
+        justify-content: space-between;
+    }
+}
+
+.about-contributions-status {
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    color: var(--void-text-dim);
+    padding: 28px 0;
+    text-align: center;
+}
+
+.about-contributions-retry {
+    margin-left: 10px;
+    padding: 4px 14px;
+    font-family: 'Space Grotesk', monospace;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--void-text-dim);
+    background-color: transparent;
+    border: 1px solid var(--void-border);
+    cursor: pointer;
+    transition: border-color 0.2s, color 0.2s;
+}
+
+.about-contributions-retry:hover {
+    border-color: var(--void-text-dim);
+    color: var(--void-text-full);
+}
+
+/* ── Tablet: shrink the graph so a full year fits without scrolling ── */
+@media (min-width: 768px) and (max-width: 1023px) {
+    .about-contributions-grid {
+        grid-template-columns: 28px repeat(var(--weeks), 10px);
+        grid-auto-rows: 10px;
+    }
+
+    .about-contributions-day {
+        width: 10px;
+        height: 10px;
+    }
+}
+
+/* ── Day tooltip — themed popup shown above the hovered/tapped day ── */
+.contrib-tooltip {
+    position: fixed;
+    z-index: 160;
+    transform: translate(-50%, -100%);
+    max-width: 260px;
+    padding: 7px 12px;
+    font-family: 'Space Grotesk', monospace;
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    line-height: 1.45;
+    text-align: center;
+    color: var(--void-text-full);
+    background-color: var(--void-surface);
+    border: 1px solid var(--void-border);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+    pointer-events: none;
+    opacity: 0;
+    animation: contrib-tooltip-in 0.18s ease-out forwards;
+}
+
+@keyframes contrib-tooltip-in {
+    from {
+        opacity: 0;
+        transform: translate(-50%, calc(-100% + 5px));
+    }
+
+    to {
+        opacity: 1;
+        transform: translate(-50%, -100%);
+    }
+}
+
+/* The ghchart fallback SVG is dark-fixed — invert it in the light theme */
+[data-theme='clair-obscur'] .about-contributions-fallback {
+    filter: invert(0.92);
 }

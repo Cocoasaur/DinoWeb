@@ -68,6 +68,40 @@ export function getHomeViewportLayout(width, height) {
         };
     }
 
+    // ── Portrait desktop / laptop (fine-pointer, width ≥ 768, height > width) ──
+    // Rotated monitors (incl. display-scaled CSS widths < 1024) get a phone-style
+    // layout: branding lockup on top, cube centered in the band below it.
+    // Touch devices (hover: none — iPads etc.) skip this and keep the tablet branch.
+    // BRAND_SCALE must match --mobile-branding-scale in home-layout.css
+    // (see the `(orientation: portrait) and (hover: hover) and (pointer: fine)` blocks).
+    const isFinePointer = typeof window === 'undefined' || !window.matchMedia
+        ? true
+        : window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+
+    if (width >= TABLET_MIN && height > width && isFinePointer) {
+        const brandScale = width >= 1280 ? 2.4 : width >= 1080 ? 2.2 : width >= 900 ? 1.9 : 1.6;
+        const bandTop = 330 * brandScale + 60;   // lockup height + gap below it
+        const bandBottom = height - 150;         // clear of the rotate prompt
+        const bandHeight = Math.max(bandBottom - bandTop, 0);
+
+        // Camera math (fov 45°, camera z 5): 1 world unit = 0.48284/aspect NDC.
+        const ndcPerUnit = 0.48284 / (width / height);
+        const halfViewWidth = 1 / ndcPerUnit;
+        const widthFit = halfViewWidth * 0.62;                 // phone-like width share
+        const bandFit = bandHeight / (ndcPerUnit * height);    // fits the band vertically
+        const cubeScale = clamp(Math.min(widthFit, bandFit), 0.40, 0.72);
+
+        const centerY = (bandTop + bandBottom) / 2;
+        const restingY = (1 - (2 * centerY) / height) / ndcPerUnit;
+
+        return {
+            breakpoint: 'desktop',
+            restingX: 0,
+            restingY,
+            cubeScale,
+        };
+    }
+
     // ── Desktop: heightScale is needed for both branches ──
     const heightScale = clamp(height / 760, 0.86, 1);
 

@@ -21,7 +21,7 @@ export default function Scrubber() {
         >
             <div
                 className="absolute left-1/2 -translate-x-1/2 w-px h-full"
-                style={{ backgroundColor: 'var(--void-border)' }}
+                style={{ backgroundColor: 'var(--void-border)', transition: 'background-color 0.7s ease' }}
             />
             <div
                 ref={dotRef}
@@ -30,7 +30,7 @@ export default function Scrubber() {
                     top: '30%',
                     transform: 'translate(-50%, -50%)',
                     backgroundColor: 'var(--void-scrubber)',
-                    transition: 'top 0.08s linear',
+                    transition: 'top 0.08s linear, background-color 0.7s ease',
                 }}
             />
         </div>

@@ -3,6 +3,7 @@ import { flushSync } from 'react-dom';
 import { Canvas } from '@react-three/fiber';
 import MobileBranding from './components/ui/MobileBranding';
 import RotatePrompt from './components/ui/RotatePrompt';
+import OverlayNavIcon from './components/ui/OverlayNavIcon';
 import Scene from './components/three/Scene';
 import CornerMarkers from './components/ui/CornerMarkers';
 import Sidebar from './components/ui/Sidebar';
@@ -43,16 +44,20 @@ function getCubeScreenOrigin(zoomZ) {
 export default function App() {
   const { toggle, isDark } = useTheme();
   const transitionInProgressRef = useRef(false);
+  const screenPosRef = useRef({ x: 0, y: 0, valid: false });
+  const faceDownPosRef = useRef({ x: 0, y: 0, valid: false });
   const { dpr, tier } = useAdaptiveDPR();
   const reducedMotion = useReducedMotion();
 
   const {
     isZoomed, isZoomingOut, showOverlay, activeFace, targetRotation,
-    zoomZ, coordsRef, isDraggingRef, themeTransitionActive, overlayPhase,
+    zoomZ, coordsRef, isDraggingRef, themeTransitionActive,
+    overlayPhase,
     handleFaceClick, handleFacePressStart, handleCloseOverlay,
     handleZoomOutComplete, handleWheel, handlePinchZoom,
     handleRotationChange, updateZoomCoord, handleZoomComplete,
-    handleThemeTransitionComplete, handleOverlayCloseComplete,
+    handleThemeTransitionComplete,
+    handleOverlayCloseComplete,
   } = useCubeInteraction();
 
   // ── Lifted project selection state ────────────────────────────────────────
@@ -74,18 +79,37 @@ export default function App() {
     if (!themeTransitionActive || transitionInProgressRef.current) return;
     transitionInProgressRef.current = true;
 
-    const { x, y } = getCubeScreenOrigin(zoomZ);
-    document.documentElement.style.setProperty('--theme-origin-x', `${x}px`);
-    document.documentElement.style.setProperty('--theme-origin-y', `${y}px`);
+    // Wipe origin = where the theme face was pressed (always on the cube —
+    // you can only click the face by clicking the cube). Falls back to the
+    // scene-projected cube position, then to the layout math.
+    const origin = faceDownPosRef.current.valid
+      ? faceDownPosRef.current
+      : screenPosRef.current.valid
+        ? screenPosRef.current
+        : getCubeScreenOrigin(zoomZ);
+    document.documentElement.style.setProperty('--theme-origin-x', `${origin.x}px`);
+    document.documentElement.style.setProperty('--theme-origin-y', `${origin.y}px`);
+
+    // Consume the press position so a later transition (triggered without a
+    // fresh pointerdown on the cube — e.g. a stray re-render) can't reuse
+    // coordinates from a previous, unrelated face click.
+    faceDownPosRef.current.valid = false;
 
     const direction = isDark ? 'to-light' : 'to-dark';
     document.documentElement.setAttribute('data-theme-direction', direction);
 
     if (document.startViewTransition && !reducedMotion) {
+      // Freeze infinitely-animated elements (drift grid, logo trace) so they are
+      // captured in the old snapshot instead of live-flipping to the new theme.
+      document.documentElement.classList.add('theme-transitioning');
+      // Force a reflow so the snapshot captures the frozen state.
+      document.documentElement.offsetWidth;
+
       const vt = document.startViewTransition(() => {
         flushSync(() => { toggle(); });
       });
       vt.finished.finally(() => {
+        document.documentElement.classList.remove('theme-transitioning');
         document.documentElement.removeAttribute('data-theme-direction');
         transitionInProgressRef.current = false;
         handleThemeTransitionComplete();
@@ -105,7 +129,7 @@ export default function App() {
   return (
     <div
       className="relative w-screen h-screen overflow-hidden"
-      style={{ backgroundColor: 'var(--void-bg)', transition: reducedMotion ? 'none' : 'background-color 0.5s ease' }}
+      style={{ height: '100dvh', backgroundColor: 'var(--void-bg)', transition: reducedMotion ? 'none' : 'background-color 0.5s ease' }}
     >
       <div className="fixed inset-0">
         <div className="fixed inset-0 pointer-events-none z-0 void-grid" />
@@ -148,6 +172,8 @@ export default function App() {
               onPinchZoom={handlePinchZoom}
               onZoomComplete={handleZoomComplete}
               onZoomOutComplete={handleZoomOutComplete}
+              screenPosRef={screenPosRef}
+              faceDownPosRef={faceDownPosRef}
             />
           </Canvas>
         </div>
@@ -158,7 +184,7 @@ export default function App() {
         <CoordinateDisplay coordsRef={coordsRef} />
         <Footer />
         <MobileBranding />
-        <RotatePrompt />
+        {!isZoomed && <RotatePrompt />}
       </div>
 
       <Overlay
@@ -173,7 +199,7 @@ export default function App() {
         renderCloseButton={activeFace === 'projects' ? ({ onClose }) => (
           <button
             onClick={selectedProject ? () => setSelectedProject(null) : onClose}
-            className="portfolio-overlay-close sticky top-5 right-5 z-20 ml-auto text-xl w-10 h-10 flex items-center justify-center border transition-all duration-300 cursor-pointer"
+            className="portfolio-overlay-close sticky top-5 right-5 z-20 ml-auto text-xl leading-none w-10 h-10 flex items-center justify-center border transition-all duration-300 cursor-pointer"
             style={{
               fontFamily: "'Space Grotesk', monospace",
               color: 'var(--void-text-full)',
@@ -189,7 +215,7 @@ export default function App() {
               e.currentTarget.style.borderColor = 'var(--void-btn-border)';
             }}
           >
-            {selectedProject ? '←' : '✕'}
+            <OverlayNavIcon variant={selectedProject ? 'back' : 'close'} />
           </button>
         ) : undefined}
       />

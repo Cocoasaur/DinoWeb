@@ -38,30 +38,30 @@ import gitIcon from '../assets/icons/skills/tools/Git.png';
 import githubIcon from '../assets/icons/skills/tools/Github.png';
 
 // ── Project screenshots ──
-import tipAirlines1 from '../assets/projects_screenshots/tip_airlines/TIP_Airlines.png';
-import tipAirlines2 from '../assets/projects_screenshots/tip_airlines/TIP_Airlines1.png';
-import tipAirlines3 from '../assets/projects_screenshots/tip_airlines/TIP_Airlines2.png';
-import tipAirlines4 from '../assets/projects_screenshots/tip_airlines/TIP_Airlines3.png';
+import tipAirlines1 from '../assets/projects_screenshots/tip_airlines/TIP_Airlines.webp';
+import tipAirlines2 from '../assets/projects_screenshots/tip_airlines/TIP_Airlines1.webp';
+import tipAirlines3 from '../assets/projects_screenshots/tip_airlines/TIP_Airlines2.webp';
+import tipAirlines4 from '../assets/projects_screenshots/tip_airlines/TIP_Airlines3.webp';
 
-import pastryShopManagementSystem1 from '../assets/projects_screenshots/pastry_shop_management_system/Pastry_Shop_Management_System.png';
-import pastryShopManagementSystem2 from '../assets/projects_screenshots/pastry_shop_management_system/Pastry_Shop_Management_System1.png';
-import pastryShopManagementSystem3 from '../assets/projects_screenshots/pastry_shop_management_system/Pastry_Shop_Management_System2.png';
-import pastryShopManagementSystem4 from '../assets/projects_screenshots/pastry_shop_management_system/Pastry_Shop_Management_System3.png';
+import pastryShopManagementSystem1 from '../assets/projects_screenshots/pastry_shop_management_system/Pastry_Shop_Management_System.webp';
+import pastryShopManagementSystem2 from '../assets/projects_screenshots/pastry_shop_management_system/Pastry_Shop_Management_System1.webp';
+import pastryShopManagementSystem3 from '../assets/projects_screenshots/pastry_shop_management_system/Pastry_Shop_Management_System2.webp';
+import pastryShopManagementSystem4 from '../assets/projects_screenshots/pastry_shop_management_system/Pastry_Shop_Management_System3.webp';
 
-import earthArcade1 from '../assets/projects_screenshots/earth_arcade/Earth_Arcade.png';
-import earthArcade2 from '../assets/projects_screenshots/earth_arcade/Earth_Arcade1.png';
-import earthArcade3 from '../assets/projects_screenshots/earth_arcade/Earth_Arcade2.png';
-import earthArcade4 from '../assets/projects_screenshots/earth_arcade/Earth_Arcade3.png';
-import earthArcade5 from '../assets/projects_screenshots/earth_arcade/Earth_Arcade4.png';
+import earthArcade1 from '../assets/projects_screenshots/earth_arcade/Earth_Arcade.webp';
+import earthArcade2 from '../assets/projects_screenshots/earth_arcade/Earth_Arcade1.webp';
+import earthArcade3 from '../assets/projects_screenshots/earth_arcade/Earth_Arcade2.webp';
+import earthArcade4 from '../assets/projects_screenshots/earth_arcade/Earth_Arcade3.webp';
+import earthArcade5 from '../assets/projects_screenshots/earth_arcade/Earth_Arcade4.webp';
 
-import quarto1 from '../assets/projects_screenshots/quarto/Quarto.png';
-import quarto2 from '../assets/projects_screenshots/quarto/Quarto1.png';
-import quarto3 from '../assets/projects_screenshots/quarto/Quarto2.png';
-import quarto4 from '../assets/projects_screenshots/quarto/Quarto3.png';
-import quarto5 from '../assets/projects_screenshots/quarto/Quarto4.png';
-import quarto6 from '../assets/projects_screenshots/quarto/Quarto5.png';
-import quarto7 from '../assets/projects_screenshots/quarto/Quarto6.png';
-import quarto8 from '../assets/projects_screenshots/quarto/Quarto7.png';
+import quarto1 from '../assets/projects_screenshots/quarto/Quarto.webp';
+import quarto2 from '../assets/projects_screenshots/quarto/Quarto1.webp';
+import quarto3 from '../assets/projects_screenshots/quarto/Quarto2.webp';
+import quarto4 from '../assets/projects_screenshots/quarto/Quarto3.webp';
+import quarto5 from '../assets/projects_screenshots/quarto/Quarto4.webp';
+import quarto6 from '../assets/projects_screenshots/quarto/Quarto5.webp';
+import quarto7 from '../assets/projects_screenshots/quarto/Quarto6.webp';
+import quarto8 from '../assets/projects_screenshots/quarto/Quarto7.webp';
 
 export const STATUS_COLORS = {
     Complete: '#22c55e',

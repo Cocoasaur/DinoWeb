@@ -1,23 +1,22 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import TiltCard from '../components/ui/TiltCard';
-import ImageCarousel from '../components/ui/ImageCarousel';
-import profileImage from '../assets/images/profile/me.png';
+import OverlayNavIcon from '../components/ui/OverlayNavIcon';
+import GitHubContributions from '../components/ui/GitHubContributions';
+import profileImage from '../assets/images/profile/me.webp';
 
 // Certificates
-import aignite from '../assets/certifications/AIgnite.png';
-import courseraExcel from '../assets/certifications/Coursera_Excel.png';
-import courseraExcel1 from '../assets/certifications/Coursera_Excel1.png';
-import zuittCodingBootcamp from '../assets/certifications/ZUITT_Free_Coding_Bootcamp.png';
-import gdgBacolod from '../assets/certifications/GDG_Bacolod.png';
-import googleForEducation from '../assets/certifications/Google_for_Education.png';
-import ciscoIntroDS from '../assets/certifications/Cisco_Data_Science.png';
+import aignite from '../assets/certifications/AIgnite.webp';
+import courseraExcel from '../assets/certifications/Coursera_Excel.webp';
+import courseraExcel1 from '../assets/certifications/Coursera_Excel1.webp';
+import zuittCodingBootcamp from '../assets/certifications/ZUITT_Free_Coding_Bootcamp.webp';
+import gdgBacolod from '../assets/certifications/GDG_Bacolod.webp';
+import googleForEducation from '../assets/certifications/Google_for_Education.webp';
+import ciscoIntroDS from '../assets/certifications/Cisco_Data_Science.webp';
 
-// ── Placeholder: update this with your actual PDF path ──────────────────────
 import resumePdf from '../assets/resume/Resume_Arquesola.pdf';
-import resumePreview from '../assets/resume/Resume_Arquesola_preview.png';
 
 const RESUME_PDF_URL = resumePdf;
-const RESUME_PREVIEW_URL = resumePreview;
 
 const S = {
     label: {
@@ -75,6 +74,16 @@ const CERTIFICATIONS = [
     ciscoIntroDS,
 ];
 
+const CERT_NAMES = [
+    'AIgnite Certificate',
+    'Coursera Excel Certificate 1',
+    'Coursera Excel Certificate 2',
+    'ZUITT Free Coding Bootcamp Certificate',
+    'GDG Bacolod Certificate',
+    'Google for Education Certificate',
+    'Cisco Data Science Certificate',
+];
+
 function TimelineItem({ year, degree, academic_track, school, desc }) {
     const [hovered, setHovered] = useState(false);
 
@@ -85,7 +94,7 @@ function TimelineItem({ year, degree, academic_track, school, desc }) {
             onMouseLeave={() => setHovered(false)}
         >
             <div
-                className="about-timeline-line absolute left-[5px] top-2 bottom-0 w-px"
+                className="about-timeline-line absolute left-1.5 -translate-x-1/2 top-3 -bottom-3 last:bottom-0 w-px"
                 style={{ backgroundColor: 'var(--void-border)' }}
             />
             <div
@@ -126,157 +135,34 @@ function TimelineItem({ year, degree, academic_track, school, desc }) {
     );
 }
 
-// ── Resume Viewer Component ────────────────────────────────────────────────
-function ResumeViewer() {
-    const [scale, setScale] = useState(1.0);
-
-    const zoomIn = () => setScale(s => Math.min(s + 0.1, 2.0));
-    const zoomOut = () => setScale(s => Math.max(s - 0.1, 0.5));
-    const resetZoom = () => setScale(1.0);
-
-    return (
-        <div className="about-resume-viewer">
-            {/* Toolbar */}
-            <div className="about-resume-toolbar flex items-center justify-between mb-4">
-                <div className="about-resume-controls flex items-center gap-2">
-                    <button
-                        onClick={zoomOut}
-                        className="about-resume-button w-8 h-8 flex items-center justify-center border transition-all duration-200"
-                        style={{
-                            borderColor: 'var(--void-border)',
-                            backgroundColor: 'var(--void-surface-80)',
-                            color: 'var(--void-text-full)',
-                        }}
-                        onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--void-text-dim)'}
-                        onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--void-border)'}
-                        title="Zoom out"
-                    >
-                        −
-                    </button>
-                    <span
-                        className="about-resume-scale text-[11px] tracking-widest uppercase px-2"
-                        style={{ fontFamily: "'Space Grotesk', monospace", color: 'var(--void-text-muted)' }}
-                    >
-                        {Math.round(scale * 100)}%
-                    </span>
-                    <button
-                        onClick={zoomIn}
-                        className="about-resume-button w-8 h-8 flex items-center justify-center border transition-all duration-200"
-                        style={{
-                            borderColor: 'var(--void-border)',
-                            backgroundColor: 'var(--void-surface-80)',
-                            color: 'var(--void-text-full)',
-                        }}
-                        onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--void-text-dim)'}
-                        onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--void-border)'}
-                        title="Zoom in"
-                    >
-                        +
-                    </button>
-                    <button
-                        onClick={resetZoom}
-                        className="about-resume-button about-resume-button--muted about-resume-reset w-8 h-8 flex items-center justify-center border transition-all duration-200 ml-1"
-                        style={{
-                            borderColor: 'var(--void-border)',
-                            backgroundColor: 'var(--void-surface-80)',
-                            color: 'var(--void-text-muted)',
-                        }}
-                        onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--void-text-dim)'}
-                        onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--void-border)'}
-                        title="Reset zoom"
-                    >
-                        ⟲
-                    </button>
-                </div>
-
-                <a
-                    href={RESUME_PDF_URL}
-                    download
-                    className="about-resume-download flex items-center gap-2 px-4 py-2 border text-[10px] tracking-[0.2em] uppercase transition-all duration-300"
-                    style={{
-                        fontFamily: "'Space Grotesk', monospace",
-                        color: 'var(--void-text-dim)',
-                        borderColor: 'var(--void-border)',
-                        textDecoration: 'none',
-                    }}
-                    onMouseEnter={e => {
-                        e.currentTarget.style.color = 'var(--void-text-full)';
-                        e.currentTarget.style.borderColor = 'var(--void-text-dim)';
-                    }}
-                    onMouseLeave={e => {
-                        e.currentTarget.style.color = 'var(--void-text-dim)';
-                        e.currentTarget.style.borderColor = 'var(--void-border)';
-                    }}
-                >
-                    DOWNLOAD ↓
-                </a>
-            </div>
-
-            {/* Preview Container — uses --resume-bg for the shaded background */}
-            <div
-                className="about-resume-frame border"
-                style={{
-                    borderColor: 'var(--void-border)',
-                    backgroundColor: 'var(--resume-bg)',  /* ← CHANGED from --void-surface-80 */
-                    overflow: 'auto',
-                    display: 'flex',
-                    flexDirection: 'column',
-                }}
-            >
-                <div
-                    className="about-resume-scale-layer"
-                    style={{
-                        marginTop: 'auto',
-                        marginBottom: 'auto',
-                        width: '100%',
-                    }}
-                >
-                    <img
-                        src={RESUME_PREVIEW_URL}
-                        alt="Resume preview"
-                        className="about-resume-preview"
-                        style={{
-                            width: `${scale * 100}%`,
-                            maxWidth: 'none',
-                            display: 'block',
-                            margin: '0 auto',
-                            transition: 'width 0.2s ease-out',
-                        }}
-                        draggable={false}
-                    />
-                </div>
-            </div>
-
-            {/* Footer links */}
-            <div className="about-resume-footer mt-4 flex items-center justify-between">
-                <a
-                    href={RESUME_PDF_URL}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="about-resume-link text-[12px] transition-colors duration-300"
-                    style={{
-                        fontFamily: "'Inter', sans-serif",
-                        color: 'var(--void-text-dim)',
-                        textDecoration: 'underline',
-                        textUnderlineOffset: '3px',
-                    }}
-                    onMouseEnter={e => e.target.style.color = 'var(--void-text-full)'}
-                    onMouseLeave={e => e.target.style.color = 'var(--void-text-dim)'}
-                >
-                    Open in new tab →
-                </a>
-                <span
-                    className="about-resume-file text-[10px] tracking-widest uppercase"
-                    style={{ fontFamily: "'Space Grotesk', monospace", color: 'var(--void-text-muted)' }}
-                >
-                    Resume_Arquesola.pdf
-                </span>
-            </div>
-        </div>
-    );
-}
-
 export default function AboutPage() {
+    const [lightboxIndex, setLightboxIndex] = useState(null);
+    const [certPage, setCertPage] = useState(0);
+    const [certPageSize, setCertPageSize] = useState(() =>
+        window.matchMedia('(min-width: 768px)').matches ? 9 : 6
+    );
+
+    useEffect(() => {
+        const mq = window.matchMedia('(min-width: 768px)');
+        const onChange = (e) => setCertPageSize(e.matches ? 9 : 6);
+        mq.addEventListener('change', onChange);
+        return () => mq.removeEventListener('change', onChange);
+    }, []);
+
+    useEffect(() => {
+        if (lightboxIndex === null) return;
+        const onKeyDown = (e) => {
+            if (e.key === 'Escape') setLightboxIndex(null);
+        };
+        window.addEventListener('keydown', onKeyDown);
+        return () => window.removeEventListener('keydown', onKeyDown);
+    }, [lightboxIndex]);
+
+    const certTotalPages = Math.max(1, Math.ceil(CERTIFICATIONS.length / certPageSize));
+    const certSafePage = Math.min(certPage, certTotalPages - 1);
+    const certStart = certSafePage * certPageSize;
+    const visibleCerts = CERTIFICATIONS.slice(certStart, certStart + certPageSize);
+
     return (
         <div className="about-page">
             {/* Header */}
@@ -318,6 +204,27 @@ export default function AboutPage() {
                         I don't just chase challenges, I welcome them, because each one is a chance
                         to create something meaningful, elegant, and lasting.
                     </p>
+                    <a
+                        href={RESUME_PDF_URL}
+                        download
+                        className="about-resume-download flex items-center gap-2 px-4 py-2 border text-[10px] tracking-[0.2em] uppercase transition-all duration-300 mt-8"
+                        style={{
+                            fontFamily: "'Space Grotesk', monospace",
+                            color: 'var(--void-text-dim)',
+                            borderColor: 'var(--void-border)',
+                            textDecoration: 'none',
+                        }}
+                        onMouseEnter={e => {
+                            e.currentTarget.style.color = 'var(--void-text-full)';
+                            e.currentTarget.style.borderColor = 'var(--void-text-dim)';
+                        }}
+                        onMouseLeave={e => {
+                            e.currentTarget.style.color = 'var(--void-text-dim)';
+                            e.currentTarget.style.borderColor = 'var(--void-border)';
+                        }}
+                    >
+                        DOWNLOAD RESUME ↓
+                    </a>
                 </div>
 
                 {/* Right — Profile Picture */}
@@ -340,6 +247,8 @@ export default function AboutPage() {
                                 src={profileImage}
                                 alt="Profile avatar"
                                 className="about-profile-image w-full h-full object-cover"
+                                loading="lazy"
+                                decoding="async"
                                 draggable={false}
                             />
                         </TiltCard>
@@ -357,23 +266,148 @@ export default function AboutPage() {
                 <h3 className="about-section-title uppercase mb-5" style={S.h3}>
                     Certifications
                 </h3>
-                <ImageCarousel images={CERTIFICATIONS} />
+                <div className="about-certifications-grid grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
+                    {visibleCerts.map((src, idx) => {
+                        const fullIdx = certStart + idx;
+                        return (
+                            <button
+                                key={fullIdx}
+                                type="button"
+                                aria-label={`View ${CERT_NAMES[fullIdx]}`}
+                                className="about-cert-cell relative aspect-[4/3] border overflow-hidden transition-all duration-300 cursor-zoom-in"
+                                style={{
+                                    borderColor: 'var(--void-border)',
+                                    backgroundColor: 'var(--void-surface-80)',
+                                    padding: 0,
+                                }}
+                                onMouseEnter={e => {
+                                    e.currentTarget.style.borderColor = 'var(--void-text-dim)';
+                                    e.currentTarget.style.transform = 'translateY(-2px)';
+                                }}
+                                onMouseLeave={e => {
+                                    e.currentTarget.style.borderColor = 'var(--void-border)';
+                                    e.currentTarget.style.transform = 'translateY(0)';
+                                }}
+                                onClick={() => setLightboxIndex(fullIdx)}
+                            >
+                                <img
+                                    src={src}
+                                    alt={CERT_NAMES[fullIdx]}
+                                    className="w-full h-full object-contain p-2"
+                                    loading="lazy"
+                                    decoding="async"
+                                    draggable={false}
+                                />
+                            </button>
+                        );
+                    })}
+                </div>
+
+                {/* Fixed page switcher — always rendered under the grid */}
+                <div
+                    className="about-certifications-pagination"
+                    role="navigation"
+                    aria-label="Certifications pages"
+                >
+                    <button
+                        type="button"
+                        aria-label="Previous page"
+                        className="about-cert-pagination-btn about-cert-pagination-arrow"
+                        disabled={certSafePage === 0}
+                        onClick={() => setCertPage(certSafePage - 1)}
+                    >
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                            <path d="M15 18l-6-6 6-6" />
+                        </svg>
+                    </button>
+                    {Array.from({ length: certTotalPages }, (_, i) => (
+                        <button
+                            key={i}
+                            type="button"
+                            aria-label={`Page ${i + 1}`}
+                            aria-current={i === certSafePage ? 'page' : undefined}
+                            className={`about-cert-pagination-btn${i === certSafePage ? ' about-cert-pagination-btn--active' : ''}`}
+                            onClick={() => setCertPage(i)}
+                        >
+                            {i + 1}
+                        </button>
+                    ))}
+                    <button
+                        type="button"
+                        aria-label="Next page"
+                        className="about-cert-pagination-btn about-cert-pagination-arrow"
+                        disabled={certSafePage === certTotalPages - 1}
+                        onClick={() => setCertPage(certSafePage + 1)}
+                    >
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                            <path d="M9 18l6-6-6-6" />
+                        </svg>
+                    </button>
+                </div>
             </div>
 
-            {/* Divider 2: Certifications → Resume */}
+            {/* ── Certification lightbox — portaled to <body> so the
+                overlay panel's transform can't contain it ── */}
+            {lightboxIndex !== null && createPortal(
+                <div
+                    className="cert-lightbox fixed inset-0 z-[150] flex items-center justify-center"
+                    style={{
+                        backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                        backdropFilter: 'blur(6px)',
+                    }}
+                    onClick={() => setLightboxIndex(null)}
+                >
+                    <div
+                        className="cert-lightbox-in relative flex items-center justify-center max-w-[92vw] max-h-[88vh] border"
+                        style={{ borderColor: 'var(--void-border)', boxShadow: '0 16px 64px rgba(0,0,0,0.5)' }}
+                        onClick={e => e.stopPropagation()}
+                    >
+                        <img
+                            src={CERTIFICATIONS[lightboxIndex]}
+                            alt={CERT_NAMES[lightboxIndex]}
+                            className="max-w-[92vw] max-h-[88vh] object-contain"
+                            draggable={false}
+                        />
+                    </div>
+                    <button
+                        type="button"
+                        aria-label="Close certificate"
+                        className="absolute top-3 right-3 w-10 h-10 flex items-center justify-center border cursor-pointer"
+                        style={{
+                            backgroundColor: 'var(--void-surface-80)',
+                            borderColor: 'var(--void-border)',
+                            color: 'var(--void-text-full)',
+                        }}
+                        onMouseEnter={e => {
+                            e.currentTarget.style.backgroundColor = 'var(--void-surface)';
+                            e.currentTarget.style.borderColor = 'var(--void-text-dim)';
+                        }}
+                        onMouseLeave={e => {
+                            e.currentTarget.style.backgroundColor = 'var(--void-surface-80)';
+                            e.currentTarget.style.borderColor = 'var(--void-border)';
+                        }}
+                        onClick={() => setLightboxIndex(null)}
+                    >
+                        <OverlayNavIcon variant="close" />
+                    </button>
+                </div>,
+                document.body
+            )}
+
+            {/* Divider 2: Certifications → GitHub Contributions */}
             <div className="about-divider my-10 w-full h-px" style={{ backgroundColor: 'var(--void-border)' }} />
 
             {/* ═══════════════════════════════════════════════════════
-                RESUME VIEWER (full width)
+                MIDDLE SECTION: GitHub Contributions (full width)
             ═══════════════════════════════════════════════════════ */}
-            <div className="about-section about-resume-section mb-0">
+            <div className="about-section about-contributions mb-0">
                 <h3 className="about-section-title uppercase mb-5" style={S.h3}>
-                    Resume
+                    GitHub Contributions
                 </h3>
-                <ResumeViewer />
+                <GitHubContributions username="Cocoasaur" />
             </div>
 
-            {/* Divider 3: Resume → Bottom */}
+            {/* Divider 3: GitHub Contributions → Bottom */}
             <div className="about-divider my-10 w-full h-px" style={{ backgroundColor: 'var(--void-border)' }} />
 
             {/* ═══════════════════════════════════════════════════════

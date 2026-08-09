@@ -149,6 +149,10 @@
     .project-modal-carousel .image-carousel__arrow--next {
         right: 8px !important;
     }
+
+    .projects-search {
+        padding-right: 72px;
+    }
 }
 
 @media (min-width: 768px) and (max-width: 1023px) {
@@ -174,6 +178,10 @@
         align-items: flex-start !important;
         gap: 14px;
         padding-right: 54px;
+    }
+
+    .projects-search {
+        padding-right: 64px;
     }
 
     .projects-card-name {

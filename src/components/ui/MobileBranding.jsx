@@ -31,7 +31,8 @@ export default function MobileBranding() {
                     <text
                         x="0"
                         y="76"
-                        className="mobile-branding__web-text"
+                        className="mobile-branding__web-text web-trace"
+                        style={{ '--web-trace-length': 1300 }}
                         fill="url(#mobile-web-hatch)"
                         stroke="var(--void-text-full)"
                         strokeWidth="2"

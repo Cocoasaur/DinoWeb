@@ -15,6 +15,23 @@ function shortestPath(current, target) {
     return target + diff;
 }
 
+// ── Idle drift: slow random rotation while the cube is untouched ──
+const IDLE_DRIFT_SETTLE_MS = 2000;
+const IDLE_DRIFT_FACTOR = 0.005;
+const IDLE_DRIFT_MIN = 6;
+const IDLE_DRIFT_MAX = 14;
+const IDLE_DRIFT_X_STEP = THREE.MathUtils.degToRad(30);
+const IDLE_DRIFT_X_LIMIT = THREE.MathUtils.degToRad(40);
+const IDLE_DRIFT_Y_STEP = THREE.MathUtils.degToRad(140);
+
+// ── Idle breath: barely-perceptible scale oscillation ──
+const BREATH_PERIOD_S = 5;
+const BREATH_AMPLITUDE = 0.012;
+
+const rand = (min, max) => min + Math.random() * (max - min);
+
+const screenPosVector = new THREE.Vector3();
+
 function getZoomedCameraZ(camera, cubeScale, breakpoint) {
     const halfFov = THREE.MathUtils.degToRad(camera.fov) / 2;
     const aspect = camera.aspect || window.innerWidth / window.innerHeight;
@@ -34,7 +51,9 @@ export default function InteractiveCube({
     onFaceClick, onFacePressStart, targetRotation, isZoomed, isZoomingOut,
     zoomZ, onRotationChange, isDraggingRef, onPinchZoom,
     onZoomComplete, onZoomOutComplete,
-    activeFace,                 // ← ADDED
+    activeFace,
+    screenPosRef,
+    faceDownPosRef,
 }) {
     const groupRef = useRef();
     const rotationRef = useRef({
@@ -53,6 +72,9 @@ export default function InteractiveCube({
     const hasNotifiedRef = useRef(false);
     const zoomOutTimerRef = useRef(0);
     const hasNotifiedOutRef = useRef(false);
+    const idleDriftRef = useRef({ active: false, x: 0, y: 0, reRollIn: 0 });
+    const breathTimeRef = useRef(0);
+    const lastInteractTimeRef = useRef(0);
     const { camera, gl, invalidate } = useThree();
     const reducedMotion = useReducedMotion();
 
@@ -134,6 +156,11 @@ export default function InteractiveCube({
 
         const handleMouseDown = (e) => {
             if (isZoomed || isZoomingOut) return;
+            lastInteractTimeRef.current = performance.now();
+            idleDriftRef.current.active = false;
+            if (groupRef.current) {
+                rotationRef.current = { x: groupRef.current.rotation.x, y: groupRef.current.rotation.y };
+            }
             isDraggingRef.current = true;
             lastMouse.current = { x: e.clientX, y: e.clientY };
             canvas.style.cursor = 'grabbing';
@@ -154,6 +181,8 @@ export default function InteractiveCube({
 
         const handleTouchStart = (e) => {
             if (isZoomed || isZoomingOut) return;
+            lastInteractTimeRef.current = performance.now();
+            idleDriftRef.current.active = false;
 
             if (e.touches.length >= 2) {
                 e.preventDefault();
@@ -166,6 +195,9 @@ export default function InteractiveCube({
                 return;
             }
 
+            if (groupRef.current) {
+                rotationRef.current = { x: groupRef.current.rotation.x, y: groupRef.current.rotation.y };
+            }
             isDraggingRef.current = true;
             lastMouse.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
         };
@@ -271,6 +303,12 @@ export default function InteractiveCube({
         />
     ), [edgeColor, edgeOpacity]);
 
+    const handleZoomOutDone = () => {
+        lastInteractTimeRef.current = performance.now();
+        idleDriftRef.current.active = false;
+        onZoomOutComplete?.();
+    };
+
     useFrame((_, delta) => {
         if (!groupRef.current) return;
         const rotX = groupRef.current.rotation.x;
@@ -327,7 +365,7 @@ export default function InteractiveCube({
                 !hasNotifiedOutRef.current
             ) {
                 hasNotifiedOutRef.current = true;
-                onZoomOutComplete?.();
+                handleZoomOutDone();
             }
         } else if (isZoomed && targetRad) {
             animTimerRef.current += dt;
@@ -348,6 +386,7 @@ export default function InteractiveCube({
             const rawT = (animTimerRef.current - 0.4) / 1.0;
             const t = Math.min(Math.max(rawT, 0), 1);
             const eased = t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+
             camera.position.z = THREE.MathUtils.lerp(
                 camera.position.z,
                 THREE.MathUtils.lerp(idleCameraZ, zoomedCameraZ, eased),
@@ -373,13 +412,60 @@ export default function InteractiveCube({
                 groupRef.current.rotation.x = rotationRef.current.x;
                 groupRef.current.rotation.y = rotationRef.current.y;
             }
+
+            const drift = idleDriftRef.current;
+            const canDrift = !reducedMotion &&
+                !isDraggingRef.current &&
+                !pinchRef.current.active &&
+                (performance.now() - lastInteractTimeRef.current) > IDLE_DRIFT_SETTLE_MS;
+
+            if (canDrift) {
+                if (!drift.active) {
+                    drift.active = true;
+                    drift.x = rotationRef.current.x;
+                    drift.y = rotationRef.current.y;
+                    drift.reRollIn = rand(IDLE_DRIFT_MIN, IDLE_DRIFT_MAX);
+                }
+
+                drift.reRollIn -= dt;
+                if (drift.reRollIn <= 0) {
+                    drift.reRollIn = rand(IDLE_DRIFT_MIN, IDLE_DRIFT_MAX);
+                    drift.y = rotationRef.current.y + rand(-IDLE_DRIFT_Y_STEP, IDLE_DRIFT_Y_STEP);
+                    drift.x = THREE.MathUtils.clamp(
+                        rotationRef.current.x + rand(-IDLE_DRIFT_X_STEP, IDLE_DRIFT_X_STEP),
+                        -IDLE_DRIFT_X_LIMIT,
+                        IDLE_DRIFT_X_LIMIT
+                    );
+                }
+
+                rotationRef.current.x += (drift.x - rotationRef.current.x) * IDLE_DRIFT_FACTOR;
+                rotationRef.current.y += (drift.y - rotationRef.current.y) * IDLE_DRIFT_FACTOR;
+                invalidate();
+            } else {
+                drift.active = false;
+            }
+
             groupRef.current.position.x = THREE.MathUtils.lerp(posX, restingX, 0.05);
             groupRef.current.position.y = THREE.MathUtils.lerp(posY, restingY, 0.05);
             camera.position.z = THREE.MathUtils.lerp(camera.position.z, 5 * (1 + zoomZ / 1000), 0.08);
         }
 
-        const finalScale = cubeScale * pressScale;
+        breathTimeRef.current += dt;
+        const breathScale = (reducedMotion || isZoomed)
+            ? 1
+            : 1 + BREATH_AMPLITUDE * Math.sin(breathTimeRef.current * (2 * Math.PI / BREATH_PERIOD_S));
+
+        const finalScale = cubeScale * pressScale * breathScale;
         groupRef.current.scale.setScalar(finalScale);
+
+        if (screenPosRef && screenPosRef.current) {
+            groupRef.current.updateWorldMatrix(true, false);
+            screenPosVector.setFromMatrixPosition(groupRef.current.matrixWorld);
+            screenPosVector.project(camera);
+            screenPosRef.current.x = (screenPosVector.x + 1) * 0.5 * gl.domElement.clientWidth;
+            screenPosRef.current.y = (1 - screenPosVector.y) * 0.5 * gl.domElement.clientHeight;
+            screenPosRef.current.valid = true;
+        }
 
         onRotationChange(
             THREE.MathUtils.radToDeg(groupRef.current.rotation.x),
@@ -407,10 +493,11 @@ export default function InteractiveCube({
                 <CubeFace key={face.name} {...face}
                     onFaceClick={handleFaceClickWithPress}
                     isZoomed={isZoomed}
-                    isZoomingOut={isZoomingOut}   // ← ADDED
-                    activeFace={activeFace}       // ← ADDED
+                    isZoomingOut={isZoomingOut}
+                    activeFace={activeFace}
                     lastPointerDownFaceName={lastPointerDownFaceName}
-                    suppressFaceClickRef={suppressFaceClickRef} />
+                    suppressFaceClickRef={suppressFaceClickRef}
+                    faceDownPosRef={faceDownPosRef} />
             ))}
         </group>
     );

@@ -53,6 +53,8 @@ export function useCubeInteraction() {
             return;
         }
 
+        setThemeTransitionActive(false);
+
         const target = FACE_ROTATIONS[faceName];
         if (!target) return;
 
@@ -148,10 +150,12 @@ export function useCubeInteraction() {
 
     return {
         isZoomed, isZoomingOut, showOverlay, activeFace, targetRotation,
-        zoomZ, coordsRef, isDraggingRef, themeTransitionActive, overlayPhase,
+        zoomZ, coordsRef, isDraggingRef, themeTransitionActive,
+        overlayPhase,
         handleFaceClick, handleFacePressStart, handleCloseOverlay,
         handleZoomOutComplete, handleWheel, handlePinchZoom,
         handleRotationChange, updateZoomCoord, handleZoomComplete,
-        handleThemeTransitionComplete, handleOverlayCloseComplete,
+        handleThemeTransitionComplete,
+        handleOverlayCloseComplete,
     };
 }

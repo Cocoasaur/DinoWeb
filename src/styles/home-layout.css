@@ -345,9 +345,15 @@
     }
 }
 
-@media (max-width: 399px) {
+@media (max-width: 430px) {
     .mobile-branding {
-        --mobile-branding-scale: 0.9;
+        --mobile-branding-scale: 0.93;
+    }
+}
+
+@media (max-width: 400px) {
+    .mobile-branding {
+        --mobile-branding-scale: 0.85;
     }
 
     /* ══ Tight screens still keep a safe gap from the 14 px corners ══ */
@@ -378,6 +384,12 @@
 @media (max-width: 374px) {
     .mobile-branding {
         --mobile-branding-scale: 0.82;
+    }
+}
+
+@media (max-width: 330px) {
+    .mobile-branding {
+        --mobile-branding-scale: 0.74;
     }
 }
 
@@ -451,6 +463,94 @@
     .sidebar-home__subtitle {
         font-size: clamp(13px, 1.6vw, 16px);
     }
+}
+
+/* ═══════════════════════════════════════════════════════
+   PORTRAIT DESKTOP / LAPTOP (90°-rotated monitors, incl.
+   display-scaled widths < 1024): phone-style chrome —
+   branding on top, cube below it. Touch devices (iPads)
+   never match `hover: hover` and keep the tablet layout.
+   Branding scale must match BRAND_SCALE in
+   useHomeViewportLayout.js (portrait branch).          ── */
+@media (min-width: 768px) and (orientation: portrait) and (hover: hover) and (pointer: fine) {
+    .mobile-branding {
+        display: block;
+        --mobile-branding-scale: 1.6;
+    }
+
+    .rotate-prompt {
+        display: flex;
+    }
+
+    .sidebar-home {
+        display: none !important;
+    }
+}
+
+@media (min-width: 900px) and (orientation: portrait) and (hover: hover) and (pointer: fine) {
+    .mobile-branding {
+        --mobile-branding-scale: 1.9;
+    }
+}
+
+@media (min-width: 1080px) and (orientation: portrait) and (hover: hover) and (pointer: fine) {
+    .mobile-branding {
+        --mobile-branding-scale: 2.2;
+    }
+}
+
+@media (min-width: 1280px) and (orientation: portrait) and (hover: hover) and (pointer: fine) {
+    .mobile-branding {
+        --mobile-branding-scale: 2.4;
+    }
+}
+
+/* ═══════════════════════════════════════════════════════
+   DESKTOP LANDSCAPE: "ROTATE THE CUBE" hint under the WEB
+   branding — label with a horizontal line + dot on the
+   right. Y offset lives here (.sidebar-home__rotate-hint
+   margin-top; the column itself is .sidebar-home top:46%)
+   ═══════════════════════════════════════════════════════ */
+.sidebar-home__rotate-hint {
+    /* WEB right edge ÷ logo width (measured 635/720 viewBox units);
+       tune this single number to fine-tune the dot alignment */
+    --web-end: 0.882;
+    display: none;
+    align-items: center;
+    justify-content: flex-end;
+    width: 100%;
+    margin-top: 18px;
+    padding-right: calc((1 - var(--web-end)) * 100% - 3px);
+}
+
+@media (min-width: 768px) and (orientation: landscape) {
+    .sidebar-home__rotate-hint {
+        display: flex;
+    }
+}
+
+.sidebar-home__rotate-label {
+    margin-right: 12px;
+    font-family: 'Space Grotesk', monospace;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    color: var(--void-text-dim);
+}
+
+.sidebar-home__rotate-line {
+    width: 44px;
+    height: 1px;
+    background-color: var(--void-border);
+    transition: background-color 0.7s ease;
+}
+
+.sidebar-home__rotate-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 999px;
+    background-color: var(--void-scrubber);
 }
 
 @media (min-width: 768px) and (max-width: 1023px) {
