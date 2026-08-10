@@ -267,8 +267,8 @@
 
 @media (max-width: 767px) {
     .portfolio-overlay-panel {
-        width: min(90vw, 348px) !important;
-        max-width: 348px !important;
+        width: min(92vw, 560px) !important;
+        max-width: min(92vw, 560px) !important;
         max-height: calc(100dvh - 108px) !important;
     }
 

@@ -1,5 +1,8 @@
 import { useTheme } from '../../context/ThemeContext';
 
+const LETTERS = ['D', 'I', 'N', 'O', 'W', 'E', 'B'];
+const TRACE_LENGTH = 1000;
+
 export default function Sidebar() {
     const { isDark } = useTheme();
 
@@ -8,7 +11,7 @@ export default function Sidebar() {
             className="sidebar-home -translate-y-1/2 sidebar-entrance"
             style={{ zIndex: 5 }}
         >
-            <svg className="sidebar-home__logo" width="720" height="160" viewBox="0 0 720 160" style={{ overflow: 'visible' }}>
+            <svg className="sidebar-home__logo" width="720" height="160" viewBox="0 0 720 160" style={{ overflow: 'visible' }} aria-label="DINOWEB">
                 <defs>
                     {/* Blueprint diagonal hatch — tighter, consistent 45° lines */}
                     <pattern
@@ -26,22 +29,45 @@ export default function Sidebar() {
                     </pattern>
                 </defs>
 
+                {/* Fill layer — ink materializes behind the traced outline */}
                 <text
                     x="0" y="120"
                     fontFamily="'Space Grotesk', monospace"
                     fontSize="120" fontWeight="900"
                     letterSpacing="18"
-                    className="dino-entrance"
+                    className="dino-fill"
+                    aria-hidden="true"
                 >
-                    <tspan fill={isDark ? '#ffffff' : '#0a0a0a'}>DINO</tspan>
-                    <tspan
-                        fill="url(#sidebar-web-hatch)"
-                        stroke="var(--void-text-full)"
-                        strokeWidth="2.0"
-                        className="web-trace"
-                    >
-                        WEB
-                    </tspan>
+                    {LETTERS.map((letter, i) => (
+                        <tspan
+                            key={`${letter}-fill`}
+                            fill={i < 4 ? (isDark ? '#ffffff' : '#0a0a0a') : 'url(#sidebar-web-hatch)'}
+                        >
+                            {letter}
+                        </tspan>
+                    ))}
+                </text>
+
+                {/* Outline layer — per-letter staggered trace */}
+                <text
+                    x="0" y="120"
+                    fontFamily="'Space Grotesk', monospace"
+                    fontSize="120" fontWeight="900"
+                    letterSpacing="18"
+                    aria-hidden="true"
+                >
+                    {LETTERS.map((letter, i) => (
+                        <tspan
+                            key={`${letter}-trace`}
+                            className="web-trace"
+                            fill="none"
+                            stroke="var(--void-text-full)"
+                            strokeWidth="2.0"
+                            style={{ '--letter-index': i, '--web-trace-length': TRACE_LENGTH }}
+                        >
+                            {letter}
+                        </tspan>
+                    ))}
                 </text>
             </svg>
 
@@ -49,7 +75,7 @@ export default function Sidebar() {
                 className="sidebar-home__subtitle subtitle-entrance"
                 style={{ fontFamily: "'Inter', sans-serif", color: 'var(--void-text-dim)' }}
             >
-                VERSION: NOT_A_FOSSIL_YET<br />
+                VERSION: JUST_MESSING_AROUND<br /> {/*NOT_A_FOSSIL_YET*/}
                 JL's Dev Den
             </div>
 

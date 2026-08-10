@@ -21,7 +21,7 @@ export default function ThemeTransition({ active, onToggle, onComplete }) {
     useEffect(() => { onCompleteRef.current = onComplete; }, [onComplete]);
 
     // Get current theme from document
-    const getCurrentTheme = () => document.documentElement.getAttribute('data-theme') || THEME_DEMAIN;
+    const getCurrentTheme = () => document.documentElement.getAttribute('data-theme') || THEME_CLAIR;
 
     useEffect(() => {
         if (active && phase === 'idle') {

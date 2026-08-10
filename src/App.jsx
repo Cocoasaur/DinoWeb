@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, Suspense } from 'react';
 import { flushSync } from 'react-dom';
 import { Canvas } from '@react-three/fiber';
+import { Preload } from '@react-three/drei';
 import MobileBranding from './components/ui/MobileBranding';
 import RotatePrompt from './components/ui/RotatePrompt';
 import OverlayNavIcon from './components/ui/OverlayNavIcon';
@@ -128,7 +129,7 @@ export default function App() {
 
   return (
     <div
-      className="relative w-screen h-screen overflow-hidden"
+      className={`relative w-screen h-screen overflow-hidden${isLowEnd ? '' : ' stage-active'}`}
       style={{ height: '100dvh', backgroundColor: 'var(--void-bg)', transition: reducedMotion ? 'none' : 'background-color 0.5s ease' }}
     >
       <div className="fixed inset-0">
@@ -154,27 +155,31 @@ export default function App() {
             }}
             style={{ width: '100%', height: '100%', display: 'block', cursor: isZoomed ? 'default' : 'grab' }}
             dpr={dpr}
-            frameloop={isZoomed || isZoomingOut ? 'always' : 'demand'}
+            frameloop="demand"
             onCreated={({ gl }) => {
               gl.setPixelRatio(Math.min(window.devicePixelRatio, dpr[1]));
             }}
           >
-            <Scene
-              onFaceClick={handleFaceClick}
-              onFacePressStart={handleFacePressStart}
-              targetRotation={targetRotation}
-              isZoomed={isZoomed}
-              isZoomingOut={isZoomingOut}
-              activeFace={activeFace}        // ← ADDED
-              zoomZ={zoomZ}
-              onRotationChange={handleRotationChange}
-              isDraggingRef={isDraggingRef}
-              onPinchZoom={handlePinchZoom}
-              onZoomComplete={handleZoomComplete}
-              onZoomOutComplete={handleZoomOutComplete}
-              screenPosRef={screenPosRef}
-              faceDownPosRef={faceDownPosRef}
-            />
+            <Suspense fallback={null}>
+              <Scene
+                isLowEnd={isLowEnd}
+                onFaceClick={handleFaceClick}
+                onFacePressStart={handleFacePressStart}
+                targetRotation={targetRotation}
+                isZoomed={isZoomed}
+                isZoomingOut={isZoomingOut}
+                activeFace={activeFace}        // ← ADDED
+                zoomZ={zoomZ}
+                onRotationChange={handleRotationChange}
+                isDraggingRef={isDraggingRef}
+                onPinchZoom={handlePinchZoom}
+                onZoomComplete={handleZoomComplete}
+                onZoomOutComplete={handleZoomOutComplete}
+                screenPosRef={screenPosRef}
+                faceDownPosRef={faceDownPosRef}
+              />
+              <Preload all />
+            </Suspense>
           </Canvas>
         </div>
 

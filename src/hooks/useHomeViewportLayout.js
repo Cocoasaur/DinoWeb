@@ -32,7 +32,7 @@ export function getHomeViewportLayout(width, height) {
         const heightScale = clamp(height / 760, 0.80, 1);
         return {
             breakpoint: 'phone',
-            restingX: 0.5 + progress * 0.5,
+            restingX: 0,
             restingY: 0,
             cubeScale: clamp(0.55 + progress * 0.15, 0.55, 0.70) * heightScale,
         };
@@ -45,26 +45,48 @@ export function getHomeViewportLayout(width, height) {
 
         return {
             breakpoint: 'phone',
-            restingX: width < 390 ? 0 : 0.02,
+            restingX: 0,
             restingY: -0.55 * heightScale,
             cubeScale: clamp(0.62 * fitScale, 0.52, 0.62),
         };
     }
 
     if (width < DESKTOP_MIN) {
+        const isPortraitTablet = height > width;
+
+        if (isPortraitTablet) {
+            // Portrait tablet: top branding lockup + centered cube below
+            const brandScale = width >= 900 ? 1.6 : 1.35;
+            const bandTop = 330 * brandScale * 0.72 + 30;
+            const bandBottom = height - 120;
+            const bandHeight = Math.max(bandBottom - bandTop, 0);
+
+            const ndcPerUnit = 0.48284 / (width / height);
+            const halfViewWidth = 1 / ndcPerUnit;
+            const widthFit = halfViewWidth * 0.60;
+            const bandFit = bandHeight / (ndcPerUnit * height);
+            const cubeScale = clamp(Math.min(widthFit, bandFit), 0.42, 0.62);
+
+            const centerY = (bandTop + bandBottom) / 2;
+            const restingY = (1 - (2 * centerY) / height) / ndcPerUnit;
+
+            return {
+                breakpoint: 'tablet',
+                restingX: 0,
+                restingY,
+                cubeScale,
+            };
+        }
+
+        // Landscape tablet: sidebar on left, cube offset to right
         const progress = clamp((width - TABLET_MIN) / (DESKTOP_MIN - TABLET_MIN), 0, 1);
-        const isPortraitTablet = height > width * 1.08;
-        const heightScale = clamp(height / 760, 0.86, 1);
+        const heightScale = clamp(height / 760, 0.80, 1);
 
         return {
             breakpoint: 'tablet',
-            restingX: isPortraitTablet
-                ? 0.72 + progress * 0.18
-                : 1.22 + progress * 0.24,
+            restingX: 0.8 + progress * 0.62,
             restingY: 0,
-            cubeScale: (isPortraitTablet
-                ? 0.5 + progress * 0.1
-                : 0.54 + progress * 0.14) * heightScale,
+            cubeScale: (0.48 + progress * 0.12) * heightScale,
         };
     }
 

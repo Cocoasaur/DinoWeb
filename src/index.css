@@ -3,70 +3,9 @@
 @tailwind utilities;
 
 /* ══════════════════════════════════════════════════════
-   THEME 01 — Demain soir bleu
+   THEME 01 — Clair obscur (Default)
    ══════════════════════════════════════════════════════ */
 :root,
-[data-theme='demain-soir-bleu'] {
-  /* ── Core surface ── */
-  --void-bg: #002451;
-  --void-surface: #00346e;
-  --void-surface-80: rgba(0, 36, 81, 0.92);
-  --void-border: rgba(187, 218, 255, 0.15);
-  --void-border-dim: rgba(187, 218, 255, 0.07);
-
-  /* ── Grid ── */
-  --void-grid: rgba(187, 218, 255, 0.04);
-  --void-grid-drift: rgba(187, 218, 255, 0.07);
-  --void-overlay-grid: rgba(135, 206, 235, 0.08);
-
-  /* ── Text ── */
-  --void-text: rgba(255, 255, 255, 0.85);
-  --void-text-dim: rgba(187, 218, 255, 0.55);
-  --void-text-muted: rgba(251, 251, 251, 0.808);
-  --void-text-full: #ffffff;
-  --void-accent: #eff6ff;
-  --home-hatch-color: rgba(255, 255, 255, 0.36);
-
-  /* ── Status ── */
-  --void-green: rgba(209, 241, 169, 0.75);
-  --void-yellow: rgba(255, 197, 143, 0.75);
-
-  /* ── GitHub contributions ── */
-  --contrib-level-0: rgba(187, 218, 255, 0.12);
-  --contrib-level-1: #0e4429;
-  --contrib-level-2: #006d32;
-  --contrib-level-3: #26a641;
-  --contrib-level-4: #39d353;
-
-  /* ── Chrome ── */
-  --void-marker: rgba(255, 255, 255, 0.384);
-  --void-scrubber: rgb(255, 255, 255);
-  --void-btn-bg: rgba(0, 36, 81, 0.92);
-  --void-btn-border: rgba(187, 218, 255, 0.15);
-
-  /* ── Cube ── */
-  --cube-color: #dddddd;
-  --cube-edge-color: #ffffff;
-  --cube-edge-opacity: 0.35;
-  --cube-text-default: #1a2332;
-  --cube-text-hover: #000000;
-  --cube-text-accent: #000000;
-  --cube-ticks-idle: rgba(255, 255, 255, 0.35);
-  --cube-ticks-hover: rgba(255, 255, 255, 0.9);
-  --cube-ticks-hover-scale: 1.05;
-
-  /* ── Cards ── */
-  --skill-card-bg-hover: rgba(106, 187, 231, 0.268);
-  --skill-card-bg: rgba(14, 129, 191, 0.268);
-
-  /* ── Scrollbar (desktop) ── */
-  --scrollbar-thumb: rgb(255, 255, 255);
-  --scrollbar-thumb-outline: rgb(0, 0, 0);
-}
-
-/* ══════════════════════════════════════════════════════
-   THEME 02 — Clair obscur
-   ══════════════════════════════════════════════════════ */
 [data-theme='clair-obscur'] {
   /* ── Core surface ── */
   --void-bg: #e8e6e1;
@@ -122,6 +61,67 @@
 
   /* ── Scrollbar (desktop) ── */
   --scrollbar-thumb: rgb(0, 0, 0);
+  --scrollbar-thumb-outline: rgb(0, 0, 0);
+}
+
+/* ══════════════════════════════════════════════════════
+   THEME 02 — Demain soir bleu
+   ══════════════════════════════════════════════════════ */
+[data-theme='demain-soir-bleu'] {
+  /* ── Core surface ── */
+  --void-bg: #002451;
+  --void-surface: #00346e;
+  --void-surface-80: rgba(0, 36, 81, 0.92);
+  --void-border: rgba(187, 218, 255, 0.15);
+  --void-border-dim: rgba(187, 218, 255, 0.07);
+
+  /* ── Grid ── */
+  --void-grid: rgba(187, 218, 255, 0.04);
+  --void-grid-drift: rgba(187, 218, 255, 0.07);
+  --void-overlay-grid: rgba(135, 206, 235, 0.08);
+
+  /* ── Text ── */
+  --void-text: rgba(255, 255, 255, 0.85);
+  --void-text-dim: rgba(187, 218, 255, 0.55);
+  --void-text-muted: rgba(251, 251, 251, 0.808);
+  --void-text-full: #ffffff;
+  --void-accent: #eff6ff;
+  --home-hatch-color: rgba(255, 255, 255, 0.36);
+
+  /* ── Status ── */
+  --void-green: rgba(209, 241, 169, 0.75);
+  --void-yellow: rgba(255, 197, 143, 0.75);
+
+  /* ── GitHub contributions ── */
+  --contrib-level-0: rgba(187, 218, 255, 0.12);
+  --contrib-level-1: #0e4429;
+  --contrib-level-2: #006d32;
+  --contrib-level-3: #26a641;
+  --contrib-level-4: #39d353;
+
+  /* ── Chrome ── */
+  --void-marker: rgba(255, 255, 255, 0.384);
+  --void-scrubber: rgb(255, 255, 255);
+  --void-btn-bg: rgba(0, 36, 81, 0.92);
+  --void-btn-border: rgba(187, 218, 255, 0.15);
+
+  /* ── Cube ── */
+  --cube-color: #dddddd;
+  --cube-edge-color: #ffffff;
+  --cube-edge-opacity: 0.35;
+  --cube-text-default: #1a2332;
+  --cube-text-hover: #000000;
+  --cube-text-accent: #000000;
+  --cube-ticks-idle: rgba(255, 255, 255, 0.35);
+  --cube-ticks-hover: rgba(255, 255, 255, 0.9);
+  --cube-ticks-hover-scale: 1.05;
+
+  /* ── Cards ── */
+  --skill-card-bg-hover: rgba(106, 187, 231, 0.268);
+  --skill-card-bg: rgba(14, 129, 191, 0.268);
+
+  /* ── Scrollbar (desktop) ── */
+  --scrollbar-thumb: rgb(255, 255, 255);
   --scrollbar-thumb-outline: rgb(0, 0, 0);
 }
 

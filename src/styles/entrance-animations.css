@@ -3,7 +3,7 @@
     .cube-entrance,
     .corner-markers-entrance,
     .sidebar-entrance,
-    .dino-entrance,
+    .dino-fill,
     .subtitle-entrance,
     .theme-label-entrance,
     .coord-entrance,
@@ -51,6 +51,18 @@
     background-size: 100px 100px;
     animation: drift 60s linear infinite;
     transition: background-image 0.5s ease;
+}
+
+/* ── Grid handoff with the 3D floor (Stage.jsx) ──
+   The perspective floor's vanishing line sits at the vertical center of the
+   screen (the camera never tilts), so the 2D wallpaper owns the top half and
+   fades out across the band where the 3D far-field lines are already faint.
+   `stage-active` is set only while the 3D stage is mounted (App.jsx), so
+   low-tier / no-WebGL sessions keep the full 2D grid untouched. */
+.stage-active .void-grid,
+.stage-active .void-grid-drift {
+    -webkit-mask-image: linear-gradient(to bottom, #fff 50%, transparent 75%);
+    mask-image: linear-gradient(to bottom, #fff 50%, transparent 75%);
 }
 
 /* ══════════════════════════════════════════════════════
@@ -132,12 +144,12 @@ html.home-entered .sidebar-entrance {
     }
 }
 
-.dino-entrance {
+.dino-fill {
     opacity: 0;
 }
 
-html.home-entered .dino-entrance {
-    animation: fade-in 0.5s ease-out 0.15s forwards;
+html.home-entered .dino-fill {
+    animation: fade-in 0.45s ease-out 0.85s forwards;
 }
 
 .subtitle-entrance {
@@ -250,13 +262,13 @@ html.home-entered .web-hatch {
 .web-trace {
     stroke-dasharray: var(--web-trace-length, 3000);
     stroke-dashoffset: var(--web-trace-length, 3000);
-    opacity: 0.85;
+    opacity: 0.9;
 }
 
 html.home-entered .web-trace {
     animation:
-        blueprint-draw 1.2s cubic-bezier(0.4, 0, 0.2, 1) 0.15s forwards,
-        blueprint-idle 6s ease-in-out 1.75s infinite;
+        blueprint-draw 0.4s cubic-bezier(0.4, 0, 0.2, 1) calc(0.15s + var(--letter-index, 0) * 0.12s) forwards,
+        blueprint-idle 4.5s ease-in-out calc(1.2s + var(--letter-index, 0) * 0.12s) infinite;
 }
 
 @keyframes blueprint-draw {
@@ -280,7 +292,7 @@ html.home-entered .web-trace {
 
     0%,
     100% {
-        opacity: 0.75;
+        opacity: 0.55;
     }
 
     50% {

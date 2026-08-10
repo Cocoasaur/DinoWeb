@@ -2,6 +2,7 @@ import { useRef, useEffect } from 'react';
 
 export default function CoordinateDisplay({ coordsRef }) {
     const spanRef = useRef(null);
+    const lastTextRef = useRef('');
 
     useEffect(() => {
         let frameId;
@@ -17,7 +18,10 @@ export default function CoordinateDisplay({ coordsRef }) {
                     text = `[ X: ${x.toFixed(2)}, Y: ${y.toFixed(2)}, Z: ${z.toFixed(2)} ]`;
                 }
 
-                spanRef.current.textContent = text;
+                if (lastTextRef.current !== text) {
+                    lastTextRef.current = text;
+                    spanRef.current.textContent = text;
+                }
             }
             frameId = requestAnimationFrame(tick);
         };

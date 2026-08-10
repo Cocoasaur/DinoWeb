@@ -204,19 +204,19 @@ export default function ContactsPage() {
                         ].map(([label, value], i, arr) => (
                             <div
                                 key={label}
-                                className="flex flex-col px-4 py-3 gap-1"
+                                className="flex flex-col sm:flex-row sm:items-center sm:justify-between px-4 py-3 gap-1 sm:gap-4"
                                 style={{
                                     borderBottom: i < arr.length - 1 ? '1px solid var(--void-border-dim)' : 'none',
                                 }}
                             >
                                 <span
-                                    className="uppercase text-[10px] tracking-[0.2em]"
+                                    className="uppercase text-[10px] tracking-[0.2em] flex-shrink-0"
                                     style={{ fontFamily: "'Space Grotesk', monospace", color: 'var(--void-text-muted)' }}
                                 >
                                     {label}
                                 </span>
                                 <span
-                                    className="text-[13px] text-right"
+                                    className="text-[13px] text-left sm:text-right"
                                     style={{ fontFamily: "'Inter', sans-serif", color: 'var(--void-text-full)' }}
                                 >
                                     {value}

@@ -21,11 +21,11 @@ export function useAdaptiveDPR() {
         const pixelRatio = window.devicePixelRatio || 1;
 
         if (tier === 'low') {
-            setDpr([1, Math.min(pixelRatio, 1.5)]);
+            setDpr([1, Math.min(pixelRatio, 1.25)]);
         } else if (tier === 'medium') {
-            setDpr([1, Math.min(pixelRatio, 2)]);
+            setDpr([1, Math.min(pixelRatio, 1.75)]);
         } else {
-            setDpr([1, Math.min(pixelRatio, 2.5)]);
+            setDpr([1, Math.min(pixelRatio, 2.0)]);
         }
 
         // Listen for connection changes
@@ -36,8 +36,8 @@ export function useAdaptiveDPR() {
                 if (newTier !== tierRef.current) {
                     tierRef.current = newTier;
                     const pr = window.devicePixelRatio || 1;
-                    setDpr(newTier === 'low' ? [1, Math.min(pr, 1.5)] :
-                        newTier === 'medium' ? [1, Math.min(pr, 2)] : [1, Math.min(pr, 2.5)]);
+                    setDpr(newTier === 'low' ? [1, Math.min(pr, 1.25)] :
+                        newTier === 'medium' ? [1, Math.min(pr, 1.75)] : [1, Math.min(pr, 2.0)]);
                 }
             };
             connection.addEventListener('change', onChange);

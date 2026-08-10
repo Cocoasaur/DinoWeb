@@ -297,12 +297,6 @@ export default function CubeFaceText({
         };
     }, [text, fontSize, letterSpacing, colors]);
 
-    useEffect(() => {
-        return () => {
-            idleTex.dispose();
-            hoverTex.dispose();
-        };
-    }, [idleTex, hoverTex]);
 
     useFrame(() => {
         const target = (hovered || forceHighlight) ? 1 : 0;   // ← CHANGED

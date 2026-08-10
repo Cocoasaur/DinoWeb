@@ -136,16 +136,11 @@
 
 .mobile-branding__dino {
     position: absolute;
-    margin: 0;
-    font-size: 92px;
-    font-weight: 700;
-    letter-spacing: 0;
-    line-height: 0.85;
-}
-
-.mobile-branding__dino {
     top: 123px;
     left: 47px;
+    width: 240px;
+    height: 104px;
+    overflow: visible;
 }
 
 .mobile-branding__web {
@@ -260,12 +255,12 @@
     .sidebar-home {
         display: flex !important;
         top: 50% !important;
-        left: clamp(12px, 2.5vw, 20px) !important;
+        left: clamp(8px, 2.5vw, 14px) !important;
         transform: translateY(-50%) !important;
     }
 
     .sidebar-home__logo {
-        width: clamp(180px, 28vw, 300px) !important;
+        width: clamp(130px, 22vw, 220px) !important;
     }
 
     .sidebar-home__subtitle {
@@ -472,10 +467,10 @@
    never match `hover: hover` and keep the tablet layout.
    Branding scale must match BRAND_SCALE in
    useHomeViewportLayout.js (portrait branch).          ── */
-@media (min-width: 768px) and (orientation: portrait) and (hover: hover) and (pointer: fine) {
+@media (min-width: 768px) and (orientation: portrait) {
     .mobile-branding {
         display: block;
-        --mobile-branding-scale: 1.6;
+        --mobile-branding-scale: 1.35;
     }
 
     .rotate-prompt {
@@ -487,19 +482,19 @@
     }
 }
 
-@media (min-width: 900px) and (orientation: portrait) and (hover: hover) and (pointer: fine) {
+@media (min-width: 900px) and (orientation: portrait) {
     .mobile-branding {
-        --mobile-branding-scale: 1.9;
+        --mobile-branding-scale: 1.6;
     }
 }
 
-@media (min-width: 1080px) and (orientation: portrait) and (hover: hover) and (pointer: fine) {
+@media (min-width: 1080px) and (orientation: portrait) {
     .mobile-branding {
-        --mobile-branding-scale: 2.2;
+        --mobile-branding-scale: 2.0;
     }
 }
 
-@media (min-width: 1280px) and (orientation: portrait) and (hover: hover) and (pointer: fine) {
+@media (min-width: 1280px) and (orientation: portrait) {
     .mobile-branding {
         --mobile-branding-scale: 2.4;
     }
@@ -568,7 +563,7 @@
 
     .sidebar-home {
         top: 50%;
-        left: clamp(40px, 5.5vw, 56px);
+        left: clamp(28px, 4vw, 40px);
         align-items: flex-start;
         gap: 6px;
         text-align: left;
@@ -576,11 +571,11 @@
     }
 
     .sidebar-home__logo {
-        width: clamp(360px, 44vw, 460px);
+        width: clamp(240px, 30vw, 340px);
     }
 
     .sidebar-home__subtitle {
-        font-size: clamp(14px, 1.55vw, 16px);
+        font-size: clamp(12px, 1.3vw, 14px);
         line-height: 1.35;
     }
 
@@ -595,11 +590,11 @@
     }
 
     .sidebar-home__logo {
-        width: clamp(340px, 42vw, 430px);
+        width: clamp(220px, 28vw, 300px);
     }
 
     .sidebar-home__subtitle {
-        font-size: clamp(13px, 1.55vw, 15px);
+        font-size: clamp(11px, 1.25vw, 13px);
         line-height: 1.3;
     }
 }

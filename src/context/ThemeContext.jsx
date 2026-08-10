@@ -2,14 +2,21 @@ import { createContext, useContext, useState, useEffect } from 'react';
 
 const ThemeContext = createContext(null);
 
-const THEME_KEY = 'dinoweb-theme';
+const THEME_KEY = 'dinoweb-theme-v2';
+const OLD_THEME_KEY = 'dinoweb-theme';
 const THEME_DEMAIN = 'demain-soir-bleu';
 const THEME_CLAIR = 'clair-obscur';
 
 export function ThemeProvider({ children }) {
     const [theme, setTheme] = useState(() => {
-        const stored = localStorage.getItem(THEME_KEY);
-        return stored === THEME_DEMAIN ? THEME_DEMAIN : THEME_CLAIR; // Default to THEME_CLAIR if no stored value or invalid value
+        try {
+            // Remove legacy key so existing visitors default to Clair Obscur
+            localStorage.removeItem(OLD_THEME_KEY);
+            const stored = localStorage.getItem(THEME_KEY);
+            return stored === THEME_DEMAIN ? THEME_DEMAIN : THEME_CLAIR;
+        } catch {
+            return THEME_CLAIR;
+        }
     });
 
     useEffect(() => {

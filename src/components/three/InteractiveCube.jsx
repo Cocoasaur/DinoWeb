@@ -127,14 +127,6 @@ export default function InteractiveCube({
         hasNotifiedOutRef.current = false;
     }, [isZoomingOut]);
 
-    // Idle rendering throttle: the demand frameloop only wakes when
-    // invalidated, so keep it ticking at ~30fps while idle instead of
-    // every rAF. Zoom states run frameloop="always" (60fps) in App.jsx.
-    useEffect(() => {
-        if (reducedMotion || isZoomed || isZoomingOut) return;
-        const intervalId = window.setInterval(() => invalidate(), 33);
-        return () => window.clearInterval(intervalId);
-    }, [reducedMotion, isZoomed, isZoomingOut, invalidate]);
 
     const clearSuppressFaceClickTimer = () => {
         if (!suppressFaceClickTimerRef.current) return;
@@ -354,6 +346,7 @@ export default function InteractiveCube({
         const lerpFactor = reducedMotion ? 1 : 0.025;
 
         if (isZoomingOut) {
+            invalidate();
             const targetDist = DEFAULT_CAMERA_DISTANCE * (1 + zoomZ / 1000);
             camera.position.z = THREE.MathUtils.lerp(camera.position.z, targetDist, lerpFactor);
             groupRef.current.position.x = THREE.MathUtils.lerp(posX, restingX, lerpFactor);
@@ -377,6 +370,7 @@ export default function InteractiveCube({
                 handleZoomOutDone();
             }
         } else if (isZoomed && targetRad) {
+            if (!hasNotifiedRef.current) invalidate();
             animTimerRef.current += dt;
             const idleCameraZ = DEFAULT_CAMERA_DISTANCE * (1 + zoomZ / 1000);
             const zoomedCameraZ = getZoomedCameraZ(camera, cubeScale, breakpoint);
@@ -414,6 +408,9 @@ export default function InteractiveCube({
                 onZoomComplete?.();
             }
         } else {
+            const isLerpingRot = Math.abs(rotX - rotationRef.current.x) > 0.001 || Math.abs(rotY - rotationRef.current.y) > 0.001;
+            const isLerpingPos = Math.abs(posX - restingX) > 0.001 || Math.abs(posY - restingY) > 0.001;
+
             if (!reducedMotion) {
                 groupRef.current.rotation.x = THREE.MathUtils.lerp(rotX, rotationRef.current.x, 0.1);
                 groupRef.current.rotation.y = THREE.MathUtils.lerp(rotY, rotationRef.current.y, 0.1);
@@ -429,6 +426,10 @@ export default function InteractiveCube({
                 !pinchRef.current.active &&
                 (neverInteracted ||
                     (performance.now() - lastInteractTimeRef.current) > IDLE_DRIFT_SETTLE_MS);
+
+            if (pressRef.current.active || canDrift || isDraggingRef.current || isLerpingRot || isLerpingPos) {
+                invalidate();
+            }
 
             if (canDrift) {
                 if (!drift.active) {
