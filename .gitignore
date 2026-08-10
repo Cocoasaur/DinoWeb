@@ -104,3 +104,7 @@ Thumbs.db
 
 # Vite specific (you already have .vite/ and dist/)
 .vite/
+
+# Locally installed agent skills (installed via skills.sh, not committed)
+.agents/
+skills-lock.json

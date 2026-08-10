@@ -12,18 +12,6 @@ const PAGE_MAP = {
     contacts: <ContactsPage />,
 };
 
-// ── IDLE PREFETCH — warm up lazy page chunks when the browser is idle ──
-const PREFETCH_CHUNKS = [
-    () => import('../../pages/AboutPage'),
-    () => import('../../pages/ContactsPage'),
-    () => import('../../pages/ProjectsPage'),
-    () => import('../../pages/SkillsPage'),
-];
-
-function prefetchLazyChunks() {
-    PREFETCH_CHUNKS.forEach((load) => load().catch(() => {}));
-}
-
 export default function Overlay({
     active,
     phase,
@@ -39,30 +27,6 @@ export default function Overlay({
     const [entering, setEntering] = useState(false);
     const closeCompleteCalledRef = useRef(false);
     const scrollPanelRef = useRef(null); // ← ref for the scrollable panel
-
-    // ── IDLE PREFETCH — warm up lazy page chunks when the browser is idle ──
-    // Production only: in dev, chunks don't exist (Vite serves modules unbundled),
-    // so prefetching would flood the dev server with ~100 requests for no benefit.
-    function schedulePrefetch() {
-        if (typeof window.requestIdleCallback === 'function') {
-            window.requestIdleCallback(prefetchLazyChunks, { timeout: 3000 });
-        } else {
-            setTimeout(prefetchLazyChunks, 3000);
-        }
-    }
-
-    useEffect(() => {
-        if (import.meta.env.DEV) return;
-        if (document.readyState !== 'complete') {
-            const onLoad = () => {
-                window.removeEventListener('load', onLoad);
-                schedulePrefetch();
-            };
-            window.addEventListener('load', onLoad);
-            return () => window.removeEventListener('load', onLoad);
-        }
-        schedulePrefetch();
-    }, []);
 
     useEffect(() => {
         if (active) {

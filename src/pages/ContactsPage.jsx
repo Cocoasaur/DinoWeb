@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 
 // ── Copy icon (inline SVG) ────────────────────────────────────────────────
 function CopyIcon({ copied }) {
@@ -32,14 +32,24 @@ function CopyIcon({ copied }) {
 // ── Single channel row with copy + click ──────────────────────────────────
 function ChannelRow({ label, value, href }) {
     const [copied, setCopied] = useState(false);
+    const copyResetTimerRef = useRef(0);
+
+    const flashCopied = useCallback(() => {
+        setCopied(true);
+        window.clearTimeout(copyResetTimerRef.current);
+        copyResetTimerRef.current = window.setTimeout(() => setCopied(false), 1500);
+    }, []);
+
+    useEffect(() => {
+        return () => window.clearTimeout(copyResetTimerRef.current);
+    }, []);
 
     const handleCopy = useCallback(async (e) => {
         e.preventDefault();
         e.stopPropagation();
         try {
             await navigator.clipboard.writeText(value);
-            setCopied(true);
-            setTimeout(() => setCopied(false), 1500);
+            flashCopied();
         } catch (err) {
             const textarea = document.createElement('textarea');
             textarea.value = value;
@@ -49,10 +59,9 @@ function ChannelRow({ label, value, href }) {
             textarea.select();
             document.execCommand('copy');
             document.body.removeChild(textarea);
-            setCopied(true);
-            setTimeout(() => setCopied(false), 1500);
+            flashCopied();
         }
-    }, [value]);
+    }, [value, flashCopied]);
 
     const content = (
         <div className="flex items-center justify-between">
@@ -162,7 +171,7 @@ export default function ContactsPage() {
                 </h2>
             </div>
 
-            <div className="grid grid-cols-1 min-[1024px]:grid-cols-2 gap-12">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
                 {/* ── Left: Channels ── */}
                 <div>
                     <h3 className="uppercase mb-6" style={{ fontFamily: "'Space Grotesk', monospace", color: 'var(--void-text-dim)', fontSize: '10px', letterSpacing: '0.3em' }}>

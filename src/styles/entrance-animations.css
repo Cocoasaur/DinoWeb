@@ -14,6 +14,7 @@
         animation: none !important;
         opacity: 1 !important;
         transform: none !important;
+        clip-path: none !important;
     }
 
     .void-grid-drift {
@@ -52,10 +53,21 @@
     transition: background-image 0.5s ease;
 }
 
+/* ══════════════════════════════════════════════════════
+   HOME ENTRANCE — post-boot "decompression" sequence
+   BootScreen adds `home-entered` to <html> the moment the
+   boot screen unmounts. Every home element rests hidden
+   (opacity 0 / clip) until then; the gated animations fire
+   immediately afterward in one staggered ~1.6s sequence —
+   a clip-wipe reveals. */
+
 /* ── Cube ── opacity only, no transform scale (fixes reload lag) */
 .cube-entrance {
     opacity: 0;
-    animation: cube-in 1.0s cubic-bezier(0.4, 0, 0.2, 1) 0.25s forwards;
+}
+
+html.home-entered .cube-entrance {
+    animation: cube-in 0.9s cubic-bezier(0.4, 0, 0.2, 1) 0.05s forwards;
 }
 
 @keyframes cube-in {
@@ -68,35 +80,73 @@
     }
 }
 
-/* ── Corner markers ── subtle fade */
+/* ── Corner markers ── snap in, staggered per corner ── */
 .corner-markers-entrance {
     opacity: 0;
-    animation: fade-in 0.6s ease-out 0.05s forwards;
 }
 
-/* ── Sidebar ── slide up + fade (existing, kept) */
+html.home-entered .corner-markers-entrance {
+    animation: corner-snap 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.36s forwards;
+}
+
+html.home-entered .corner-markers-entrance:nth-child(2) {
+    animation-delay: 0.42s;
+}
+
+html.home-entered .corner-markers-entrance:nth-child(3) {
+    animation-delay: 0.48s;
+}
+
+html.home-entered .corner-markers-entrance:nth-child(4) {
+    animation-delay: 0.54s;
+}
+
+@keyframes corner-snap {
+    from {
+        opacity: 0;
+        transform: scale(0.6);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* ── Sidebar ── clip un-wipe, sliding down from above ── */
 .sidebar-entrance {
     opacity: 0;
     transform: translateY(calc(-50% + 24px));
-    animation: sidebar-in 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.15s forwards;
+    clip-path: inset(0 0 100% 0);
+}
+
+html.home-entered .sidebar-entrance {
+    animation: sidebar-in 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.10s forwards;
 }
 
 @keyframes sidebar-in {
     to {
         opacity: 1;
         transform: translateY(-50%);
+        clip-path: inset(0 0 0 0);
     }
 }
 
 .dino-entrance {
     opacity: 0;
-    animation: fade-in 0.7s ease-out 0.2s forwards;
+}
+
+html.home-entered .dino-entrance {
+    animation: fade-in 0.5s ease-out 0.15s forwards;
 }
 
 .subtitle-entrance {
     opacity: 0;
     transform: translateY(10px);
-    animation: subtitle-in 0.8s cubic-bezier(0.22, 1, 0.36, 1) 0.55s forwards;
+}
+
+html.home-entered .subtitle-entrance {
+    animation: subtitle-in 0.8s cubic-bezier(0.22, 1, 0.36, 1) 0.5s forwards;
 }
 
 @keyframes subtitle-in {
@@ -109,60 +159,66 @@
 /* ── Theme label ── */
 .theme-label-entrance {
     opacity: 0;
-    animation: fade-in 0.7s ease-out 0.45s forwards;
 }
 
-/* ── Coordinate display ── slide from top */
+html.home-entered .theme-label-entrance {
+    animation: fade-in 0.55s ease-out 0.18s forwards;
+}
+
+/* ── Coordinate display ── slide from top, clip un-wipe downward ── */
 .coord-entrance {
     opacity: 0;
-    animation: coord-in 0.7s ease-out 0.55s forwards;
+    transform: translateY(-12px);
+    clip-path: inset(100% 0 0 0);
+}
+
+html.home-entered .coord-entrance {
+    animation: coord-in 0.55s ease-out 0.24s forwards;
 }
 
 @keyframes coord-in {
-    from {
-        opacity: 0;
-        transform: translateY(-12px);
-    }
-
     to {
         opacity: 1;
         transform: translateY(0);
+        clip-path: inset(0 0 0 0);
     }
 }
 
-/* ── Scrubber ── slide from right */
+/* ── Scrubber ── slide from right ── */
 .scrubber-entrance {
     opacity: 0;
-    animation: scrubber-in 0.7s ease-out 0.75s forwards;
+    transform: translateX(12px);
+    clip-path: inset(0 0 0 100%);
+}
+
+html.home-entered .scrubber-entrance {
+    animation: scrubber-in 0.55s ease-out 0.30s forwards;
 }
 
 @keyframes scrubber-in {
-    from {
-        opacity: 0;
-        transform: translateX(12px);
-    }
-
     to {
         opacity: 1;
         transform: translateX(0);
+        clip-path: inset(0 0 0 0);
     }
 }
 
-/* ── Footer ── slide from bottom */
+/* ── Footer ── slide from bottom ── */
 .footer-entrance {
     opacity: 0;
-    animation: footer-in 0.8s cubic-bezier(0.22, 1, 0.36, 1) 0.95s forwards;
+    transform: translateY(16px);
+    clip-path: inset(100% 0 0 0);
+}
+
+html.home-entered .footer-entrance {
+    animation: footer-in 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.36s forwards;
 }
 
 @keyframes footer-in {
-    from {
-        opacity: 0;
-        transform: translateY(16px);
-    }
-
     to {
         opacity: 1;
         transform: translateY(0);
+        clip-path: inset(0 0 0 0);
     }
 }
 
@@ -175,7 +231,10 @@
 /* ── Blueprint text animations ── */
 .web-hatch {
     opacity: 0;
-    animation: hatch-reveal 0.6s ease-out 2.6s forwards;
+}
+
+html.home-entered .web-hatch {
+    animation: hatch-reveal 0.5s ease-out 0.5s forwards;
 }
 
 @keyframes hatch-reveal {
@@ -192,9 +251,12 @@
     stroke-dasharray: var(--web-trace-length, 3000);
     stroke-dashoffset: var(--web-trace-length, 3000);
     opacity: 0.85;
+}
+
+html.home-entered .web-trace {
     animation:
-        blueprint-draw 2.2s cubic-bezier(0.4, 0, 0.2, 1) 0.3s forwards,
-        blueprint-idle 6s ease-in-out 3.2s infinite;
+        blueprint-draw 1.2s cubic-bezier(0.4, 0, 0.2, 1) 0.15s forwards,
+        blueprint-idle 6s ease-in-out 1.75s infinite;
 }
 
 @keyframes blueprint-draw {
@@ -315,21 +377,29 @@
    infinite), so it renders live on top of the transition: instead of
    freezing it, let it UNDRAW in reverse while the theme changes. When
    .theme-transitioning is removed, blueprint-draw restarts and the
-   outline draws forward again. */
-.theme-transitioning .web-trace {
+   outline draws forward again. The `html` prefix matches the specificity
+   of `html.home-entered .web-trace` (0,2,1) so the undraw wins the tie
+   while the transition is active (this rule sits later in the file). */
+html.theme-transitioning .web-trace {
     animation: blueprint-undraw 0.45s ease-in forwards;
 }
 
 /* ── Mobile branding ── */
 .mobile-branding-entrance {
     opacity: 0;
-    animation: fade-in 0.8s ease-out 0.3s forwards;
+}
+
+html.home-entered .mobile-branding-entrance {
+    animation: fade-in 0.5s ease-out 0.2s forwards;
 }
 
 /* ── Rotate prompt ── */
 .rotate-prompt-entrance {
     opacity: 0;
-    animation: fade-in 0.6s ease-out 1.0s forwards;
+}
+
+html.home-entered .rotate-prompt-entrance {
+    animation: fade-in 0.5s ease-out 0.30s forwards;
 }
 
 /* ── Certification lightbox (About page) ── */

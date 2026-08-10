@@ -191,6 +191,27 @@
 }
 
 /* ═══════════════════════════════════════════════════════
+   TABLET PORTRAIT: widen the overlay + tighten padding so
+   page grids can use two columns instead of the mobile
+   single-column experience
+   ═══════════════════════════════════════════════════════ */
+@media (min-width: 768px) and (max-width: 1023px) and (orientation: portrait) {
+    .portfolio-overlay-panel {
+        width: 94vw !important;
+        max-width: 900px !important;
+    }
+
+    .portfolio-overlay-content {
+        padding: 24px 32px 32px !important;
+    }
+
+    .about-grid,
+    .about-bottom-grid {
+        gap: 28px !important;
+    }
+}
+
+/* ═══════════════════════════════════════════════════════
    LANDSCAPE TABLET: expand overlay panel + tighten padding
    ═══════════════════════════════════════════════════════ */
 @media (min-width: 768px) and (max-width: 1023px) and (orientation: landscape) {
@@ -229,19 +250,6 @@
         width: 36px !important;
         height: 36px !important;
         font-size: 20px !important;
-    }
-
-    .about-grid,
-    .about-bottom-grid {
-        grid-template-columns: minmax(0, 1fr) !important;
-    }
-
-    .about-introduction {
-        order: 1;
-    }
-
-    .about-profile-section {
-        order: 2;
     }
 
     .about-profile-wrap {
@@ -295,7 +303,16 @@
 
     .about-grid,
     .about-bottom-grid {
+        grid-template-columns: minmax(0, 1fr) !important;
         gap: 28px !important;
+    }
+
+    .about-introduction {
+        order: 1;
+    }
+
+    .about-profile-section {
+        order: 2;
     }
 
     .about-section-title {

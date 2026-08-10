@@ -343,7 +343,7 @@ export default function ProjectModal({ project }) {
             <div className="w-full h-px mb-10" style={{ backgroundColor: 'var(--void-border)' }} />
 
             {/* ══ BOTTOM SECTION — Tools_Used (left) + Parameters (right) ══ */}
-            <div className="grid grid-cols-1 min-[1024px]:grid-cols-2 gap-10 min-[1024px]:gap-14">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-14">
 
                 {/* Left — Tools */}
                 <div>

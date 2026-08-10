@@ -1,0 +1,205 @@
+/* ══════════════════════════════════════════════════════
+   BOOT SCREEN — archive boot sequence
+   ══════════════════════════════════════════════════════ */
+
+.boot-screen {
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--void-bg);
+    transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.boot-screen--fading {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.boot-screen__grid {
+    position: absolute;
+    inset: 0;
+    background-image:
+        linear-gradient(var(--void-grid) 1px, transparent 1px),
+        linear-gradient(90deg, var(--void-grid) 1px, transparent 1px);
+    background-size: 50px 50px;
+    background-position: center center;
+}
+
+.boot-screen__grid--drift {
+    background-image:
+        linear-gradient(var(--void-grid-drift) 1px, transparent 1px),
+        linear-gradient(90deg, var(--void-grid-drift) 1px, transparent 1px);
+    background-size: 100px 100px;
+    animation: drift 60s linear infinite;
+}
+
+.boot-screen__stage {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: min(360px, 86vw);
+}
+
+/* ── Dino icon — gentle breathing (mirrors the cube's idle breath) ── */
+.boot-screen__icon {
+    width: clamp(120px, 26vw, 160px);
+    height: clamp(120px, 26vw, 160px);
+    object-fit: contain;
+    animation: boot-breathe 2.4s ease-in-out infinite;
+}
+
+@keyframes boot-breathe {
+    0%,
+    100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.04);
+    }
+}
+
+/* ── Corner brackets — draw in around the icon ── */
+.boot-screen__brackets {
+    position: absolute;
+    inset: -20px;
+    pointer-events: none;
+}
+
+.boot-screen__bracket {
+    position: absolute;
+    width: 30px;
+    height: 30px;
+    border: 0 solid var(--void-marker);
+    animation: boot-bracket 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.boot-screen__bracket--tl {
+    top: 0;
+    left: 0;
+    border-top-width: 2px;
+    border-left-width: 2px;
+    transform-origin: top left;
+}
+
+.boot-screen__bracket--tr {
+    top: 0;
+    right: 0;
+    border-top-width: 2px;
+    border-right-width: 2px;
+    transform-origin: top right;
+}
+
+.boot-screen__bracket--bl {
+    bottom: 0;
+    left: 0;
+    border-bottom-width: 2px;
+    border-left-width: 2px;
+    transform-origin: bottom left;
+}
+
+.boot-screen__bracket--br {
+    bottom: 0;
+    right: 0;
+    border-bottom-width: 2px;
+    border-right-width: 2px;
+    transform-origin: bottom right;
+}
+
+@keyframes boot-bracket {
+    from {
+        transform: scale(0);
+        opacity: 0;
+    }
+
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* ── Boot progress — four ticks reflecting real preload progress ── */
+.boot-screen__progress {
+    display: flex;
+    gap: 9px;
+    margin-top: 34px;
+}
+
+.boot-screen__progress span {
+    width: 30px;
+    height: 6px;
+    background-color: var(--void-marker);
+    opacity: 0.25;
+    transition: opacity 0.35s ease;
+}
+
+.boot-screen__progress .boot-screen__tick--on {
+    opacity: 1;
+}
+
+/* ── Labels — mono, wide tracking, blinking block cursor ── */
+.boot-screen__label {
+    margin-top: 26px;
+    font-family: 'Space Grotesk', monospace;
+    font-size: 13px;
+    font-weight: 400;
+    letter-spacing: 0.32em;
+    text-transform: uppercase;
+    color: var(--void-text-dim);
+    animation: boot-fade 0.7s ease-out 0.15s backwards;
+}
+
+.boot-screen__label::after {
+    content: '▮';
+    margin-left: 6px;
+    color: var(--void-text-full);
+    animation: boot-blink 1s steps(1) infinite;
+}
+
+@keyframes boot-blink {
+    50% {
+        opacity: 0;
+    }
+}
+
+.boot-screen__sub-label {
+    margin-top: 12px;
+    font-family: 'Space Grotesk', monospace;
+    font-size: 12px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--void-text-muted);
+    animation: boot-fade 0.7s ease-out 0.55s backwards;
+}
+
+@keyframes boot-fade {
+    from {
+        opacity: 0;
+        transform: translateY(6px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ══════════════════════════════════════════════════════
+   REDUCED MOTION — static loader, still fades out
+   ══════════════════════════════════════════════════════ */
+@media (prefers-reduced-motion: reduce) {
+    .boot-screen__grid--drift,
+    .boot-screen__icon,
+    .boot-screen__bracket,
+    .boot-screen__label,
+    .boot-screen__label::after,
+    .boot-screen__sub-label {
+        animation: none !important;
+        opacity: 1 !important;
+        transform: none !important;
+    }
+}

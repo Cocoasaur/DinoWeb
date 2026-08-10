@@ -8,8 +8,10 @@ import '@fontsource/inter/latin-500.css'
 import '@fontsource/inter/latin-700.css'
 import './index.css'
 import './styles/scrollbar.css'
+import './styles/boot-screen.css'
 import App from './App.jsx'
 import UpdatePrompt from './components/ui/UpdatePrompt.jsx'
+import BootScreen from './components/ui/BootScreen.jsx'
 import { ThemeProvider } from './context/ThemeContext'
 
 const root = createRoot(document.getElementById('root'))
@@ -17,6 +19,7 @@ root.render(
   <StrictMode>
     <ThemeProvider>
       <App />
+      <BootScreen />
     </ThemeProvider>
   </StrictMode>,
 )
@@ -28,6 +31,7 @@ registerSW({
             <StrictMode>
                 <ThemeProvider>
                     <App />
+                    <BootScreen />
                     <UpdatePrompt />
                 </ThemeProvider>
             </StrictMode>,

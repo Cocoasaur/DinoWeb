@@ -156,13 +156,6 @@
 }
 
 @media (min-width: 768px) and (max-width: 1023px) {
-    .projects-card-header {
-        display: flex !important;
-        flex-direction: column;
-        align-items: flex-start !important;
-        gap: 14px;
-    }
-
     .projects-card-title-group {
         width: 100%;
     }

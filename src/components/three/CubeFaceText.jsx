@@ -24,7 +24,7 @@ function rgbaToRgb(rgba) {
 const textureCache = new Map();
 
 function getCacheKey(text, fontSize, letterSpacing, mode, colors) {
-    return `${text}_${fontSize}_${letterSpacing}_${mode}_${colors.hatch}_${colors.fill}_${colors.stroke}_${colors.strokeOpacity}`;
+    return `${text}_${fontSize}_${letterSpacing}_${mode}_${colors.hatch}_${colors.hatchOpacity}_${colors.fill}_${colors.stroke}_${colors.strokeOpacity}`;
 }
 
 function fillChars(ctx, text, startX, spacing) {
@@ -48,9 +48,7 @@ function strokeChars(ctx, text, startX, spacing) {
 function renderTextTexture(text, fontSize, letterSpacing, mode, colors) {
     const key = getCacheKey(text, fontSize, letterSpacing, mode, colors);
     if (textureCache.has(key)) {
-        const cached = textureCache.get(key);
-        cached.texture.needsUpdate = false;
-        return cached;
+        return textureCache.get(key);
     }
 
     const canvas = document.createElement('canvas');
@@ -136,7 +134,7 @@ function renderTextTexture(text, fontSize, letterSpacing, mode, colors) {
     const result = { texture: tex, textWidth, textHeight };
     textureCache.set(key, result);
 
-    if (textureCache.size > 50) {
+    if (textureCache.size > 28) {
         const firstKey = textureCache.keys().next().value;
         const old = textureCache.get(firstKey);
         old.texture.dispose();

@@ -7,32 +7,19 @@
 import html5Icon from '../assets/icons/skills/frontend/HTML5.png';
 import css3Icon from '../assets/icons/skills/frontend/CSS3.png';
 import jsIcon from '../assets/icons/skills/frontend/JavaScript.png';
-import tsIcon from '../assets/icons/skills/frontend/TypeScript.png';
-import tailwindIcon from '../assets/icons/skills/frontend/TailwindCSS.png';
 import tkinterIcon from '../assets/icons/skills/frontend/Tkinter.png';
-import reactIcon from '../assets/icons/skills/frontend/React.png';
-import threejsBlackIcon from '../assets/icons/skills/frontend/Three.js_black.png';
-import threejsWhiteIcon from '../assets/icons/skills/frontend/Three.js_white.png';
-import viteIcon from '../assets/icons/skills/frontend/Vite.png';
 
 // Backend
 import pythonIcon from '../assets/icons/skills/backend/Python.png';
 import javaIcon from '../assets/icons/skills/backend/Java.png';
-import nodejsIcon from '../assets/icons/skills/backend/Node.js.png';
-import firebaseIcon from '../assets/icons/skills/backend/Firebase.png';
 
 // Database
 import sqliteIcon from '../assets/icons/skills/database/SQLite.png';
 import mysqlIcon from '../assets/icons/skills/database/MySQL.png';
-import firestoreIcon from '../assets/icons/skills/database/Firestore.png';
 
 // Tools
 import figmaIcon from '../assets/icons/skills/tools/Figma.png';
-import canvaIcon from '../assets/icons/skills/tools/Canva.png';
-import postmanIcon from '../assets/icons/skills/tools/Postman.png';
 import vscodeIcon from '../assets/icons/skills/tools/Visual_Studio_Code.png';
-import kimiIcon from '../assets/icons/skills/tools/Kimi.png';
-import claudeIcon from '../assets/icons/skills/tools/Claude.png';
 import godotengineIcon from '../assets/icons/skills/tools/Godot_Engine.png';
 import gitIcon from '../assets/icons/skills/tools/Git.png';
 import githubIcon from '../assets/icons/skills/tools/Github.png';
@@ -89,7 +76,7 @@ export const PROJECTS = [
     system handles concurrent bookings with data integrity and
     provides detailed reporting for operational analytics.`,
         ],
-        stack: ['Python', 'Tkinter', 'SQLite', 'TKinter'],
+        stack: ['Python', 'Tkinter', 'SQLite'],
         tools: [
             { name: 'Python', icon: pythonIcon },
             { name: 'Tkinter', icon: tkinterIcon },
@@ -208,7 +195,7 @@ export const PROJECTS = [
         role: 'Full-Stack Developer',
         github: {
             isPublic: false,
-            url: 'https://github.com/FlimsyOwl12/GAME-ON-Hackathon-Earth-Arcade.git',
+            url: 'https://github.com/Cocoasaur/Quarto.git',
         },
         projectURL: 'https://quarto-4d613.web.app',
         images: [

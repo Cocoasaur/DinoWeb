@@ -3,7 +3,7 @@ import { useFrame, useThree } from '@react-three/fiber';
 import { RoundedBox } from '@react-three/drei';
 import * as THREE from 'three';
 import CubeFace from './CubeFace';
-import { FACE_CONFIG, DEFAULT_ROTATION, CUBE_CENTER_X } from '../../constants/cubeConfig';
+import { FACE_CONFIG, DEFAULT_ROTATION, DEFAULT_CAMERA_DISTANCE, CUBE_CENTER_X } from '../../constants/cubeConfig';
 import { useCSSVars } from '../../hooks/useCSSVars';
 import { useReducedMotion } from '../../hooks/useReducedMotion';
 import { useHomeViewportLayout } from '../../hooks/useHomeViewportLayout';
@@ -126,6 +126,15 @@ export default function InteractiveCube({
         zoomOutTimerRef.current = 0;
         hasNotifiedOutRef.current = false;
     }, [isZoomingOut]);
+
+    // Idle rendering throttle: the demand frameloop only wakes when
+    // invalidated, so keep it ticking at ~30fps while idle instead of
+    // every rAF. Zoom states run frameloop="always" (60fps) in App.jsx.
+    useEffect(() => {
+        if (reducedMotion || isZoomed || isZoomingOut) return;
+        const intervalId = window.setInterval(() => invalidate(), 33);
+        return () => window.clearInterval(intervalId);
+    }, [reducedMotion, isZoomed, isZoomingOut, invalidate]);
 
     const clearSuppressFaceClickTimer = () => {
         if (!suppressFaceClickTimerRef.current) return;
@@ -345,7 +354,7 @@ export default function InteractiveCube({
         const lerpFactor = reducedMotion ? 1 : 0.025;
 
         if (isZoomingOut) {
-            const targetDist = 5 * (1 + zoomZ / 1000);
+            const targetDist = DEFAULT_CAMERA_DISTANCE * (1 + zoomZ / 1000);
             camera.position.z = THREE.MathUtils.lerp(camera.position.z, targetDist, lerpFactor);
             groupRef.current.position.x = THREE.MathUtils.lerp(posX, restingX, lerpFactor);
             groupRef.current.position.y = THREE.MathUtils.lerp(posY, restingY, lerpFactor);
@@ -369,7 +378,7 @@ export default function InteractiveCube({
             }
         } else if (isZoomed && targetRad) {
             animTimerRef.current += dt;
-            const idleCameraZ = 5 * (1 + zoomZ / 1000);
+            const idleCameraZ = DEFAULT_CAMERA_DISTANCE * (1 + zoomZ / 1000);
             const zoomedCameraZ = getZoomedCameraZ(camera, cubeScale, breakpoint);
             const zoomLerpFactor = reducedMotion ? 1 : (breakpoint === 'phone' ? 0.18 : 0.12);
 
@@ -414,10 +423,12 @@ export default function InteractiveCube({
             }
 
             const drift = idleDriftRef.current;
+            const neverInteracted = lastInteractTimeRef.current === 0;
             const canDrift = !reducedMotion &&
                 !isDraggingRef.current &&
                 !pinchRef.current.active &&
-                (performance.now() - lastInteractTimeRef.current) > IDLE_DRIFT_SETTLE_MS;
+                (neverInteracted ||
+                    (performance.now() - lastInteractTimeRef.current) > IDLE_DRIFT_SETTLE_MS);
 
             if (canDrift) {
                 if (!drift.active) {
@@ -440,14 +451,13 @@ export default function InteractiveCube({
 
                 rotationRef.current.x += (drift.x - rotationRef.current.x) * IDLE_DRIFT_FACTOR;
                 rotationRef.current.y += (drift.y - rotationRef.current.y) * IDLE_DRIFT_FACTOR;
-                invalidate();
             } else {
                 drift.active = false;
             }
 
             groupRef.current.position.x = THREE.MathUtils.lerp(posX, restingX, 0.05);
             groupRef.current.position.y = THREE.MathUtils.lerp(posY, restingY, 0.05);
-            camera.position.z = THREE.MathUtils.lerp(camera.position.z, 5 * (1 + zoomZ / 1000), 0.08);
+            camera.position.z = THREE.MathUtils.lerp(camera.position.z, DEFAULT_CAMERA_DISTANCE * (1 + zoomZ / 1000), 0.08);
         }
 
         breathTimeRef.current += dt;

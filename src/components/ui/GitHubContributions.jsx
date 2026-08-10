@@ -156,6 +156,7 @@ async function fetchContributionsData(username, year) {
 
 // ── Per-year localStorage cache (Maps serialized as arrays) ──
 const cacheKey = (username) => `dinoweb.ghcontrib.v1.${username}`;
+const CACHE_TTL_MS = 24 * 60 * 60 * 1000;
 
 function loadCachedYear(username, year) {
     try {
@@ -167,6 +168,7 @@ function loadCachedYear(username, year) {
             total: Number.isFinite(entry.total) ? entry.total : 0,
             days: new Map(entry.days),
             titles: new Map(entry.titles),
+            fetchedAt: Number.isFinite(entry.fetchedAt) ? entry.fetchedAt : 0,
         };
     } catch (err) {
         return null;
@@ -212,7 +214,9 @@ export default function GitHubContributions({ username = 'Cocoasaur' }) {
             setDataByYear(dataRef.current);
         }
 
-        if (!dataRef.current[selectedYear]) {
+        const cachedFresh = cached && (Date.now() - cached.fetchedAt) < CACHE_TTL_MS;
+
+        if (!cachedFresh && !dataRef.current[selectedYear]) {
             setLoadingYear(selectedYear);
         }
 
@@ -238,6 +242,15 @@ export default function GitHubContributions({ username = 'Cocoasaur' }) {
                 }
             }
         };
+
+        if (cachedFresh) {
+            // Fresh cache — no network request for the selected year;
+            // only warm the other years in the background.
+            prefetchRemaining();
+            return () => {
+                cancelled = true;
+            };
+        }
 
         fetchContributionsData(username, selectedYear)
             .then((data) => {
