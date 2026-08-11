@@ -106,7 +106,7 @@ async function fetchContributionsData(username, year) {
     // Fastest tier first: the dedicated contributions API returns a small
     // JSON payload directly (no proxy hop, no HTML scraping).
     const tier1 = async () => {
-        const res = await fetch(`https://github-contributions-api.jogruber.de/v4/${username}?y=${year}`);
+        const res = await fetch(`https://github-contributions-api.jogruber.de/v4/${username}?y=${year}`, { cache: 'no-store' });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const json = await res.json();
         if (!Array.isArray(json.contributions)) throw new Error('unexpected API shape');
@@ -125,7 +125,7 @@ async function fetchContributionsData(username, year) {
     };
 
     const tier2 = async () => {
-        const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(target)}`);
+        const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(target)}`, { cache: 'no-store' });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const json = await res.json();
         const httpCode = json.status && json.status.http_code;
@@ -135,7 +135,7 @@ async function fetchContributionsData(username, year) {
     };
 
     const tier3 = async () => {
-        const res = await fetch(`https://cors.eu.org/${encodeURIComponent(target)}`);
+        const res = await fetch(`https://cors.eu.org/${encodeURIComponent(target)}`, { cache: 'no-store' });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const html = await res.text();
         if (!html.includes('js-calendar-graph')) throw new Error('calendar graph missing');
@@ -155,8 +155,11 @@ async function fetchContributionsData(username, year) {
 }
 
 // ── Per-year localStorage cache (Maps serialized as arrays) ──
+// The cache is an instant-paint buffer, not a data gate. The current year
+// is silently re-validated in the background when it is older than
+// REFRESH_TTL_MS; past years are immutable and only fetched when uncached.
 const cacheKey = (username) => `dinoweb.ghcontrib.v1.${username}`;
-const CACHE_TTL_MS = 24 * 60 * 60 * 1000;
+const REFRESH_TTL_MS = 5 * 60 * 1000;
 
 function loadCachedYear(username, year) {
     try {
@@ -214,58 +217,54 @@ export default function GitHubContributions({ username = 'Cocoasaur' }) {
             setDataByYear(dataRef.current);
         }
 
-        const cachedFresh = cached && (Date.now() - cached.fetchedAt) < CACHE_TTL_MS;
-
-        if (!cachedFresh && !dataRef.current[selectedYear]) {
-            setLoadingYear(selectedYear);
-        }
-
         const applyData = (year, data) => {
             dataRef.current = { ...dataRef.current, [year]: data };
             saveYearToCache(username, year, data);
             setDataByYear(dataRef.current);
         };
 
-        const prefetchYears = years.filter(
-            (y) => y !== selectedYear && !dataRef.current[y] && !loadCachedYear(username, y)
-        );
-        const prefetchRemaining = async () => {
-            for (const y of prefetchYears) {
-                if (cancelled) return;
-                await new Promise((r) => setTimeout(r, 250));
-                if (cancelled) return;
-                try {
-                    const d = await fetchContributionsData(username, y);
-                    if (!cancelled) applyData(y, d);
-                } catch (err) {
-                    // skipped — will be fetched on demand when selected
+        const fetchLive = async () => {
+            try {
+                const d = await fetchContributionsData(username, selectedYear);
+                if (!cancelled) {
+                    applyData(selectedYear, d);
+                    setGlobalFailed(false);
                 }
+            } catch (err) {
+                if (!cancelled && !dataRef.current[selectedYear]) setGlobalFailed(true);
+            } finally {
+                if (!cancelled) setLoadingYear(null);
             }
         };
 
-        if (cachedFresh) {
-            // Fresh cache — no network request for the selected year;
-            // only warm the other years in the background.
-            prefetchRemaining();
+        if (cached) {
+            // Instant paint from cache — rendering never waits on the network.
+            const isCurrentYear = selectedYear === new Date().getFullYear();
+            const isFresh = isCurrentYear && (Date.now() - cached.fetchedAt) < REFRESH_TTL_MS;
+            if (!isCurrentYear || isFresh) {
+                return () => {
+                    cancelled = true;
+                };
+            }
+            // Stale current-year data — refresh in the background, off the
+            // critical path. Failures silently keep the cached snapshot.
+            const scheduleIdle = (fn) => {
+                if (typeof window.requestIdleCallback === 'function') {
+                    const id = window.requestIdleCallback(fn);
+                    return () => window.cancelIdleCallback(id);
+                }
+                const id = setTimeout(fn, 100);
+                return () => clearTimeout(id);
+            };
+            const cancelIdle = scheduleIdle(fetchLive);
             return () => {
                 cancelled = true;
+                cancelIdle();
             };
         }
 
-        fetchContributionsData(username, selectedYear)
-            .then((data) => {
-                if (cancelled) return;
-                applyData(selectedYear, data);
-                setGlobalFailed(false);
-                prefetchRemaining();
-            })
-            .catch(() => {
-                if (cancelled) return;
-                if (!dataRef.current[selectedYear]) setGlobalFailed(true);
-            })
-            .finally(() => {
-                if (!cancelled) setLoadingYear(null);
-            });
+        setLoadingYear(selectedYear);
+        fetchLive();
 
         return () => {
             cancelled = true;

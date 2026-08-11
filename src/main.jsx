@@ -26,6 +26,7 @@ root.render(
 
 registerSW({
     immediate: true,
+    updateViaCache: 'none',
     onNeedReload() {
         root.render(
             <StrictMode>
