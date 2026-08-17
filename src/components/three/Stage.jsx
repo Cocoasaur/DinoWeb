@@ -50,6 +50,7 @@ export default function Stage({ isLowEnd, isZoomed, isZoomingOut, isDraggingRef 
     const pointerNDC = useRef({ x: 0, y: 0 });
     const idleTimerRef = useRef(null);
     const lastMoveRef = useRef(0);
+    const isTouchRef = useRef(false);
     const poolRef = useRef(null);
     const vars = useCSSVars(['--void-bg', '--void-grid', '--void-grid-drift']);
     const { glow, shadow } = useUnderCubeTextures();
@@ -70,17 +71,21 @@ export default function Stage({ isLowEnd, isZoomed, isZoomingOut, isDraggingRef 
         };
 
         const onPointerMove = (e) => {
+            if (e.pointerType === 'touch') isTouchRef.current = true;
             updatePointer(e.clientX, e.clientY);
         };
         const onPointerDown = (e) => {
+            if (e.pointerType === 'touch') isTouchRef.current = true;
             updatePointer(e.clientX, e.clientY);
         };
         const onTouchMove = (e) => {
+            isTouchRef.current = true;
             if (e.touches.length > 0) {
                 updatePointer(e.touches[0].clientX, e.touches[0].clientY);
             }
         };
         const onTouchStart = (e) => {
+            isTouchRef.current = true;
             if (e.touches.length > 0) {
                 updatePointer(e.touches[0].clientX, e.touches[0].clientY);
             }
@@ -103,7 +108,7 @@ export default function Stage({ isLowEnd, isZoomed, isZoomingOut, isDraggingRef 
     useFrame((state, delta) => {
         if (isLowEnd || reducedMotion) return;
         const cam = state.camera;
-        const settled = isZoomed || isZoomingOut || isDraggingRef?.current;
+        const settled = isZoomed || isZoomingOut || (!isTouchRef.current && isDraggingRef?.current);
         const timeSinceMove = performance.now() - lastMoveRef.current;
         const idle = timeSinceMove > PARALLAX_IDLE_MS;
 
