@@ -178,8 +178,8 @@ export default function App() {
 
   return (
     <div
-      className={`relative w-screen h-screen overflow-hidden${isLowEnd ? '' : ' stage-active'}`}
-      style={{ height: '100dvh', backgroundColor: 'var(--void-bg)', transition: reducedMotion ? 'none' : 'background-color 0.5s ease' }}
+      className={`relative w-full min-h-screen overflow-hidden${isLowEnd ? '' : ' stage-active'}`}
+      style={{ minHeight: '100dvh', backgroundColor: 'var(--void-bg)', transition: reducedMotion ? 'none' : 'background-color 0.5s ease' }}
     >
       <div className="fixed inset-0">
         <div className="fixed inset-0 pointer-events-none z-0 void-grid" />

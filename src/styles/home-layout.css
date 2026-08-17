@@ -78,6 +78,7 @@
 
 .corner-marker--bottom-left {
     bottom: 16px;
+    bottom: calc(16px + env(safe-area-inset-bottom));
     left: 16px;
     border-right-width: 0;
     border-top-width: 0;
@@ -86,6 +87,7 @@
 .corner-marker--bottom-right {
     right: 16px;
     bottom: 16px;
+    bottom: calc(16px + env(safe-area-inset-bottom));
     border-left-width: 0;
     border-top-width: 0;
 }
@@ -96,6 +98,7 @@
     left: 32px;
     right: 32px;
     bottom: 32px;
+    bottom: calc(32px + env(safe-area-inset-bottom));
     z-index: 40;
     display: flex;
     align-items: flex-end;
@@ -185,6 +188,7 @@
 .rotate-prompt {
     position: fixed;
     bottom: 54px;
+    bottom: calc(54px + env(safe-area-inset-bottom));
     left: 0;
     z-index: 30;
     display: flex;
@@ -285,11 +289,13 @@
 
     .corner-marker--bottom-left {
         bottom: 10px !important;
+        bottom: calc(10px + env(safe-area-inset-bottom)) !important;
         left: 10px !important;
     }
 
     .corner-marker--bottom-right {
         bottom: 10px !important;
+        bottom: calc(10px + env(safe-area-inset-bottom)) !important;
         right: 10px !important;
     }
 
@@ -298,6 +304,7 @@
         left: 24px !important;
         right: 24px !important;
         bottom: 24px !important;
+        bottom: calc(24px + env(safe-area-inset-bottom)) !important;
         font-size: 9px !important;
     }
 
@@ -427,17 +434,20 @@
 
     .corner-marker--bottom-left {
         bottom: 32px;
+        bottom: calc(32px + env(safe-area-inset-bottom));
         left: 32px;
     }
 
     .corner-marker--bottom-right {
         right: 32px;
         bottom: 32px;
+        bottom: calc(32px + env(safe-area-inset-bottom));
     }
 
     .home-footer {
         right: 48px;
         bottom: 48px;
+        bottom: calc(48px + env(safe-area-inset-bottom));
         left: 48px;
         font-size: 10px;
     }
@@ -644,17 +654,20 @@
 
     .corner-marker--bottom-left {
         bottom: 40px;
+        bottom: calc(40px + env(safe-area-inset-bottom));
         left: 40px;
     }
 
     .corner-marker--bottom-right {
         right: 40px;
         bottom: 40px;
+        bottom: calc(40px + env(safe-area-inset-bottom));
     }
 
     .home-footer {
         right: 60px;
         bottom: 60px;
+        bottom: calc(60px + env(safe-area-inset-bottom));
         left: 60px;
     }
 

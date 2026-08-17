@@ -207,7 +207,7 @@
 @layer base {
   body {
     margin: 0;
-    overflow: hidden;
+    overflow-x: hidden;
     background-color: var(--void-bg);
     font-family: 'Inter', sans-serif;
     cursor: grab;
