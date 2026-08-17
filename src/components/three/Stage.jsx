@@ -10,6 +10,8 @@ import { useTheme } from '../../context/ThemeContext';
 const FLOOR_Y = -2.35;
 const PARALLAX_X = 0.30;
 const PARALLAX_Y = 0.20;
+const PARALLAX_X_TOUCH = 0.42;
+const PARALLAX_Y_TOUCH = 0.28;
 const PARALLAX_IDLE_MS = 3000;
 
 function makeRadialTexture(stops) {
@@ -112,8 +114,12 @@ export default function Stage({ isLowEnd, isZoomed, isZoomingOut, isDraggingRef 
         const timeSinceMove = performance.now() - lastMoveRef.current;
         const idle = timeSinceMove > PARALLAX_IDLE_MS;
 
-        const tx = (settled || idle) ? 0 : pointerNDC.current.x * PARALLAX_X;
-        const ty = (settled || idle) ? 0 : pointerNDC.current.y * PARALLAX_Y;
+        const touch = isTouchRef.current;
+        const dir = touch ? -1 : 1;
+        const px = touch ? PARALLAX_X_TOUCH : PARALLAX_X;
+        const py = touch ? PARALLAX_Y_TOUCH : PARALLAX_Y;
+        const tx = (settled || idle) ? 0 : pointerNDC.current.x * px * dir;
+        const ty = (settled || idle) ? 0 : pointerNDC.current.y * py * dir;
         const k = Math.min(1, delta * 3.5);
         const dx = tx - cam.position.x;
         const dy = ty - cam.position.y;

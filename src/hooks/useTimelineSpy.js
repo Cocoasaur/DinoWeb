@@ -26,7 +26,8 @@ export function useTimelineSpy(itemCount) {
             clearStepTimer();
             const container = itemRefs.current[0]?.closest('.portfolio-overlay-panel')
                 ?? document.scrollingElement;
-            const line = window.innerHeight * TRIGGER_LINE;
+            const containerRect = container.getBoundingClientRect();
+            const line = containerRect.top + containerRect.height * TRIGGER_LINE;
 
             let lineIdx = -1;
             for (let i = 0; i < itemRefs.current.length; i++) {
@@ -35,17 +36,18 @@ export function useTimelineSpy(itemCount) {
                 if (el.getBoundingClientRect().top <= line) lineIdx = i;
             }
 
-            const last = itemRefs.current[itemRefs.current.length - 1];
-            const bottomReached = last && container
-                ? last.getBoundingClientRect().bottom <= container.getBoundingClientRect().bottom + BOTTOM_EPSILON
+            const lastIndex = itemRefs.current.length - 1;
+            const lastEl = itemRefs.current[lastIndex];
+            const bottomReached = lastEl && container
+                ? lastEl.getBoundingClientRect().bottom <= containerRect.bottom + BOTTOM_EPSILON
                 : false;
 
             if (bottomReached) {
                 let target = activeIndexRef.current + 1;
                 if (target < lineIdx) target = lineIdx;
-                if (target > last) target = last;
+                if (target > lastIndex) target = lastIndex;
                 apply(target);
-                if (target < last) {
+                if (target < lastIndex) {
                     stepTimerRef.current = setTimeout(compute, STEP_DELAY_MS);
                 }
                 return;

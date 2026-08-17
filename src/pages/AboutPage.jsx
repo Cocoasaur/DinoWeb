@@ -111,21 +111,12 @@ function useStaggeredReveal(target, delayMs) {
 }
 
 function TimelineItem({ year, degree, academic_track, school, desc, active, ref }) {
-    const [hovered, setHovered] = useState(false);
-    const [tapped, setTapped] = useState(false);
-    const lit = hovered || tapped || active;
-
-    useEffect(() => {
-        setTapped(false);
-    }, [active]);
+    const lit = active;
 
     return (
         <div
             ref={ref}
             className="about-timeline-item relative pl-8 pb-8 last:pb-0"
-            onMouseEnter={() => setHovered(true)}
-            onMouseLeave={() => setHovered(false)}
-            onClick={() => setTapped(true)}
         >
             <div
                 className="about-timeline-line absolute left-1.5 -translate-x-1/2 top-3 -bottom-3 last:bottom-0 w-px"

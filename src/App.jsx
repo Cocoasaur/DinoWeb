@@ -147,6 +147,31 @@ export default function App() {
     return () => cancelAnimationFrame(rafId);
   }, [themeTransitionActive, isDark, toggle, handleThemeTransitionComplete, reducedMotion, zoomZ]);
 
+  // Some mobile browsers don't fire a native `resize` when the tab/search bar
+  // collapses or expands. Bridge the visual viewport changes into a synthetic
+  // `resize` so the layout hook and the R3F canvas re-frame the scene.
+  useEffect(() => {
+    const vv = window.visualViewport;
+    if (!vv) return;
+
+    let rafId = 0;
+    const onViewportChange = () => {
+      cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(() => {
+        window.dispatchEvent(new Event('resize'));
+      });
+    };
+
+    vv.addEventListener('resize', onViewportChange);
+    vv.addEventListener('scroll', onViewportChange);
+
+    return () => {
+      cancelAnimationFrame(rafId);
+      vv.removeEventListener('resize', onViewportChange);
+      vv.removeEventListener('scroll', onViewportChange);
+    };
+  }, []);
+
   const isLowEnd = tier === 'low';
 
   const canvasZIndex = (isZoomed || isZoomingOut) ? 60 : 10;
