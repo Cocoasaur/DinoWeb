@@ -120,10 +120,9 @@ export default function Overlay({
                     maxHeight: '85dvh', // ← iOS: tracks the visible viewport (falls back to max-h-[85vh] where unsupported)
                     opacity: isVisible ? 1 : 0,
                     transform: isVisible ? 'translateY(0) scale(1)' : 'translateY(-16px) scale(1.02)',
-                    filter: reducedMotion ? 'none' : (isVisible ? 'blur(0px)' : 'blur(8px)'),
                     transition: reducedMotion
                         ? 'none'
-                        : `opacity ${dur} ${ease}, transform ${dur} ${ease}, filter ${dur} ease`,
+                        : `opacity ${dur} ${ease}, transform ${dur} ${ease}`,
                     overflowY: 'auto',
                     overflowX: 'hidden',
                 }}

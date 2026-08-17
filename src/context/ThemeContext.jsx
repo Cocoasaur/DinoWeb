@@ -4,8 +4,8 @@ const ThemeContext = createContext(null);
 
 const THEME_KEY = 'dinoweb-theme-v2';
 const OLD_THEME_KEY = 'dinoweb-theme';
-const THEME_DEMAIN = 'demain-soir-bleu';
-const THEME_CLAIR = 'clair-obscur';
+export const THEME_DEMAIN = 'demain-soir-bleu';
+export const THEME_CLAIR = 'clair-obscur';
 
 export function ThemeProvider({ children }) {
     const [theme, setTheme] = useState(() => {

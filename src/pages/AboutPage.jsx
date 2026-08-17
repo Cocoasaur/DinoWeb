@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import TiltCard from '../components/ui/TiltCard';
 import OverlayNavIcon from '../components/ui/OverlayNavIcon';
 import GitHubContributions from '../components/ui/GitHubContributions';
+import { useTimelineSpy } from '../hooks/useTimelineSpy';
 import profileImage from '../assets/images/profile/me.webp';
 
 // Certificates
@@ -17,6 +18,7 @@ import ciscoIntroDS from '../assets/certifications/Cisco_Data_Science.webp';
 import resumePdf from '../assets/resume/Resume_Arquesola.pdf';
 
 const RESUME_PDF_URL = resumePdf;
+const DOT_GLOW_STAGGER_MS = 400;
 
 const S = {
     label: {
@@ -52,15 +54,15 @@ const S = {
 const EDUCATION = [
     {
         year: '2023 — PRESENT',
-        degree: 'Bachelor of Computer Science',
+        degree: 'Bachelor of Science in Computer Science',
         school: 'University of San Agustin',
-        desc: 'Focusing on software engineering, interactive systems, and web technologies.',
+        desc: 'Focusing on software development, algorithms, and data structures.',
     },
     {
         year: '2021 — 2023',
         academic_track: 'STEM (Science, Technology, Engineering, and Mathematics)',
         school: "St. Anthony's College",
-        desc: 'Foundation in programming, databases, and network fundamentals.',
+        desc: 'Foundation in programming, science, and mathematics.',
     },
 ];
 
@@ -84,14 +86,46 @@ const CERT_NAMES = [
     'Cisco Data Science Certificate',
 ];
 
-function TimelineItem({ year, degree, academic_track, school, desc }) {
+function useStaggeredReveal(target, delayMs) {
+    const [lit, setLit] = useState(target);
+    const timerRef = useRef(0);
+
+    useEffect(() => {
+        clearTimeout(timerRef.current);
+
+        if (target < lit) {
+            setLit(target);
+            return;
+        }
+
+        if (target > lit) {
+            timerRef.current = setTimeout(() => {
+                setLit((current) => Math.min(current + 1, target));
+            }, delayMs);
+        }
+
+        return () => clearTimeout(timerRef.current);
+    }, [target, lit, delayMs]);
+
+    return lit;
+}
+
+function TimelineItem({ year, degree, academic_track, school, desc, active, ref }) {
     const [hovered, setHovered] = useState(false);
+    const [tapped, setTapped] = useState(false);
+    const lit = hovered || tapped || active;
+
+    useEffect(() => {
+        setTapped(false);
+    }, [active]);
 
     return (
         <div
+            ref={ref}
             className="about-timeline-item relative pl-8 pb-8 last:pb-0"
             onMouseEnter={() => setHovered(true)}
             onMouseLeave={() => setHovered(false)}
+            onClick={() => setTapped(true)}
         >
             <div
                 className="about-timeline-line absolute left-1.5 -translate-x-1/2 top-3 -bottom-3 last:bottom-0 w-px"
@@ -100,9 +134,9 @@ function TimelineItem({ year, degree, academic_track, school, desc }) {
             <div
                 className="about-timeline-dot absolute left-0 top-1.5 w-3 h-3 rounded-full border-2 transition-all duration-300"
                 style={{
-                    borderColor: hovered ? 'var(--void-accent)' : 'var(--void-border)',
-                    backgroundColor: hovered ? 'var(--void-accent)' : 'transparent',
-                    boxShadow: hovered ? '0 0 8px var(--void-accent)' : 'none',
+                    borderColor: lit ? 'var(--void-accent)' : 'var(--void-border)',
+                    backgroundColor: lit ? 'var(--void-accent)' : 'transparent',
+                    boxShadow: lit ? '0 0 10px var(--void-accent)' : 'none',
                 }}
             />
             <div>
@@ -136,6 +170,8 @@ function TimelineItem({ year, degree, academic_track, school, desc }) {
 }
 
 export default function AboutPage() {
+    const { itemRefs, activeIndex } = useTimelineSpy(EDUCATION.length);
+    const litIndex = useStaggeredReveal(activeIndex, DOT_GLOW_STAGGER_MS);
     const [lightboxIndex, setLightboxIndex] = useState(null);
     const [certPage, setCertPage] = useState(0);
     const [certPageSize, setCertPageSize] = useState(() =>
@@ -421,7 +457,14 @@ export default function AboutPage() {
                     </h3>
                     <div>
                         {EDUCATION.map((item, idx) => (
-                            <TimelineItem key={idx} {...item} />
+                            <TimelineItem
+                                key={idx}
+                                ref={(el) => {
+                                    itemRefs.current[idx] = el;
+                                }}
+                                {...item}
+                                active={idx <= litIndex}
+                            />
                         ))}
                     </div>
                 </div>

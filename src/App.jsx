@@ -78,49 +78,73 @@ export default function App() {
 
   useEffect(() => {
     if (!themeTransitionActive || transitionInProgressRef.current) return;
-    transitionInProgressRef.current = true;
 
-    // Wipe origin = where the theme face was pressed (always on the cube —
-    // you can only click the face by clicking the cube). Falls back to the
-    // scene-projected cube position, then to the layout math.
-    const origin = faceDownPosRef.current.valid
-      ? faceDownPosRef.current
-      : screenPosRef.current.valid
-        ? screenPosRef.current
-        : getCubeScreenOrigin(zoomZ);
-    document.documentElement.style.setProperty('--theme-origin-x', `${origin.x}px`);
-    document.documentElement.style.setProperty('--theme-origin-y', `${origin.y}px`);
+    const finish = () => {
+      document.documentElement.classList.remove('theme-transitioning');
+      document.documentElement.removeAttribute('data-theme-direction');
+      transitionInProgressRef.current = false;
+      handleThemeTransitionComplete();
+    };
 
-    // Consume the press position so a later transition (triggered without a
-    // fresh pointerdown on the cube — e.g. a stray re-render) can't reuse
-    // coordinates from a previous, unrelated face click.
-    faceDownPosRef.current.valid = false;
+    const toggleFallback = () => {
+      try {
+        toggle();
+      } catch {
+        // Theme state is unchanged — nothing else to restore.
+      }
+      finish();
+    };
 
-    const direction = isDark ? 'to-light' : 'to-dark';
-    document.documentElement.setAttribute('data-theme-direction', direction);
+    // No View Transition support, reduced motion, or hidden tab → snap.
+    if (!document.startViewTransition || reducedMotion || document.visibilityState === 'hidden') {
+      transitionInProgressRef.current = true;
+      toggleFallback();
+      return;
+    }
 
-    if (document.startViewTransition && !reducedMotion) {
+    // Defer one frame so the browser captures a settled frame instead of
+    // one mid-press-animation / mid-main-thread-churn. The guard is taken
+    // inside the callback so a dep change in between (e.g. wheel zoom)
+    // cancels this rAF and reschedules cleanly instead of wedging.
+    const rafId = requestAnimationFrame(() => {
+      if (transitionInProgressRef.current) return;
+      transitionInProgressRef.current = true;
+
+      const origin = faceDownPosRef.current.valid
+        ? faceDownPosRef.current
+        : screenPosRef.current.valid
+          ? screenPosRef.current
+          : getCubeScreenOrigin(zoomZ);
+      document.documentElement.style.setProperty('--theme-origin-x', `${origin.x}px`);
+      document.documentElement.style.setProperty('--theme-origin-y', `${origin.y}px`);
+
+      // Consume the press position so a later transition (triggered without a
+      // fresh pointerdown on the cube — e.g. a stray re-render) can't reuse
+      // coordinates from a previous, unrelated face click.
+      faceDownPosRef.current.valid = false;
+
+      const direction = isDark ? 'to-light' : 'to-dark';
+      document.documentElement.setAttribute('data-theme-direction', direction);
+
       // Freeze infinitely-animated elements (drift grid, logo trace) so they are
       // captured in the old snapshot instead of live-flipping to the new theme.
       document.documentElement.classList.add('theme-transitioning');
       // Force a reflow so the snapshot captures the frozen state.
       document.documentElement.offsetWidth;
 
-      const vt = document.startViewTransition(() => {
-        flushSync(() => { toggle(); });
-      });
-      vt.finished.finally(() => {
-        document.documentElement.classList.remove('theme-transitioning');
-        document.documentElement.removeAttribute('data-theme-direction');
-        transitionInProgressRef.current = false;
-        handleThemeTransitionComplete();
-      });
-    } else {
-      toggle();
-      document.documentElement.removeAttribute('data-theme-direction');
-      transitionInProgressRef.current = false;
-      handleThemeTransitionComplete();
-    }
+      let vt;
+      try {
+        vt = document.startViewTransition(() => {
+          flushSync(() => { toggle(); });
+        });
+      } catch {
+        toggleFallback();
+        return;
+      }
+      vt.finished.then(finish, finish).catch(() => {});
+    });
+
+    return () => cancelAnimationFrame(rafId);
   }, [themeTransitionActive, isDark, toggle, handleThemeTransitionComplete, reducedMotion, zoomZ]);
 
   const isLowEnd = tier === 'low';

@@ -25,7 +25,7 @@ export function useAdaptiveDPR() {
         } else if (tier === 'medium') {
             setDpr([1, Math.min(pixelRatio, 1.75)]);
         } else {
-            setDpr([1, Math.min(pixelRatio, 2.0)]);
+            setDpr([1, Math.min(pixelRatio, 1.75)]);
         }
 
         // Listen for connection changes
@@ -37,7 +37,7 @@ export function useAdaptiveDPR() {
                     tierRef.current = newTier;
                     const pr = window.devicePixelRatio || 1;
                     setDpr(newTier === 'low' ? [1, Math.min(pr, 1.25)] :
-                        newTier === 'medium' ? [1, Math.min(pr, 1.75)] : [1, Math.min(pr, 2.0)]);
+                        [1, Math.min(pr, 1.75)]);
                 }
             };
             connection.addEventListener('change', onChange);

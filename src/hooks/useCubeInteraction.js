@@ -1,5 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { FACE_ROTATIONS, ZOOM_MIN, ZOOM_MAX, DEFAULT_ROTATION } from '../constants/cubeConfig';
+import CubeFaceText from '../components/three/CubeFaceText';
 
 // ─── Overlay phase lifecycle ──────────────────────────────────────────────────
 //
@@ -23,6 +24,8 @@ export function useCubeInteraction() {
     const [overlayPhase, setOverlayPhase] = useState('hidden');
     const isDraggingRef = useRef(false);
     const phaseTimeoutRef = useRef(null);
+    const wheelAccumRef = useRef(0);
+    const wheelFrameRef = useRef(0);
 
     const coordsRef = useRef({
         x: DEFAULT_ROTATION.x,
@@ -69,7 +72,8 @@ export function useCubeInteraction() {
         coordsRef.current = { x: target.x, y: target.y, z: coordsRef.current.z };
     }, [clearPhaseTimeout]);
 
-    const handleFacePressStart = useCallback(() => {
+    const handleFacePressStart = useCallback((faceName) => {
+        if (faceName === 'theme') CubeFaceText.prewarmFaceTextures();
         clearPhaseTimeout();
     }, [clearPhaseTimeout]);
 
@@ -121,12 +125,23 @@ export function useCubeInteraction() {
         setThemeTransitionActive(false);
     }, []);
 
-    const handleWheel = useCallback((e) => {
+    const flushWheelZoom = useCallback(() => {
+        wheelFrameRef.current = 0;
+        if (wheelAccumRef.current === 0) return;
+        const delta = wheelAccumRef.current;
+        wheelAccumRef.current = 0;
         setZoomZ(prev => {
-            const next = prev - e.deltaY * 0.5;
+            const next = prev + delta;
             return Math.min(Math.max(next, ZOOM_MIN), ZOOM_MAX);
         });
     }, []);
+
+    const handleWheel = useCallback((e) => {
+        wheelAccumRef.current -= e.deltaY * 0.5;
+        if (!wheelFrameRef.current) {
+            wheelFrameRef.current = requestAnimationFrame(flushWheelZoom);
+        }
+    }, [flushWheelZoom]);
 
     const handlePinchZoom = useCallback((distanceDelta) => {
         setZoomZ(prev => {
@@ -145,7 +160,10 @@ export function useCubeInteraction() {
     }, []);
 
     useEffect(() => {
-        return () => clearPhaseTimeout();
+        return () => {
+            clearPhaseTimeout();
+            if (wheelFrameRef.current) cancelAnimationFrame(wheelFrameRef.current);
+        };
     }, [clearPhaseTimeout]);
 
     return {

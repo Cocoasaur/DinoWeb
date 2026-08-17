@@ -91,9 +91,14 @@ import quarto6 from '../assets/projects_screenshots/quarto/Quarto5.webp';
 import quarto7 from '../assets/projects_screenshots/quarto/Quarto6.webp';
 import quarto8 from '../assets/projects_screenshots/quarto/Quarto7.webp';
 
-export const PRELOAD_IMAGES = [
+export const PRELOAD_CRITICAL = [
     dinoIcon,
     profileImage,
+    githubIconLight,
+    githubIconDark,
+];
+
+export const PRELOAD_DEFERRED = [
     aignite,
     courseraExcel,
     courseraExcel1,
@@ -101,8 +106,6 @@ export const PRELOAD_IMAGES = [
     gdgBacolod,
     googleForEducation,
     ciscoIntroDS,
-    githubIconLight,
-    githubIconDark,
     html5Icon,
     css3Icon,
     jsIcon,
@@ -155,5 +158,3 @@ export const PRELOAD_IMAGES = [
 export const PRELOAD_FILES = [
     resumePdf,
 ];
-
-export const PRELOAD_TOTAL = PRELOAD_IMAGES.length + PRELOAD_FILES.length;

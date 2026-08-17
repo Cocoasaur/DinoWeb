@@ -28,6 +28,9 @@ const IDLE_DRIFT_Y_STEP = THREE.MathUtils.degToRad(140);
 const BREATH_PERIOD_S = 5;
 const BREATH_AMPLITUDE = 0.012;
 
+// ── Idle frame throttle: drift + breath are slow, so ~30fps is plenty ──
+const IDLE_DRIFT_FRAME_MS = 33;
+
 const rand = (min, max) => min + Math.random() * (max - min);
 
 const screenPosVector = new THREE.Vector3();
@@ -75,6 +78,7 @@ export default function InteractiveCube({
     const idleDriftRef = useRef({ active: false, x: 0, y: 0, reRollIn: 0 });
     const breathTimeRef = useRef(0);
     const lastInteractTimeRef = useRef(0);
+    const idleFrameTimeRef = useRef(0);
     const { camera, gl, invalidate } = useThree();
     const reducedMotion = useReducedMotion();
 
@@ -285,7 +289,7 @@ export default function InteractiveCube({
     const handleFaceClickWithPress = (faceName) => {
         if (pressRef.current.active) return;
 
-        onFacePressStart?.();
+        onFacePressStart?.(faceName);
         pressRef.current.active = true;
         pressRef.current.t = 0;
         pressRef.current.targetFaceName = faceName;
@@ -427,8 +431,15 @@ export default function InteractiveCube({
                 (neverInteracted ||
                     (performance.now() - lastInteractTimeRef.current) > IDLE_DRIFT_SETTLE_MS);
 
-            if (pressRef.current.active || canDrift || isDraggingRef.current || isLerpingRot || isLerpingPos) {
+            if (pressRef.current.active || isDraggingRef.current || isLerpingRot || isLerpingPos) {
                 invalidate();
+            } else if (canDrift) {
+                const now = performance.now();
+                if (!document.documentElement.classList.contains('theme-transitioning') &&
+                    now - idleFrameTimeRef.current >= IDLE_DRIFT_FRAME_MS) {
+                    idleFrameTimeRef.current = now;
+                    invalidate();
+                }
             }
 
             if (canDrift) {

@@ -3,6 +3,8 @@ import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import { useReducedMotion } from '../../hooks/useReducedMotion';
 import { useCSSVars } from '../../hooks/useCSSVars';
+import { FACE_CONFIG } from '../../constants/cubeConfig';
+import { THEME_DEMAIN, THEME_CLAIR } from '../../context/ThemeContext';
 
 const CORNERS = [
     { pos: [-1.0, 1.0], hDir: 1, vDir: -1 },
@@ -14,7 +16,9 @@ const CORNERS = [
 const T_SIZE = 0.10;
 const T_THICK = 0.008;
 const BASE_FONT_SIZE = 120;
-const SCALE = 5;
+const SCALE = 2;
+const FONT_SIZE = 0.22;
+const LETTER_SPACING = 0.15;
 
 function rgbaToRgb(rgba) {
     const match = rgba.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
@@ -134,7 +138,7 @@ function renderTextTexture(text, fontSize, letterSpacing, mode, colors) {
     const result = { texture: tex, textWidth, textHeight };
     textureCache.set(key, result);
 
-    if (textureCache.size > 28) {
+    if (textureCache.size > 48) {
         const firstKey = textureCache.keys().next().value;
         const old = textureCache.get(firstKey);
         old.texture.dispose();
@@ -142,6 +146,88 @@ function renderTextTexture(text, fontSize, letterSpacing, mode, colors) {
     }
 
     return result;
+}
+
+// ── Theme texture prewarm ────────────────────────────────────────────────
+// Rasterizing the 12 face canvases on a theme change is the heaviest sync
+// chunk in the toggle render. Pre-render both themes' textures into the
+// shared cache during idle so theme changes become cache hits. One texture
+// per idle slice keeps this from creating long tasks.
+const PREWARM_VARS = [
+    '--cube-text-accent',
+    '--cube-text-hover',
+    '--cube-text-default',
+    '--cube-ticks-idle',
+    '--cube-ticks-hover',
+];
+
+let prewarmStarted = false;
+
+function readThemeColors(themeAttr) {
+    const root = document.documentElement;
+    const previous = root.getAttribute('data-theme');
+    root.setAttribute('data-theme', themeAttr);
+    const cs = getComputedStyle(root);
+    const raw = {};
+    PREWARM_VARS.forEach((name) => { raw[name] = cs.getPropertyValue(name).trim(); });
+    if (previous === null) root.removeAttribute('data-theme');
+    else root.setAttribute('data-theme', previous);
+    return {
+        accent: rgbaToRgb(raw['--cube-text-accent'] || '#bbdaff'),
+        hover: rgbaToRgb(raw['--cube-text-hover'] || '#ffffff'),
+        default: rgbaToRgb(raw['--cube-text-default'] || '#1a2332'),
+        ticksIdle: rgbaToRgb(raw['--cube-ticks-idle'] || 'rgba(255,255,255,0.35)'),
+        ticksHover: rgbaToRgb(raw['--cube-ticks-hover'] || 'rgba(10,15,26,0.90)'),
+    };
+}
+
+function startPrewarm() {
+    if (prewarmStarted) return;
+    prewarmStarted = true;
+
+    const jobs = [];
+    for (const theme of [THEME_DEMAIN, THEME_CLAIR]) {
+        const colors = readThemeColors(theme);
+        for (const face of FACE_CONFIG) {
+            if (!face.text) continue;
+            jobs.push(() => renderTextTexture(face.text, FONT_SIZE, LETTER_SPACING, 'idle', {
+                hatch: colors.accent,
+                hatchOpacity: 0.75,
+                stroke: colors.default,
+                strokeWidth: 3.5,
+                strokeOpacity: 1.0,
+            }));
+            jobs.push(() => renderTextTexture(face.text, FONT_SIZE, LETTER_SPACING, 'hover', {
+                fill: colors.hover,
+                stroke: colors.accent,
+                strokeWidth: 1.8,
+                strokeOpacity: 0.45,
+            }));
+        }
+    }
+
+    let index = 0;
+    const pump = () => {
+        if (index >= jobs.length) return;
+        jobs[index]();
+        index += 1;
+        if (typeof window.requestIdleCallback === 'function') {
+            window.requestIdleCallback(pump, { timeout: 3000 });
+        } else {
+            window.setTimeout(pump, 250);
+        }
+    };
+
+    if (document.fonts && document.fonts.status !== 'loaded') {
+        document.fonts.ready.then(pump);
+    } else {
+        pump();
+    }
+}
+
+function prewarmFaceTextures() {
+    if (typeof document === 'undefined') return;
+    startPrewarm();
 }
 
 const FaceCornerTicks = forwardRef(function FaceCornerTicks({ idleColor, hoverColor }, ref) {
@@ -242,9 +328,9 @@ const UnderlineEffect = forwardRef(function UnderlineEffect({ textWidth, fontSiz
 export default function CubeFaceText({
     text,
     hovered,
-    forceHighlight = false,   // ← ADDED
-    fontSize = 0.22,
-    letterSpacing = 0.15,
+    forceHighlight = false,
+    fontSize = FONT_SIZE,
+    letterSpacing = LETTER_SPACING,
 }) {
     const groupRef = useRef();
     const idleMatRef = useRef();
@@ -363,3 +449,5 @@ export default function CubeFaceText({
         </group>
     );
 }
+
+CubeFaceText.prewarmFaceTextures = prewarmFaceTextures;
