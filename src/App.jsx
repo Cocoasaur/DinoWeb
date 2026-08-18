@@ -17,7 +17,6 @@ import { useCubeInteraction } from './hooks/useCubeInteraction';
 import { useTheme } from './context/ThemeContext';
 import { useAdaptiveDPR } from './hooks/useAdaptiveDPR';
 import { useReducedMotion } from './hooks/useReducedMotion';
-import { useVisualViewportGap } from './hooks/useVisualViewportGap';
 import { getHomeViewportLayout } from './hooks/useHomeViewportLayout';
 import './styles/entrance-animations.css';
 import './styles/home-layout.css';
@@ -50,7 +49,6 @@ export default function App() {
   const faceDownPosRef = useRef({ x: 0, y: 0, valid: false });
   const { dpr, tier } = useAdaptiveDPR();
   const reducedMotion = useReducedMotion();
-  useVisualViewportGap();
 
   const {
     isZoomed, isZoomingOut, showOverlay, activeFace, targetRotation,
@@ -180,13 +178,13 @@ export default function App() {
 
   return (
     <div
-      className={`relative w-full min-h-screen overflow-hidden${isLowEnd ? '' : ' stage-active'}`}
-      style={{ minHeight: '100dvh', backgroundColor: 'var(--void-bg)', transition: reducedMotion ? 'none' : 'background-color 0.5s ease' }}
+      className={`portfolio-viewport${isLowEnd ? '' : ' stage-active'}`}
+      style={{ backgroundColor: 'var(--void-bg)', transition: reducedMotion ? 'none' : 'background-color 0.5s ease' }}
     >
-      <div className="fixed inset-0">
-        <div className="fixed inset-0 pointer-events-none z-0 void-grid" />
+      <div className="portfolio-viewport__stage">
+        <div className="absolute inset-0 pointer-events-none z-0 void-grid" />
         {!isLowEnd && (
-          <div className="fixed inset-0 pointer-events-none z-0 opacity-50 void-grid-drift" />
+          <div className="absolute inset-0 pointer-events-none z-0 opacity-50 void-grid-drift" />
         )}
 
         <Sidebar />

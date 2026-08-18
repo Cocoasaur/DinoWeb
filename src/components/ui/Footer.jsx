@@ -28,7 +28,7 @@ export default function Footer() {
     return (
         <footer className="home-footer footer-entrance">
             <div className="home-footer__item">
-                ©2026_DINOBIT / V.1.4.3
+                ©2026_DINOBIT / V.1.4.9
             </div>
             <div className="home-footer__item">
                 {formatDate(time)}  {formatTime(time)}

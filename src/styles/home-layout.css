@@ -1,9 +1,25 @@
+.portfolio-viewport {
+    position: relative;
+    width: 100%;
+    /* The home scene is a viewport-sized application. `dvh` follows dynamic
+       browser chrome, while the preceding declaration remains a fallback. */
+    height: 100vh;
+    height: 100svh;
+    height: 100dvh;
+    min-height: 100svh;
+}
+
+.portfolio-viewport__stage {
+    position: absolute;
+    inset: 0;
+}
+
 .void-grid {
     background-position: center center;
 }
 
 .home-coordinate {
-    position: fixed;
+    position: absolute;
     /* ══ Increased inset so text never touches the corner brackets ══ */
     top: 32px;
     left: 32px;
@@ -32,7 +48,7 @@
 }
 
 .home-theme-label {
-    position: fixed;
+    position: absolute;
     /* ══ Symmetrical inset on the right ══ */
     top: 32px;
     right: 32px;
@@ -53,7 +69,7 @@
 }
 
 .corner-marker {
-    position: fixed;
+    position: absolute;
     z-index: 50;
     width: 42px;
     height: 22px;
@@ -78,7 +94,7 @@
 
 .corner-marker--bottom-left {
     bottom: 16px;
-    bottom: calc(16px + var(--vv-bottom-gap, 0px) + env(safe-area-inset-bottom));
+    bottom: calc(16px + env(safe-area-inset-bottom, 0px));
     left: 16px;
     border-right-width: 0;
     border-top-width: 0;
@@ -87,18 +103,18 @@
 .corner-marker--bottom-right {
     right: 16px;
     bottom: 16px;
-    bottom: calc(16px + var(--vv-bottom-gap, 0px) + env(safe-area-inset-bottom));
+    bottom: calc(16px + env(safe-area-inset-bottom, 0px));
     border-left-width: 0;
     border-top-width: 0;
 }
 
 .home-footer {
-    position: fixed;
+    position: absolute;
     /* ══ Raised inward so the footer text clears the bottom corner brackets ══ */
     left: 32px;
     right: 32px;
     bottom: 32px;
-    bottom: calc(32px + var(--vv-bottom-gap, 0px) + env(safe-area-inset-bottom));
+    bottom: calc(32px + env(safe-area-inset-bottom, 0px));
     z-index: 40;
     display: flex;
     align-items: flex-end;
@@ -117,7 +133,7 @@
 }
 
 .mobile-branding {
-    position: fixed;
+    position: absolute;
     inset: 0;
     z-index: 30;
     --mobile-branding-scale: 1;
@@ -186,9 +202,11 @@
 }
 
 .rotate-prompt {
-    position: fixed;
-    bottom: 54px;
-    bottom: calc(54px + var(--vv-bottom-gap, 0px) + env(safe-area-inset-bottom));
+    position: absolute;
+    /* Keep the entire cue below its previous resting position by a small
+       viewport-relative amount, while preserving clearance above the footer. */
+    bottom: calc(44px + env(safe-area-inset-bottom, 0px));
+    bottom: calc(clamp(44px, 5.25dvh, 50px) + env(safe-area-inset-bottom, 0px));
     left: 0;
     z-index: 30;
     display: flex;
@@ -223,7 +241,7 @@
 }
 
 .sidebar-home {
-    position: fixed;
+    position: absolute;
     top: 46%;
     left: 32px;
     z-index: 5;
@@ -289,13 +307,13 @@
 
     .corner-marker--bottom-left {
         bottom: 10px !important;
-        bottom: calc(10px + var(--vv-bottom-gap, 0px) + env(safe-area-inset-bottom)) !important;
+        bottom: calc(10px + env(safe-area-inset-bottom, 0px)) !important;
         left: 10px !important;
     }
 
     .corner-marker--bottom-right {
         bottom: 10px !important;
-        bottom: calc(10px + var(--vv-bottom-gap, 0px) + env(safe-area-inset-bottom)) !important;
+        bottom: calc(10px + env(safe-area-inset-bottom, 0px)) !important;
         right: 10px !important;
     }
 
@@ -304,7 +322,7 @@
         left: 24px !important;
         right: 24px !important;
         bottom: 24px !important;
-        bottom: calc(24px + var(--vv-bottom-gap, 0px) + env(safe-area-inset-bottom)) !important;
+        bottom: calc(24px + env(safe-area-inset-bottom, 0px)) !important;
         font-size: 9px !important;
     }
 
@@ -434,20 +452,20 @@
 
     .corner-marker--bottom-left {
         bottom: 32px;
-        bottom: calc(32px + var(--vv-bottom-gap, 0px) + env(safe-area-inset-bottom));
+        bottom: calc(32px + env(safe-area-inset-bottom, 0px));
         left: 32px;
     }
 
     .corner-marker--bottom-right {
         right: 32px;
         bottom: 32px;
-        bottom: calc(32px + var(--vv-bottom-gap, 0px) + env(safe-area-inset-bottom));
+        bottom: calc(32px + env(safe-area-inset-bottom, 0px));
     }
 
     .home-footer {
         right: 48px;
         bottom: 48px;
-        bottom: calc(48px + var(--vv-bottom-gap, 0px) + env(safe-area-inset-bottom));
+        bottom: calc(48px + env(safe-area-inset-bottom, 0px));
         left: 48px;
         font-size: 10px;
     }
@@ -654,20 +672,20 @@
 
     .corner-marker--bottom-left {
         bottom: 40px;
-        bottom: calc(40px + var(--vv-bottom-gap, 0px) + env(safe-area-inset-bottom));
+        bottom: calc(40px + env(safe-area-inset-bottom, 0px));
         left: 40px;
     }
 
     .corner-marker--bottom-right {
         right: 40px;
         bottom: 40px;
-        bottom: calc(40px + var(--vv-bottom-gap, 0px) + env(safe-area-inset-bottom));
+        bottom: calc(40px + env(safe-area-inset-bottom, 0px));
     }
 
     .home-footer {
         right: 60px;
         bottom: 60px;
-        bottom: calc(60px + var(--vv-bottom-gap, 0px) + env(safe-area-inset-bottom));
+        bottom: calc(60px + env(safe-area-inset-bottom, 0px));
         left: 60px;
     }
 

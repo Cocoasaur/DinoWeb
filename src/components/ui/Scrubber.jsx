@@ -16,7 +16,7 @@ export default function Scrubber() {
 
     return (
         <div
-            className="fixed right-10 hidden md:block z-40 scrubber-entrance"
+            className="absolute right-10 hidden md:block z-40 scrubber-entrance"
             style={{ height: '208px', top: 'calc(50% - 104px)' }}
         >
             <div
