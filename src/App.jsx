@@ -17,6 +17,7 @@ import { useCubeInteraction } from './hooks/useCubeInteraction';
 import { useTheme } from './context/ThemeContext';
 import { useAdaptiveDPR } from './hooks/useAdaptiveDPR';
 import { useReducedMotion } from './hooks/useReducedMotion';
+import { useVisualViewportGap } from './hooks/useVisualViewportGap';
 import { getHomeViewportLayout } from './hooks/useHomeViewportLayout';
 import './styles/entrance-animations.css';
 import './styles/home-layout.css';
@@ -49,6 +50,7 @@ export default function App() {
   const faceDownPosRef = useRef({ x: 0, y: 0, valid: false });
   const { dpr, tier } = useAdaptiveDPR();
   const reducedMotion = useReducedMotion();
+  useVisualViewportGap();
 
   const {
     isZoomed, isZoomingOut, showOverlay, activeFace, targetRotation,
