@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 
 function getDeviceTier() {
     const memory = navigator.deviceMemory || 4;
@@ -12,38 +12,48 @@ function getDeviceTier() {
     return 'high';
 }
 
+function getRenderProfile() {
+    const tier = getDeviceTier();
+    const pixelRatio = window.devicePixelRatio || 1;
+    const isMobile = window.matchMedia(
+        '(max-width: 767px), (hover: none) and (pointer: coarse)'
+    ).matches;
+    const maxDpr = tier === 'low' ? 1 : isMobile ? 1.25 : 1.75;
+
+    return {
+        tier,
+        isMobile,
+        dpr: [1, Math.min(pixelRatio, maxDpr)],
+    };
+}
+
 export function useAdaptiveDPR() {
-    const [dpr, setDpr] = useState([1, 1]);
-    const tierRef = useRef(getDeviceTier());
+    const [profile, setProfile] = useState(getRenderProfile);
 
     useEffect(() => {
-        const tier = tierRef.current;
-        const pixelRatio = window.devicePixelRatio || 1;
-
-        if (tier === 'low') {
-            setDpr([1, Math.min(pixelRatio, 1.25)]);
-        } else if (tier === 'medium') {
-            setDpr([1, Math.min(pixelRatio, 1.75)]);
-        } else {
-            setDpr([1, Math.min(pixelRatio, 1.75)]);
-        }
-
-        // Listen for connection changes
         const connection = navigator.connection;
-        if (connection?.addEventListener) {
-            const onChange = () => {
-                const newTier = getDeviceTier();
-                if (newTier !== tierRef.current) {
-                    tierRef.current = newTier;
-                    const pr = window.devicePixelRatio || 1;
-                    setDpr(newTier === 'low' ? [1, Math.min(pr, 1.25)] :
-                        [1, Math.min(pr, 1.75)]);
-                }
-            };
-            connection.addEventListener('change', onChange);
-            return () => connection.removeEventListener('change', onChange);
-        }
+        const mobileQuery = window.matchMedia(
+            '(max-width: 767px), (hover: none) and (pointer: coarse)'
+        );
+        const updateProfile = () => {
+            const next = getRenderProfile();
+            setProfile((current) => (
+                current.tier === next.tier &&
+                current.isMobile === next.isMobile &&
+                current.dpr[1] === next.dpr[1]
+                    ? current
+                    : next
+            ));
+        };
+
+        connection?.addEventListener?.('change', updateProfile);
+        mobileQuery.addEventListener('change', updateProfile);
+
+        return () => {
+            connection?.removeEventListener?.('change', updateProfile);
+            mobileQuery.removeEventListener('change', updateProfile);
+        };
     }, []);
 
-    return { dpr, tier: tierRef.current };
+    return profile;
 }

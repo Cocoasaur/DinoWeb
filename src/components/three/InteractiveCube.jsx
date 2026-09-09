@@ -55,6 +55,7 @@ export default function InteractiveCube({
     zoomZ, onRotationChange, isDraggingRef, onPinchZoom,
     onZoomComplete, onZoomOutComplete,
     activeFace,
+    reduceEffects = false,
     screenPosRef,
     faceDownPosRef,
 }) {
@@ -426,6 +427,7 @@ export default function InteractiveCube({
             const drift = idleDriftRef.current;
             const neverInteracted = lastInteractTimeRef.current === 0;
             const canDrift = !reducedMotion &&
+                !reduceEffects &&
                 !isDraggingRef.current &&
                 !pinchRef.current.active &&
                 (neverInteracted ||
@@ -473,7 +475,7 @@ export default function InteractiveCube({
         }
 
         breathTimeRef.current += dt;
-        const breathScale = (reducedMotion || isZoomed)
+        const breathScale = (reducedMotion || reduceEffects || isZoomed)
             ? 1
             : 1 + BREATH_AMPLITUDE * Math.sin(breathTimeRef.current * (2 * Math.PI / BREATH_PERIOD_S));
 

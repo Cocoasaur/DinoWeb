@@ -25,8 +25,27 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,woff2,svg}'],
+        // Large 3D/PDF and route chunks are fetched and cached only when used.
+        // Precaching them made first-time mobile visitors download the entire site.
+        globIgnores: [
+          '**/CubeStage-*.js',
+          '**/CubeFaceText-*.js',
+          '**/react-pdf-*.js',
+          '**/AboutPage-*.js',
+          '**/ProjectsPage-*.js',
+          '**/SkillsPage-*.js',
+          '**/ContactsPage-*.js',
+        ],
         navigateFallback: '/DinoWeb/index.html',
         runtimeCaching: [
+          {
+            urlPattern: /\/assets\/.*\.(?:js|mjs)$/,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'dinoweb-lazy-code',
+              expiration: { maxEntries: 24, maxAgeSeconds: 30 * 24 * 60 * 60 },
+            },
+          },
           {
             urlPattern: /\.(webp|png|pdf)$/,
             handler: 'CacheFirst',
@@ -45,12 +64,13 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks(id) {
-          if (id.includes('node_modules/three') ||
-            id.includes('node_modules/@react-three')) {
-            return 'three'
-          }
-          if (id.includes('node_modules/react') ||
-            id.includes('node_modules/react-dom')) {
+          // Only React's core stays in the entry's cacheable vendor chunk.
+          // PDF and Three.js dependencies follow their lazy import boundaries;
+          // forcing react-pdf into a manual chunk made Vite preload it at startup.
+          if (id.includes('node_modules/react/') ||
+            id.includes('node_modules/react-dom') ||
+            id.includes('node_modules/scheduler/') ||
+            id.includes('node_modules/react-dom/')) {
             return 'vendor'
           }
         }

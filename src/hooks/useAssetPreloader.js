@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { PRELOAD_CRITICAL, PRELOAD_DEFERRED, PRELOAD_FILES } from '../constants/preloadAssets';
 import { prefetchLazyChunks } from '../utils/prefetchPages';
-import CubeFaceText from '../components/three/CubeFaceText';
 
 // Safety net: never let a wedged request block portfolio entry forever.
 const SAFETY_TIMEOUT_MS = 20000;
@@ -42,9 +41,24 @@ function warmDeferredAssets() {
     if (deferredWarmStarted) return;
     deferredWarmStarted = true;
 
+    const connection = navigator.connection;
+    const constrained = connection?.saveData ||
+        ['slow-2g', '2g', '3g'].includes(connection?.effectiveType) ||
+        window.matchMedia('(max-width: 767px), (hover: none) and (pointer: coarse)').matches;
+
+    // Mobile and data-conscious visitors load screenshots, PDFs and route
+    // chunks only when requested instead of downloading the whole portfolio.
+    if (constrained) return;
+
     const warm = () => {
         PRELOAD_DEFERRED.forEach(preloadImage);
-        CubeFaceText.prewarmFaceTextures();
+        // PDF + lazy page chunks + 3D text prewarm are warmed off the critical
+        // path so nothing here blocks the boot/LCP release.
+        PRELOAD_FILES.forEach((url) => { fetch(url).then(() => {}).catch(() => {}); });
+        prefetchLazyChunks();
+        import('../components/three/CubeFaceText').then(({ default: CubeFaceText }) => {
+            CubeFaceText.prewarmFaceTextures();
+        }).catch(() => {});
     };
 
     if (typeof window.requestIdleCallback === 'function') {
@@ -59,12 +73,9 @@ export function useAssetPreloader() {
 
     useEffect(() => {
         if (!preloadPromise) {
-            const criticalTasks = [
-                ...PRELOAD_CRITICAL.map(preloadImage),
-                ...PRELOAD_FILES.map((url) => fetch(url).then(() => {}).catch(() => {})),
-                Promise.resolve(typeof document.fonts !== 'undefined' ? document.fonts.ready : true),
-                ...prefetchLazyChunks(),
-            ];
+            // Boot waits only for the visible brand mark. Everything below the
+            // first viewport is either warmed on capable desktops or loaded on demand.
+            const criticalTasks = PRELOAD_CRITICAL.map(preloadImage);
 
             preloadPromise = Promise.race([
                 runPreload(criticalTasks, (progress) => {

@@ -1,41 +1,18 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import { registerSW } from 'virtual:pwa-register'
-import '@fontsource/space-grotesk/latin-400.css'
 import '@fontsource/space-grotesk/latin-700.css'
-import '@fontsource/inter/latin-400.css'
-import '@fontsource/inter/latin-500.css'
-import '@fontsource/inter/latin-700.css'
 import './index.css'
-import './styles/scrollbar.css'
 import './styles/boot-screen.css'
-import App from './App.jsx'
-import UpdatePrompt from './components/ui/UpdatePrompt.jsx'
-import BootScreen from './components/ui/BootScreen.jsx'
-import { ThemeProvider } from './context/ThemeContext'
+import { loadDeferredStyles } from './utils/deferredLoad'
+import RootApp from './RootApp.jsx'
 
 const root = createRoot(document.getElementById('root'))
+
+// Warms secondary fonts + animation/layout CSS after first paint (idle callback).
+loadDeferredStyles()
+
 root.render(
   <StrictMode>
-    <ThemeProvider>
-      <App />
-      <BootScreen />
-    </ThemeProvider>
+    <RootApp />
   </StrictMode>,
 )
-
-registerSW({
-    immediate: true,
-    updateViaCache: 'none',
-    onNeedReload() {
-        root.render(
-            <StrictMode>
-                <ThemeProvider>
-                    <App />
-                    <BootScreen />
-                    <UpdatePrompt />
-                </ThemeProvider>
-            </StrictMode>,
-        );
-    },
-})

@@ -93,12 +93,12 @@ import quarto8 from '../assets/projects_screenshots/quarto/Quarto7.webp';
 
 export const PRELOAD_CRITICAL = [
     dinoIcon,
-    profileImage,
-    githubIconLight,
-    githubIconDark,
 ];
 
 export const PRELOAD_DEFERRED = [
+    profileImage,
+    githubIconLight,
+    githubIconDark,
     aignite,
     courseraExcel,
     courseraExcel1,
