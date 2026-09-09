@@ -1,6 +1,7 @@
 .portfolio-viewport {
     position: relative;
     width: 100%;
+    overflow: hidden;
     /* The home scene is a viewport-sized application. `dvh` follows dynamic
        browser chrome, while the preceding declaration remains a fallback. */
     height: 100vh;
