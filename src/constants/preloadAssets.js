@@ -22,7 +22,7 @@ import googleForEducation from '../assets/certifications/Google_for_Education.we
 import ciscoIntroDS from '../assets/certifications/Cisco_Data_Science.webp';
 
 // ── Resume ──
-import resumePdf from '../assets/resume/Resume_Arquesola.pdf';
+import resumePdf from '../assets/resume/Arquesola_Curriculum_Vitae.pdf';
 
 // ── GitHub buttons ──
 import githubIconLight from '../assets/repoButton/Light-dark_Github.webp';

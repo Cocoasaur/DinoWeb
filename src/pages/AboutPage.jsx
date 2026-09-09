@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import TiltCard from '../components/ui/TiltCard';
 import OverlayNavIcon from '../components/ui/OverlayNavIcon';
 import GitHubContributions from '../components/ui/GitHubContributions';
+import CvViewer from '../components/ui/CvViewer';
 import { useTimelineSpy } from '../hooks/useTimelineSpy';
 import profileImage from '../assets/images/profile/me.webp';
 
@@ -15,9 +16,6 @@ import gdgBacolod from '../assets/certifications/GDG_Bacolod.webp';
 import googleForEducation from '../assets/certifications/Google_for_Education.webp';
 import ciscoIntroDS from '../assets/certifications/Cisco_Data_Science.webp';
 
-import resumePdf from '../assets/resume/Resume_Arquesola.pdf';
-
-const RESUME_PDF_URL = resumePdf;
 const DOT_GLOW_STAGGER_MS = 400;
 
 const S = {
@@ -231,27 +229,6 @@ export default function AboutPage() {
                         I don't just chase challenges, I welcome them, because each one is a chance
                         to create something meaningful, elegant, and lasting.
                     </p>
-                    <a
-                        href={RESUME_PDF_URL}
-                        download
-                        className="about-resume-download flex items-center gap-2 px-4 py-2 border text-[10px] tracking-[0.2em] uppercase transition-all duration-300 mt-8"
-                        style={{
-                            fontFamily: "'Space Grotesk', monospace",
-                            color: 'var(--void-text-dim)',
-                            borderColor: 'var(--void-border)',
-                            textDecoration: 'none',
-                        }}
-                        onMouseEnter={e => {
-                            e.currentTarget.style.color = 'var(--void-text-full)';
-                            e.currentTarget.style.borderColor = 'var(--void-text-dim)';
-                        }}
-                        onMouseLeave={e => {
-                            e.currentTarget.style.color = 'var(--void-text-dim)';
-                            e.currentTarget.style.borderColor = 'var(--void-border)';
-                        }}
-                    >
-                        DOWNLOAD RESUME ↓
-                    </a>
                 </div>
 
                 {/* Right — Profile Picture */}
@@ -421,7 +398,20 @@ export default function AboutPage() {
                 document.body
             )}
 
-            {/* Divider 2: Certifications → GitHub Contributions */}
+            {/* Divider 2: Certifications → CV Viewer */}
+            <div className="about-divider my-10 w-full h-px" style={{ backgroundColor: 'var(--void-border)' }} />
+
+            {/* ═══════════════════════════════════════════════════════
+                MIDDLE SECTION: Curriculum Vitae Viewer (full width)
+            ═══════════════════════════════════════════════════════ */}
+            <div className="about-section about-cv-viewer mb-0">
+                <h3 className="about-section-title uppercase mb-5" style={S.h3}>
+                    Curriculum Vitae
+                </h3>
+                <CvViewer />
+            </div>
+
+            {/* Divider: CV Viewer → GitHub Contributions */}
             <div className="about-divider my-10 w-full h-px" style={{ backgroundColor: 'var(--void-border)' }} />
 
             {/* ═══════════════════════════════════════════════════════

@@ -112,18 +112,142 @@
 }
 
 /* ═══════════════════════════════════════════════════════
-   RESUME DOWNLOAD — used on the Introduction section
+   CV VIEWER — modern inline PDF viewer on the About page
    ═══════════════════════════════════════════════════════ */
-.about-resume-download {
-    font-family: 'Space Grotesk', monospace;
-    color: var(--void-text-dim);
-    border-color: var(--void-border);
-    text-decoration: none;
+.about-cv-viewer-container {
+    background-color: var(--void-surface-80);
 }
 
-.about-resume-download:hover {
-    color: var(--void-text-full);
+/* ── Zoom toolbar ── */
+.about-cv-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 12px;
+    height: 36px;
+    border-bottom: 1px solid var(--void-border);
+    background-color: var(--void-surface-80);
+}
+
+.about-cv-toolbar-label {
+    font-family: 'Space Grotesk', monospace;
+    font-size: 10px;
+    letter-spacing: 0.3em;
+    color: var(--void-text-dim);
+}
+
+.about-cv-toolbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.about-cv-toolbar-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border: 1px solid var(--void-border);
+    background-color: transparent;
+    color: var(--void-text-dim);
+    cursor: pointer;
+    text-decoration: none;
+    transition: border-color 0.2s, color 0.2s;
+}
+
+.about-cv-toolbar-btn:hover:not(:disabled) {
     border-color: var(--void-text-dim);
+    color: var(--void-text-full);
+}
+
+.about-cv-toolbar-btn:disabled {
+    opacity: 0.35;
+    cursor: default;
+}
+
+.about-cv-zoom-level {
+    min-width: 40px;
+    text-align: center;
+    font-family: 'Space Grotesk', monospace;
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    color: var(--void-text-dim);
+}
+
+/* ── Scrollable page column ── */
+.about-cv-scroll {
+    height: 800px;
+    overflow: auto;
+    background-color: var(--void-surface);
+}
+
+.about-cv-page-stack {
+    min-height: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    padding: 24px;
+}
+
+.about-cv-page-wrap {
+    width: max-content;
+    margin: 0 auto;
+}
+
+.about-cv-page-wrap:first-child {
+    margin-top: auto;
+}
+
+.about-cv-page-wrap:last-child {
+    margin-bottom: auto;
+}
+
+.about-cv-page canvas {
+    display: block;
+    max-width: none;
+    height: auto;
+    background: #ffffff;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
+}
+
+/* ── Footer ── */
+.about-cv-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 12px;
+    height: 36px;
+    border-top: 1px solid var(--void-border);
+    background-color: var(--void-surface-80);
+}
+
+.about-cv-filename {
+    font-family: 'Space Grotesk', monospace;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--void-text-dim);
+}
+
+.about-cv-download {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: 'Space Grotesk', monospace;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--void-text-dim);
+    border: 1px solid var(--void-border);
+    padding: 4px 10px;
+    text-decoration: none;
+    transition: border-color 0.2s, color 0.2s;
+}
+
+.about-cv-download:hover {
+    border-color: var(--void-text-dim);
+    color: var(--void-text-full);
 }
 
 .about-parameter-row {
@@ -395,10 +519,50 @@
         width: 28px;
     }
 
-    .about-resume-download {
-        padding: 5px 10px !important;
-        font-size: 9px !important;
-        letter-spacing: 0.18em !important;
+    .about-cv-scroll {
+        height: 500px;
+    }
+
+    .about-cv-page-stack {
+        gap: 14px;
+        padding: 14px;
+    }
+
+    .about-cv-toolbar {
+        height: 32px;
+        padding: 0 10px;
+    }
+
+    .about-cv-toolbar-label {
+        font-size: 9px;
+    }
+
+    .about-cv-toolbar-btn {
+        width: 24px;
+        height: 24px;
+    }
+
+    .about-cv-toolbar-btn svg {
+        width: 12px;
+        height: 12px;
+    }
+
+    .about-cv-zoom-level {
+        font-size: 10px;
+    }
+
+    .about-cv-footer {
+        height: 32px;
+        padding: 0 10px;
+    }
+
+    .about-cv-filename {
+        font-size: 9px;
+    }
+
+    .about-cv-download {
+        font-size: 9px;
+        padding: 3px 8px;
     }
 
     .about-timeline-item {
