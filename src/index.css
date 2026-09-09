@@ -237,12 +237,159 @@
   }
 }
 
+/* GPU-composited drift: shifting `background-position` forces per-frame
+   main-thread repaints. Instead, the drift elements are oversized by one
+   tile and we translate by exactly one tile so the repeating pattern loops
+   seamlessly on the compositor (rewrites are transform-only → GPU-only). */
 @keyframes drift {
   from {
-    background-position: 0 0;
+    transform: translate3d(0, 0, 0);
   }
 
   to {
-    background-position: 100px 100px;
+    transform: translate3d(var(--drift-step-x, 100px), var(--drift-step-y, 100px), 0);
+    will-change: transform;
+  }
+}
+
+/* ══════════════════════════════════════════════════════
+   HERO BASE-HIDDEN STATES (CRITICAL)
+   These rest the hero (LCP) + core chrome hidden on the very
+   first paint. They were moved OUT of the deferred
+   entrance-animations.css so the hero paints correctly-hidden
+   (opacity 0 / clip) instead of flashing visible->hidden->
+   revealed when that CSS arrives after FCP. The matching
+   `html.home-entered` reveal animations + @keyframes still
+   live in entrance-animations.css (deferred) and simply run
+   the same stagger once they load.
+   ══════════════════════════════════════════════════════ */
+
+/* ── Cube ── opacity only, no transform scale (fixes reload lag) */
+.cube-entrance {
+  opacity: 0;
+}
+
+/* Referenced by the critical mobile fast-reveal gate below. */
+@keyframes cube-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+/* ── Corner markers ── */
+.corner-markers-entrance {
+  opacity: 0;
+}
+
+/* ── Sidebar ── clip un-wipe, sliding down from above ── */
+.sidebar-entrance {
+  opacity: 0;
+  transform: translateY(calc(-50% + 24px));
+  clip-path: inset(0 0 100% 0);
+}
+
+/* ── DINO / WEB fill ── */
+.dino-fill {
+  opacity: 0;
+}
+
+/* ── Subtitle ── */
+.subtitle-entrance {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+/* ── Theme label ── */
+.theme-label-entrance {
+  opacity: 0;
+}
+
+/* ── Coordinate display ── slide from top, clip un-wipe downward ── */
+.coord-entrance {
+  opacity: 0;
+  transform: translateY(-12px);
+  clip-path: inset(100% 0 0 0);
+}
+
+/* ── Scrubber ── slide from right ── */
+.scrubber-entrance {
+  opacity: 0;
+  transform: translateX(12px);
+  clip-path: inset(0 0 0 100%);
+}
+
+/* ── Footer ── slide from bottom ── */
+.footer-entrance {
+  opacity: 0;
+  transform: translateY(16px);
+  clip-path: inset(100% 0 0 0);
+}
+
+/* ── Blueprint text ── */
+.web-hatch {
+  opacity: 0;
+}
+
+.web-trace {
+  stroke-dasharray: var(--web-trace-length, 3000);
+  stroke-dashoffset: var(--web-trace-length, 3000);
+  opacity: 0.9;
+}
+
+/* ── Mobile branding ── */
+.mobile-branding-entrance {
+  opacity: 0;
+}
+
+/* ── Rotate prompt ── */
+.rotate-prompt-entrance {
+  opacity: 0;
+}
+
+/* ══════════════════════════════════════════════════════
+   HERO-FIRST FAST REVEAL (mobile / reduced motion)
+   On phones we skip the long clip-path/translate wipes on the
+   hero (LCP) and core chrome so the DINOWEB text paints almost
+   immediately. This removes several non-composited animated
+   elements from the mobile critical render path. Critical so
+   the mobile hero resolves to opacity:1 on the very first paint
+   (best LCP) rather than waiting for deferred CSS. For everyone
+   else the staggered reveals in entrance-animations.css still run.
+   ══════════════════════════════════════════════════════ */
+@media (max-width: 768px), (prefers-reduced-motion: reduce) {
+  html.home-entered .sidebar-entrance,
+  html.home-entered .dino-fill,
+  html.home-entered .subtitle-entrance,
+  html.home-entered .corner-markers-entrance,
+  html.home-entered .theme-label-entrance,
+  html.home-entered .coord-entrance,
+  html.home-entered .scrubber-entrance,
+  html.home-entered .footer-entrance,
+  html.home-entered .rotate-prompt-entrance,
+  html.home-entered .mobile-branding-entrance {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+    clip-path: inset(0 0 0 0) !important;
+  }
+
+  /* Blueprint stroke animations are non-composited; on mobile draw them
+     statically to cut long-task / compositing work on the hero. */
+  html.home-entered .web-hatch {
+    animation: none !important;
+    opacity: 0.4 !important;
+  }
+
+  html.home-entered .web-trace {
+    animation: none !important;
+    stroke-dashoffset: 0 !important;
+  }
+
+  html.home-entered .cube-entrance {
+    animation: cube-in 0.35s ease-out 0s forwards;
   }
 }

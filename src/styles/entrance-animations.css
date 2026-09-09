@@ -1,32 +1,13 @@
 @media (prefers-reduced-motion: reduce) {
 
-    .cube-entrance,
-    .corner-markers-entrance,
-    .sidebar-entrance,
-    .dino-fill,
-    .subtitle-entrance,
-    .theme-label-entrance,
-    .coord-entrance,
-    .scrubber-entrance,
-    .footer-entrance,
-    .web-hatch,
-    .web-trace {
-        animation: none !important;
-        opacity: 1 !important;
-        transform: none !important;
-        clip-path: none !important;
-    }
+    /* Hero + core chrome reduced-motion reveal (opacity 1 / animation none)
+       now lives in index.css — critical — so it applies on the first paint.
+       Only the deferred, non-hero elements are handled here. */
 
     .void-grid-drift {
         animation: none !important;
     }
 
-    .web-trace {
-        stroke-dashoffset: 0 !important;
-    }
-
-    .mobile-branding-entrance,
-    .rotate-prompt-entrance,
     .cert-lightbox-in,
     .cert-lightbox {
         animation: none !important;
@@ -45,10 +26,22 @@
 }
 
 .void-grid-drift {
+    /* Oversize by one tile so the composited translate3d drift never reveals
+       an edge; the background repeats every tile so the shift loops seamlessly. */
+    --drift-step-x: 100px;
+    --drift-step-y: 100px;
+    position: absolute;
+    /* Explicit longhands (not `inset`) override Tailwind's `inset-0` utility
+       so the drift layer overlaps the viewport by a full tile on every side. */
+    top: calc(-1 * var(--drift-step-y));
+    right: calc(-1 * var(--drift-step-x));
+    bottom: calc(-1 * var(--drift-step-y));
+    left: calc(-1 * var(--drift-step-x));
     background-image:
         linear-gradient(var(--void-grid-drift) 1px, transparent 1px),
         linear-gradient(90deg, var(--void-grid-drift) 1px, transparent 1px);
-    background-size: 100px 100px;
+    background-size: var(--drift-step-x) var(--drift-step-y);
+    background-position: 0 0;
     animation: drift 60s linear infinite;
     transition: background-image 0.5s ease;
 }
@@ -73,11 +66,10 @@
    immediately afterward in one staggered ~1.6s sequence —
    a clip-wipe reveals. */
 
-/* ── Cube ── opacity only, no transform scale (fixes reload lag) */
-.cube-entrance {
-    opacity: 0;
-}
-
+/* ── Cube ── opacity only, no transform scale (fixes reload lag)
+   (base hidden state + mobile fast-reveal gate live in index.css — critical)
+   These run for everyone else (desktop / no preference) now that the
+   mobile/reduced-motion gate has been hoisted to critical CSS. */
 html.home-entered .cube-entrance {
     animation: cube-in 0.9s cubic-bezier(0.4, 0, 0.2, 1) 0.05s forwards;
 }
@@ -93,10 +85,6 @@ html.home-entered .cube-entrance {
 }
 
 /* ── Corner markers ── snap in, staggered per corner ── */
-.corner-markers-entrance {
-    opacity: 0;
-}
-
 html.home-entered .corner-markers-entrance {
     animation: corner-snap 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.36s forwards;
 }
@@ -125,13 +113,8 @@ html.home-entered .corner-markers-entrance:nth-child(4) {
     }
 }
 
-/* ── Sidebar ── clip un-wipe, sliding down from above ── */
-.sidebar-entrance {
-    opacity: 0;
-    transform: translateY(calc(-50% + 24px));
-    clip-path: inset(0 0 100% 0);
-}
-
+/* ── Sidebar ── clip un-wipe, sliding down from above
+   (base hidden state lives in index.css — critical) */
 html.home-entered .sidebar-entrance {
     animation: sidebar-in 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.10s forwards;
 }
@@ -144,17 +127,8 @@ html.home-entered .sidebar-entrance {
     }
 }
 
-.dino-fill {
-    opacity: 0;
-}
-
 html.home-entered .dino-fill {
     animation: fade-in 0.45s ease-out 0.85s forwards;
-}
-
-.subtitle-entrance {
-    opacity: 0;
-    transform: translateY(10px);
 }
 
 html.home-entered .subtitle-entrance {
@@ -169,21 +143,11 @@ html.home-entered .subtitle-entrance {
 }
 
 /* ── Theme label ── */
-.theme-label-entrance {
-    opacity: 0;
-}
-
 html.home-entered .theme-label-entrance {
     animation: fade-in 0.55s ease-out 0.18s forwards;
 }
 
 /* ── Coordinate display ── slide from top, clip un-wipe downward ── */
-.coord-entrance {
-    opacity: 0;
-    transform: translateY(-12px);
-    clip-path: inset(100% 0 0 0);
-}
-
 html.home-entered .coord-entrance {
     animation: coord-in 0.55s ease-out 0.24s forwards;
 }
@@ -197,12 +161,6 @@ html.home-entered .coord-entrance {
 }
 
 /* ── Scrubber ── slide from right ── */
-.scrubber-entrance {
-    opacity: 0;
-    transform: translateX(12px);
-    clip-path: inset(0 0 0 100%);
-}
-
 html.home-entered .scrubber-entrance {
     animation: scrubber-in 0.55s ease-out 0.30s forwards;
 }
@@ -216,12 +174,6 @@ html.home-entered .scrubber-entrance {
 }
 
 /* ── Footer ── slide from bottom ── */
-.footer-entrance {
-    opacity: 0;
-    transform: translateY(16px);
-    clip-path: inset(100% 0 0 0);
-}
-
 html.home-entered .footer-entrance {
     animation: footer-in 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.36s forwards;
 }
@@ -241,10 +193,6 @@ html.home-entered .footer-entrance {
 }
 
 /* ── Blueprint text animations ── */
-.web-hatch {
-    opacity: 0;
-}
-
 html.home-entered .web-hatch {
     animation: hatch-reveal 0.5s ease-out 0.5s forwards;
 }
@@ -257,12 +205,6 @@ html.home-entered .web-hatch {
     to {
         opacity: 0.40;
     }
-}
-
-.web-trace {
-    stroke-dasharray: var(--web-trace-length, 3000);
-    stroke-dashoffset: var(--web-trace-length, 3000);
-    opacity: 0.9;
 }
 
 html.home-entered .web-trace {
@@ -396,20 +338,12 @@ html.theme-transitioning .web-trace {
     animation: blueprint-undraw 0.45s ease-in forwards;
 }
 
-/* ── Mobile branding ── */
-.mobile-branding-entrance {
-    opacity: 0;
-}
-
+/* ── Mobile branding ── (base hidden state lives in index.css — critical) */
 html.home-entered .mobile-branding-entrance {
     animation: fade-in 0.5s ease-out 0.2s forwards;
 }
 
-/* ── Rotate prompt ── */
-.rotate-prompt-entrance {
-    opacity: 0;
-}
-
+/* ── Rotate prompt ── (base hidden state lives in index.css — critical) */
 html.home-entered .rotate-prompt-entrance {
     animation: fade-in 0.5s ease-out 0.30s forwards;
 }

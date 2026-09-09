@@ -46,9 +46,12 @@ export default function BootScreen() {
     }, [phase]);
 
     useLayoutEffect(() => {
-        if (phase !== 'done') return;
+        // Add `home-entered` immediately (hero-first): the entrance reveals run
+        // underneath the boot overlay, so the DINOWEB hero (LCP) is already
+        // finishing its reveal the moment the boot fades — it no longer waits
+        // for heavy preload before it can paint.
         document.documentElement.classList.add('home-entered');
-    }, [phase]);
+    }, []);
 
     if (phase === 'done') return null;
 

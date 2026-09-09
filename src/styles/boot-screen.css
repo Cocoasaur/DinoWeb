@@ -5,11 +5,15 @@
 .boot-screen {
     position: fixed;
     inset: 0;
-    z-index: 200;
+    z-index: 150;
     display: flex;
     align-items: center;
     justify-content: center;
-    background-color: var(--void-bg);
+    /* Transparent + non-interactive: keeps the hero (LCP) visible and
+       interactive immediately — the boot loader floats "behind/in front"
+       without covering the content as an opaque blocker. */
+    background-color: transparent;
+    pointer-events: none;
     transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -21,6 +25,7 @@
 .boot-screen__grid {
     position: absolute;
     inset: 0;
+    opacity: 0.35;
     background-image:
         linear-gradient(var(--void-grid) 1px, transparent 1px),
         linear-gradient(90deg, var(--void-grid) 1px, transparent 1px);
@@ -29,10 +34,20 @@
 }
 
 .boot-screen__grid--drift {
+    /* Oversize by one tile so the composited translate3d drift overlaps the
+       surrounding static grid without revealing an edge. `drift` translates
+       by exactly one tile, so the repeating pattern loops seamlessly. */
+    --drift-step-x: 100px;
+    --drift-step-y: 100px;
+    top: calc(-1 * var(--drift-step-y));
+    right: calc(-1 * var(--drift-step-x));
+    bottom: calc(-1 * var(--drift-step-y));
+    left: calc(-1 * var(--drift-step-x));
     background-image:
         linear-gradient(var(--void-grid-drift) 1px, transparent 1px),
         linear-gradient(90deg, var(--void-grid-drift) 1px, transparent 1px);
-    background-size: 100px 100px;
+    background-size: var(--drift-step-x) var(--drift-step-y);
+    background-position: 0 0;
     animation: drift 60s linear infinite;
 }
 
