@@ -54,6 +54,9 @@ import quarto6 from '../assets/projects_screenshots/quarto/Quarto5.webp';
 import quarto7 from '../assets/projects_screenshots/quarto/Quarto6.webp';
 import quarto8 from '../assets/projects_screenshots/quarto/Quarto7.webp';
 
+import dinoweb1 from '../assets/projects_screenshots/dinoweb/DinoWeb1.webp';
+import dinoweb2 from '../assets/projects_screenshots/dinoweb/DinoWeb2.webp';
+
 export const STATUS_COLORS = {
     Complete: '#22c55e',
     In_Progress: '#eab308',
@@ -214,5 +217,37 @@ export const PROJECTS = [
         ],
         imageCount: 8,
     },
-
+    {
+        id: '05',
+        name: 'DINOWEB',
+        status: 'In_Progress',
+        shortDesc:
+            `My personal portfolio website showcasing my skills, projects, and experience in computer science.`,
+        fullDesc: [
+            `DinoWeb is my personal portfolio website showcasing my skills, projects, and other information.
+            It is built using HTML, CSS, and JavaScript to highlight my work and experience in the field of computer science.`,
+            `The portfolio features a modern, responsive design with smooth animations and interactive elements. It includes sections for my projects, skills, about me, and contact information.
+            This website serves as my online presence and a platform to showcase my work to potential employers and collaborators.`,
+        ],
+        stack: ['JavaScript', 'React', 'Three.js', 'Tailwind CSS', 'Git', 'Github'],
+        tools: [
+            { name: 'JavaScript', icon: jsIcon },
+            { name: 'React', icon: reactIcon },
+            { name: 'Three.js', icon: threejsBlackIcon },
+            { name: 'Tailwind CSS', icon: tailwindcssIcon },
+            { name: 'Git', icon: gitIcon },
+            { name: 'Github', icon: githubIcon },
+        ],
+        role: 'Full-Stack Developer',
+        github: {
+            isPublic: true,
+            url: 'https://github.com/Cocoasaur/DinoWeb.git',
+        },
+        projectURL: 'https://cocoasaur.github.io/DinoWeb/',
+        images: [
+            dinoweb1,
+            dinoweb2,
+        ],
+        imageCount: 2,
+    },
 ];
