@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, Suspense, lazy } from 'react';
+import { useState, useEffect, useRef, Suspense, lazy } from 'react';
 import OverlayNavIcon from './OverlayNavIcon';
 
 const AboutPage = lazy(() => import('../../pages/AboutPage'));
@@ -84,6 +84,9 @@ export default function Overlay({
     return (
         <div
             className="fixed inset-0 z-[100] flex items-center justify-center"
+            role="dialog"
+            aria-modal="true"
+            aria-label={`${faceName || 'Portfolio'} details`}
             style={{
                 opacity: isVisible ? 1 : 0,
                 transition: `opacity ${dur} ${ease}`,
@@ -130,6 +133,8 @@ export default function Overlay({
             >
                 {renderCloseButton ? renderCloseButton({ onClose }) : (
                     <button
+                        type="button"
+                        aria-label={`Close ${faceName || 'portfolio'} details`}
                         onClick={onClose}
                         className="portfolio-overlay-close sticky top-5 right-5 z-20 ml-auto text-xl leading-none w-10 h-10 flex items-center justify-center border transition-all duration-300 cursor-pointer"
                         style={{

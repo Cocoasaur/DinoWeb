@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 
 export default function ImageCarousel({ images, imageCount, className = '', onImageClick, keyboardDisabled = false }) {
     const [currentIndex, setCurrentIndex] = useState(0);
@@ -86,6 +86,7 @@ export default function ImageCarousel({ images, imageCount, className = '', onIm
                     style={{
                         transform: `translateX(calc(-${currentIndex * slideWidth}% + ${isDragging ? translateX : 0}px))`,
                         cursor: isDragging ? 'grabbing' : onImageClick ? 'zoom-in' : 'grab',
+                        willChange: isDragging ? 'transform' : 'auto',
                     }}
                 >
                     {images?.map((src, idx) => (
@@ -110,6 +111,8 @@ export default function ImageCarousel({ images, imageCount, className = '', onIm
                 {totalImages > 1 && (
                     <>
                         <button
+                            type="button"
+                            aria-label="Previous screenshot"
                             onClick={prev}
                             disabled={currentIndex === 0}
                             onPointerDown={(e) => e.stopPropagation()}
@@ -131,6 +134,8 @@ export default function ImageCarousel({ images, imageCount, className = '', onIm
                             ←
                         </button>
                         <button
+                            type="button"
+                            aria-label="Next screenshot"
                             onClick={next}
                             disabled={currentIndex === maxIndex}
                             onPointerDown={(e) => e.stopPropagation()}
@@ -159,6 +164,7 @@ export default function ImageCarousel({ images, imageCount, className = '', onIm
             <div className="image-carousel__dots">
                 {images?.map((_, i) => (
                     <button
+                        type="button"
                         key={i}
                         onClick={() => goTo(i)}
                         onPointerDown={(e) => e.stopPropagation()}

@@ -61,9 +61,11 @@ function ProjectCard({ project, onClick }) {
     const { id, name, status, shortDesc, stack } = project;
 
     return (
-        <div
+        <button
+            type="button"
             onClick={onClick}
-            className="projects-card border p-6 md:p-8 transition-all duration-300 cursor-pointer group"
+            className="projects-card w-full text-left border p-6 md:p-8 transition-all duration-300 cursor-pointer group"
+            aria-label={`Open ${name.replace(/_/g, ' ')} project`}
             style={{
                 borderColor: 'var(--void-border)',
                 backgroundColor: 'transparent',
@@ -103,7 +105,7 @@ function ProjectCard({ project, onClick }) {
                     </span>
                 ))}
             </div>
-        </div>
+        </button>
     );
 }
 
