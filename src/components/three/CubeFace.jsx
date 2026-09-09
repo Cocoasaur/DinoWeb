@@ -3,7 +3,7 @@ import { useTexture } from '@react-three/drei';
 import * as THREE from 'three';
 import CubeFaceText from './CubeFaceText';
 import { DRAG_THRESHOLD } from '../../constants/cubeConfig';
-import dinoIcon from '../../assets/brand/dino-icon.png';
+import dinoIcon from '../../assets/brand/dino-icon.webp';
 
 function HomeIcon() {
     const iconTexture = useTexture(dinoIcon);

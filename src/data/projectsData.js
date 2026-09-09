@@ -4,25 +4,29 @@
 
 // ── Tool icons ──
 // Frontend
-import html5Icon from '../assets/icons/skills/frontend/HTML5.png';
-import css3Icon from '../assets/icons/skills/frontend/CSS3.png';
-import jsIcon from '../assets/icons/skills/frontend/JavaScript.png';
-import tkinterIcon from '../assets/icons/skills/frontend/Tkinter.png';
+import html5Icon from '../assets/icons/skills/frontend/HTML5.svg';
+import css3Icon from '../assets/icons/skills/frontend/CSS3.svg';
+import jsIcon from '../assets/icons/skills/frontend/JavaScript.svg';
+import tkinterIcon from '../assets/icons/skills/frontend/Tkinter.svg';
+import reactIcon from '../assets/icons/skills/frontend/React.svg';
+import tailwindcssIcon from '../assets/icons/skills/frontend/TailwindCSS.svg';
+import threejsBlackIcon from '../assets/icons/skills/frontend/Three.js_black.svg';
+import threejsWhiteIcon from '../assets/icons/skills/frontend/Three.js_white.svg';
 
 // Backend
-import pythonIcon from '../assets/icons/skills/backend/Python.png';
-import javaIcon from '../assets/icons/skills/backend/Java.png';
+import pythonIcon from '../assets/icons/skills/backend/Python.svg';
+import javaIcon from '../assets/icons/skills/backend/Java.svg';
 
 // Database
-import sqliteIcon from '../assets/icons/skills/database/SQLite.png';
-import mysqlIcon from '../assets/icons/skills/database/MySQL.png';
+import sqliteIcon from '../assets/icons/skills/database/SQLite.svg';
+import mysqlIcon from '../assets/icons/skills/database/MySQL.svg';
 
 // Tools
-import figmaIcon from '../assets/icons/skills/tools/Figma.png';
-import vscodeIcon from '../assets/icons/skills/tools/Visual_Studio_Code.png';
-import godotengineIcon from '../assets/icons/skills/tools/Godot_Engine.png';
-import gitIcon from '../assets/icons/skills/tools/Git.png';
-import githubIcon from '../assets/icons/skills/tools/Github.png';
+import figmaIcon from '../assets/icons/skills/tools/Figma.svg';
+import vscodeIcon from '../assets/icons/skills/tools/Visual_Studio_Code.svg';
+import godotengineIcon from '../assets/icons/skills/tools/Godot_Engine.svg';
+import gitIcon from '../assets/icons/skills/tools/Git.svg';
+import githubIcon from '../assets/icons/skills/tools/Github.svg';
 
 // ── Project screenshots ──
 import tipAirlines1 from '../assets/projects_screenshots/tip_airlines/TIP_Airlines.webp';

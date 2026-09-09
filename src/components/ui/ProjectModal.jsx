@@ -8,8 +8,14 @@ import { STATUS_COLORS } from '../../data/projectsData';
 // ── GitHub button icon assets ──────────────────────────────────────────────
 // Light-dark_Github.png         → dark octocat, for light/white button backgrounds
 // Tomorrow_Night_Blue_Github.png → light octocat, for dark/black button backgrounds
-import githubIconLight from '../../assets/repoButton/Light-dark_Github.png';
-import githubIconDark from '../../assets/repoButton/Tomorrow_Night_Blue_Github.png';
+import githubIconLight from '../../assets/repoButton/Light-dark_Github.webp';
+import githubIconDark from '../../assets/repoButton/Tomorrow_Night_Blue_Github.webp';
+
+// ── Three.js theme-aware icons ─────────────────────────────────────────────
+// Three.js_black.png → for light theme (clair-obscur)
+// Three.js_white.png → for dark theme (demain-soir-bleu)
+import threejsBlackIcon from '../../assets/icons/skills/frontend/Three.js_black.svg';
+import threejsWhiteIcon from '../../assets/icons/skills/frontend/Three.js_white.svg';
 
 function StatusBadge({ status }) {
     const color = STATUS_COLORS[status] || '#888';
@@ -142,6 +148,7 @@ function GitHubButton({ isPublic, url }) {
 export default function ProjectModal({ project }) {
     const { id, name, status, fullDesc, tools, role, github, projectURL, images, imageCount } = project;
 
+    const { isDark } = useTheme();
     const [lightboxIndex, setLightboxIndex] = useState(null);
 
     const totalImages = images?.length || imageCount || 0;
@@ -355,9 +362,13 @@ export default function ProjectModal({ project }) {
                     </h3>
                     <div className="border p-3" style={{ borderColor: 'var(--void-border)' }}>
                         <div className="flex flex-wrap gap-2">
-                            {tools.map((tool, idx) => (
-                                <ToolCell key={idx} name={tool.name} icon={tool.icon} />
-                            ))}
+                            {tools.map((tool, idx) => {
+                                let toolIcon = tool.icon;
+                                if (tool.name === 'Three.js') {
+                                    toolIcon = isDark ? threejsWhiteIcon : threejsBlackIcon;
+                                }
+                                return <ToolCell key={idx} name={tool.name} icon={toolIcon} />;
+                            })}
                         </div>
                     </div>
                 </div>

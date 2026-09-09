@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import dinoIcon from '../../assets/brand/dino-icon.png';
+import dinoIcon from '../../assets/brand/dino-icon.webp';
 import { useAssetPreloader } from '../../hooks/useAssetPreloader';
 
 const FLASH_GUARD_MS = 350;

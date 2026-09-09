@@ -3,38 +3,38 @@ import { useTheme } from '../context/ThemeContext';
 
 // Import all skill icons from the project's assets
 // Frontend
-import html5Icon from '../assets/icons/skills/frontend/HTML5.png';
-import css3Icon from '../assets/icons/skills/frontend/CSS3.png';
-import jsIcon from '../assets/icons/skills/frontend/JavaScript.png';
-import tsIcon from '../assets/icons/skills/frontend/TypeScript.png';
-import tailwindIcon from '../assets/icons/skills/frontend/TailwindCSS.png';
-import tkinterIcon from '../assets/icons/skills/frontend/Tkinter.png';
-import reactIcon from '../assets/icons/skills/frontend/React.png';
-import threejsBlackIcon from '../assets/icons/skills/frontend/Three.js_black.png';
-import threejsWhiteIcon from '../assets/icons/skills/frontend/Three.js_white.png';
-import viteIcon from '../assets/icons/skills/frontend/Vite.png';
+import html5Icon from '../assets/icons/skills/frontend/HTML5.svg';
+import css3Icon from '../assets/icons/skills/frontend/CSS3.svg';
+import jsIcon from '../assets/icons/skills/frontend/JavaScript.svg';
+import tsIcon from '../assets/icons/skills/frontend/TypeScript.svg';
+import tailwindIcon from '../assets/icons/skills/frontend/TailwindCSS.svg';
+import tkinterIcon from '../assets/icons/skills/frontend/Tkinter.svg';
+import reactIcon from '../assets/icons/skills/frontend/React.svg';
+import threejsBlackIcon from '../assets/icons/skills/frontend/Three.js_black.svg';
+import threejsWhiteIcon from '../assets/icons/skills/frontend/Three.js_white.svg';
+import viteIcon from '../assets/icons/skills/frontend/Vite.svg';
 
 // Backend
-import pythonIcon from '../assets/icons/skills/backend/Python.png';
-import javaIcon from '../assets/icons/skills/backend/Java.png';
-import nodejsIcon from '../assets/icons/skills/backend/Node.js.png';
-import firebaseIcon from '../assets/icons/skills/backend/Firebase.png';
+import pythonIcon from '../assets/icons/skills/backend/Python.svg';
+import javaIcon from '../assets/icons/skills/backend/Java.svg';
+import nodejsIcon from '../assets/icons/skills/backend/Node.js.svg';
+import firebaseIcon from '../assets/icons/skills/backend/Firebase.svg';
 
 // Database
-import sqliteIcon from '../assets/icons/skills/database/SQLite.png';
-import mysqlIcon from '../assets/icons/skills/database/MySQL.png';
-import firestoreIcon from '../assets/icons/skills/database/Firestore.png';
+import sqliteIcon from '../assets/icons/skills/database/SQLite.svg';
+import mysqlIcon from '../assets/icons/skills/database/MySQL.svg';
+import firestoreIcon from '../assets/icons/skills/database/Firestore.svg';
 
 // Tools
-import figmaIcon from '../assets/icons/skills/tools/Figma.png';
-import canvaIcon from '../assets/icons/skills/tools/Canva.png';
-import postmanIcon from '../assets/icons/skills/tools/Postman.png';
-import vscodeIcon from '../assets/icons/skills/tools/Visual_Studio_Code.png';
-import kimiIcon from '../assets/icons/skills/tools/Kimi.png';
-import claudeIcon from '../assets/icons/skills/tools/Claude.png';
-import godotengineIcon from '../assets/icons/skills/tools/Godot_Engine.png';
-import gitIcon from '../assets/icons/skills/tools/Git.png';
-import githubIcon from '../assets/icons/skills/tools/Github.png';
+import figmaIcon from '../assets/icons/skills/tools/Figma.svg';
+import canvaIcon from '../assets/icons/skills/tools/Canva.svg';
+import postmanIcon from '../assets/icons/skills/tools/Postman.svg';
+import vscodeIcon from '../assets/icons/skills/tools/Visual_Studio_Code.svg';
+import kimiIcon from '../assets/icons/skills/tools/Kimi.svg';
+import claudeIcon from '../assets/icons/skills/tools/Claude.svg';
+import godotengineIcon from '../assets/icons/skills/tools/Godot_Engine.svg';
+import gitIcon from '../assets/icons/skills/tools/Git.svg';
+import githubIcon from '../assets/icons/skills/tools/Github.svg';
 
 const S = {
     label: {
