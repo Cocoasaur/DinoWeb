@@ -1,6 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { FACE_ROTATIONS, ZOOM_MIN, ZOOM_MAX, DEFAULT_ROTATION } from '../constants/cubeConfig';
-import CubeFaceText from '../components/three/CubeFaceText';
 
 // ─── Overlay phase lifecycle ──────────────────────────────────────────────────
 //
@@ -73,7 +72,13 @@ export function useCubeInteraction() {
     }, [clearPhaseTimeout]);
 
     const handleFacePressStart = useCallback((faceName) => {
-        if (faceName === 'theme') CubeFaceText.prewarmFaceTextures();
+        if (faceName === 'theme') {
+            // Defer the 3D text prewarm off the interaction path; three is already
+            // a lazy-loaded chunk by the time a face is pressed.
+            import('../components/three/CubeFaceText').then(({ default: CubeFaceText }) => {
+                CubeFaceText.prewarmFaceTextures();
+            }).catch(() => {});
+        }
         clearPhaseTimeout();
     }, [clearPhaseTimeout]);
 
