@@ -26,12 +26,19 @@ export default function RootApp() {
       })
     }
 
-    const schedule = () => {
+    const scheduleIdle = () => {
       if (typeof window.requestIdleCallback === 'function') {
         idleId = window.requestIdleCallback(register, { timeout: 10000 })
       } else {
-        timerId = window.setTimeout(register, 3000)
+        register()
       }
+    }
+
+    // Installing a service worker can trigger its precache and lifecycle work.
+    // Keep it out of the critical startup window even when the browser reports
+    // an early idle slot.
+    const schedule = () => {
+      timerId = window.setTimeout(scheduleIdle, 5000)
     }
 
     if (document.readyState === 'complete') schedule()

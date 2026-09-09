@@ -24,18 +24,10 @@ export default defineConfig({
         ],
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,woff2,svg}'],
-        // Large 3D/PDF and route chunks are fetched and cached only when used.
-        // Precaching them made first-time mobile visitors download the entire site.
-        globIgnores: [
-          '**/CubeStage-*.js',
-          '**/CubeFaceText-*.js',
-          '**/react-pdf-*.js',
-          '**/AboutPage-*.js',
-          '**/ProjectsPage-*.js',
-          '**/SkillsPage-*.js',
-          '**/ContactsPage-*.js',
-        ],
+        // Precache only the navigation shell. Versioned code and media enter
+        // runtime caches when visitors actually request them instead of making
+        // every first visit download the full portfolio in the background.
+        globPatterns: ['**/*.{html,webmanifest}'],
         navigateFallback: '/DinoWeb/index.html',
         runtimeCaching: [
           {
@@ -44,6 +36,14 @@ export default defineConfig({
             options: {
               cacheName: 'dinoweb-lazy-code',
               expiration: { maxEntries: 24, maxAgeSeconds: 30 * 24 * 60 * 60 },
+            },
+          },
+          {
+            urlPattern: /\/assets\/.*\.(?:css|woff2|woff|svg)$/,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'dinoweb-static-assets',
+              expiration: { maxEntries: 48, maxAgeSeconds: 30 * 24 * 60 * 60 },
             },
           },
           {

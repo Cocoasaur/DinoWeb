@@ -16,6 +16,7 @@ import { useAdaptiveDPR } from './hooks/useAdaptiveDPR';
 import { useReducedMotion } from './hooks/useReducedMotion';
 import { usePortfolioViewportSize } from './hooks/usePortfolioViewportSize';
 import { getHomeViewportLayout } from './hooks/useHomeViewportLayout';
+import dinoIcon from './assets/brand/dino-icon.webp';
 import './styles/home-layout.css';
 
 // The 3D stage chunks (three / drei / fiber) are deferred until the hero
@@ -64,10 +65,6 @@ export default function App() {
 
   // ── Lifted project selection state ────────────────────────────────────────
   const [selectedProject, setSelectedProject] = useState(null);
-
-  useEffect(() => {
-    if (!showOverlay) setSelectedProject(null);
-  }, [showOverlay]);
 
   useEffect(() => { updateZoomCoord(zoomZ); }, [zoomZ, updateZoomCoord]);
 
@@ -277,7 +274,7 @@ export default function App() {
           >
             <span className="mobile-cube-loader__cube" aria-hidden="true">
               <span className="mobile-cube-loader__face mobile-cube-loader__face--front">
-                <img src={`${import.meta.env.BASE_URL}dino-icon.png`} alt="" />
+                <img src={dinoIcon} alt="" width="76" height="76" />
               </span>
               <span className="mobile-cube-loader__face mobile-cube-loader__face--right">PROJECTS</span>
               <span className="mobile-cube-loader__face mobile-cube-loader__face--top">ABOUT</span>
@@ -303,7 +300,10 @@ export default function App() {
         active={showOverlay}
         phase={overlayPhase}
         faceName={activeFace}
-        onClose={handleCloseOverlay}
+        onClose={() => {
+          setSelectedProject(null);
+          handleCloseOverlay();
+        }}
         onCloseComplete={handleOverlayCloseComplete}
         reducedMotion={reducedMotion}
         selectedProject={selectedProject}
