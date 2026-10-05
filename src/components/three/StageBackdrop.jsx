@@ -24,13 +24,15 @@ export default function StageBackdrop({ hidden, paused = false, reduceEffects = 
         let dragging = false;
         const paint = () => {
             frame = 0;
-            // Only compositor transforms change; no React renders or GL planes.
-            backdrop.style.setProperty('--floor-tilt-x', `${y * 3}deg`);
-            backdrop.style.setProperty('--floor-tilt-z', `${-x * 1.4}deg`);
-            backdrop.style.setProperty('--floor-shift-x', `${-x * 18}px`);
-            backdrop.style.setProperty('--floor-shift-y', `${y * 8}px`);
-            backdrop.style.setProperty('--floor-shadow-x', `${-x * 14}px`);
-            backdrop.style.setProperty('--floor-shadow-y', `${y * 5}px`);
+            // Match the scene's 45° camera at z=5 and its .30/.20 parallax.
+            // Moving the eye translates the ground; the floor never rolls.
+            const worldUnit = backdrop.clientHeight / (10 * Math.tan(Math.PI / 8));
+            const cameraX = -x * .30 * worldUnit;
+            const cameraY = -y * .20 * worldUnit;
+            backdrop.style.setProperty('--floor-camera-x', `${cameraX}px`);
+            backdrop.style.setProperty('--floor-camera-y', `${cameraY}px`);
+            backdrop.style.setProperty('--floor-shadow-x', `${cameraX}px`);
+            backdrop.style.setProperty('--floor-shadow-y', `${cameraY}px`);
         };
         const schedule = () => {
             if (!frame) frame = requestAnimationFrame(paint);
@@ -79,6 +81,8 @@ export default function StageBackdrop({ hidden, paused = false, reduceEffects = 
         window.addEventListener('pointerout', leave, { passive: true });
         window.addEventListener('blur', cancel);
         pointerQuery.addEventListener('change', cancel);
+        const resizeObserver = new ResizeObserver(schedule);
+        resizeObserver.observe(backdrop);
         return () => {
             cancelAnimationFrame(frame);
             clearTimeout(idleTimer);
@@ -89,6 +93,7 @@ export default function StageBackdrop({ hidden, paused = false, reduceEffects = 
             window.removeEventListener('pointerout', leave);
             window.removeEventListener('blur', cancel);
             pointerQuery.removeEventListener('change', cancel);
+            resizeObserver.disconnect();
             x = 0;
             y = 0;
             paint();
@@ -96,7 +101,7 @@ export default function StageBackdrop({ hidden, paused = false, reduceEffects = 
     }, [hidden, paused, reduceEffects, reducedMotion]);
 
     return (
-        <div ref={backdropRef} className="home-stage-backdrop" aria-hidden="true" style={{ opacity: hidden ? 0 : 1 }}>
+        <div ref={backdropRef} className="home-stage-backdrop" aria-hidden="true" style={{ opacity: hidden ? 0 : 1, '--floor-zoom-scale': zoomScale, '--floor-camera-z': `calc(var(--portfolio-viewport-height, 100dvh) * ${-zoomZ / 1000 * 1.20710678})` }}>
             {!reduceEffects && <>
                 <div className="home-stage-backdrop__floor" />
                 <div className="home-stage-backdrop__pool" style={{ left, background: isDark

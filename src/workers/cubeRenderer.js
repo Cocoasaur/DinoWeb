@@ -225,7 +225,8 @@ function renderFrame(now) {
     if(!state.reduceEffects&&!state.reducedMotion){
         const settled=state.isZoomed||state.isZoomingOut||dragging||now-lastMove>3000;
         const px=settled?0:(isTouch?(pointer.x-(touchAnchor?.x||pointer.x)):-pointer.x)*(isTouch?-.42:-.3);
-        const py=settled?0:(isTouch?(pointer.y-(touchAnchor?.y||pointer.y)):-pointer.y)*(isTouch?-.28:-.2);
+        // Worker pointer Y points upward; the fallback's pointer Y points down.
+        const py=settled?0:(isTouch?(pointer.y-(touchAnchor?.y||pointer.y)):pointer.y)*(isTouch?-.28:-.2);
         for(const[key,target]of[['x',px],['y',py]]){const diff=target-camera.position[key];if(Math.abs(diff)>.0004){camera.position[key]+=diff*smooth(3.5);animate=true;}else camera.position[key]=target;}
     }
     cube.scale.setScalar(state.layout.cubeScale*pressScale);

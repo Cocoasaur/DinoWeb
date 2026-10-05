@@ -7,8 +7,8 @@ No development or preview servers were started or stopped during this work.
 
 | Profile | Performance | Accessibility | Best practices | SEO | FCP | LCP | Blocking time | CLS |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| Desktop | 100 | 100 | 100 | 100 | 0.21 s | 0.55 s | 0 ms | 0.00015 |
-| Mobile | 100 | 100 | 100 | 100 | 0.80 s | 0.95 s | 39 ms | 0.00093 |
+| Desktop | 100 | 100 | 100 | 100 | 0.33 s | 0.53 s | 4.5 ms | 0.00015 |
+| Mobile | 100 | 100 | 100 | 100 | 0.97 s | 1.30 s | 33 ms | 0.00087 |
 
 These are local startup audits using software WebGL. Their paint metrics include
 the initial loading UI; interactive-cube readiness is checked separately below.
@@ -19,8 +19,8 @@ with the device and hosting; they do not guarantee a frame rate during use.
 The HTML/JSON reports and a video of the slow transitions are saved in
 `/home/jl/.codex/visualizations/2026/10/04/01a10732-0c71-75b1-930b-235ade9c735f/`:
 
-- `lighthouse-enlarged-floor-desktop.report.html` and `.json`
-- `lighthouse-enlarged-floor-mobile.report.html` and `.json`
+- `lighthouse-ground-parallax-desktop.report.html` and `.json`
+- `lighthouse-ground-parallax-mobile.report.html` and `.json`
 - `progressive-blur-transitions.webm`
 - `cursor-baseplate-lighting.webm`
 
@@ -64,13 +64,17 @@ The HTML/JSON reports and a video of the slow transitions are saved in
   a subtle white gradient. Both fade smoothly into the floor with no hard edge.
   The broad high-profile glow/baseplate remain intact; low profiles draw only
   the inexpensive contact shadow and skip floor/hover effects.
-- The perspective floor spans the viewport and reaches approximately 25% of
-  its height, about twice the previous visible depth. Larger 100–160 px grid
-  tiles and viewport-scaled perspective match the reference's broad baseplate.
-  The loading screen shares these styles, without adding assets or GL draws.
-- The home baseplate reacts to a fine-pointer cursor with ±3° pitch, ±1.4°
-  roll, small perspective shifts and matching shadow movement. Pointer events
-  coalesce into one transform update per animation frame, with a 480 ms ease.
+- The perspective floor spans the viewport and fades through approximately the
+  bottom quarter. It is a horizontal plane at world y=-2.35, projected using
+  the cube's 45° lens and z=5 camera. One-world-unit grid tiles narrow with depth;
+  cursor movement changes their convergence while keeping the horizon level.
+  Home camera zoom also changes floor depth. The loading screen shares the
+  neutral projection styles, without adding assets or GL draws.
+- The home baseplate reacts to a fine-pointer cursor with the camera's ±0.30
+  horizontal / ±0.20 vertical world-unit movement and matching shadow movement.
+  The worker's mouse Y sign now matches the fallback camera and ground plane.
+  Pointer events coalesce into one transform update per animation frame, with
+  an 850 ms settling ease and no floor pitch/roll animation.
   No React renders or extra WebGL planes are needed. It resets during dragging,
   after three seconds of inactivity, on pointer exit/cancel/window blur, and
   during navigation or hidden tabs. Touch/reduced profiles skip cursor effects.
@@ -184,8 +188,9 @@ pausing. Both share the same filter timing and clipped blur edges.
   build preserves the first-painted image instead of recreating it when React
   mounts; the earlier recovery-only runs both scored 100 with 0 ms blocking
   time. The dissolve-adjustment runs also scored 100 in both profiles, with
-  0 ms desktop / 19 ms mobile blocking time. The latest enlarged-floor runs
-  appear in the table above, with 0 ms desktop / 39 ms mobile blocking time.
+  0 ms desktop / 19 ms mobile blocking time. Enlarged-floor runs scored 100
+  with 0 ms desktop / 39 ms mobile blocking time. The latest camera-matched
+  ground-parallax runs appear in the table above.
   Earlier reports are retained as `lighthouse-load-recovery-before-loader-*`.
 
 - Overlapping-dissolve checks pass desktop, mobile, forced fallback, reduced
@@ -243,3 +248,19 @@ that same project folder.
   in both themes on desktop/mobile, including refresh; initial HTML and home
   floors match. Fresh desktop/mobile Lighthouse reports have all four categories
   at 100, with no run warnings or runtime errors.
+
+- Ground-perspective checks pass desktop in both themes, mobile, simulated
+  2-core/2 GB mobile with 6× CPU throttling, the fallback renderer and reduced
+  motion. The worker's projected cube origin matches the floor's camera offsets
+  within two CSS pixels after settling. Matrices confirm the ground stays level,
+  with no cursor-induced roll. Checks also cover horizon fade/full-width coverage,
+  theme shadow colors, idle reset, wheel zoom, navigation, portrait resize, zero
+  extra idle GL draws and no page errors. Loader identity/background/refresh
+  checks were repeated in both themes on desktop and mobile. Screenshots and
+  the saved check script are named `ground-parallax-*`; a motion recording is
+  saved as `ground-perspective-motion.webm`.
+
+- Fresh ground-parallax Lighthouse runs score 100 in performance, accessibility,
+  best practices and SEO on both desktop and mobile, without run warnings or
+  runtime errors. A cropped MP4 motion preview is saved as
+  `ground-perspective-motion.mp4`; the full recording remains available as WebM.
