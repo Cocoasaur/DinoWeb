@@ -1,220 +1,40 @@
-/* ══════════════════════════════════════════════════════
-   BOOT SCREEN — archive boot sequence
-   ══════════════════════════════════════════════════════ */
-
 .boot-screen {
     position: fixed;
     inset: 0;
-    z-index: 150;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    /* Transparent + non-interactive: keeps the hero (LCP) visible and
-       interactive immediately — the boot loader floats "behind/in front"
-       without covering the content as an opaque blocker. */
-    background-color: transparent;
-    pointer-events: none;
-    transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 200;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    background: var(--void-bg);
+    color: var(--void-text-full);
+    opacity: 1;
+    transition: opacity 200ms ease;
 }
 
-.boot-screen--fading {
-    opacity: 0;
-    pointer-events: none;
-}
-
+.boot-screen--fading { opacity: 0; pointer-events: none; }
+.boot-screen__background { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
 .boot-screen__grid {
     position: absolute;
     inset: 0;
-    opacity: 0.35;
-    background-image:
-        linear-gradient(var(--void-grid) 1px, transparent 1px),
-        linear-gradient(90deg, var(--void-grid) 1px, transparent 1px);
-    background-size: 50px 50px;
-    background-position: center center;
+    -webkit-mask-image: linear-gradient(to bottom, #fff 50%, transparent 75%);
+    mask-image: linear-gradient(to bottom, #fff 50%, transparent 75%);
 }
-
-.boot-screen__grid--drift {
-    /* Oversize by one tile so the composited translate3d drift overlaps the
-       surrounding static grid without revealing an edge. `drift` translates
-       by exactly one tile, so the repeating pattern loops seamlessly. */
-    --drift-step-x: 100px;
-    --drift-step-y: 100px;
-    top: calc(-1 * var(--drift-step-y));
-    right: calc(-1 * var(--drift-step-x));
-    bottom: calc(-1 * var(--drift-step-y));
-    left: calc(-1 * var(--drift-step-x));
-    background-image:
-        linear-gradient(var(--void-grid-drift) 1px, transparent 1px),
-        linear-gradient(90deg, var(--void-grid-drift) 1px, transparent 1px);
-    background-size: var(--drift-step-x) var(--drift-step-y);
-    background-position: 0 0;
-    animation: drift 60s linear infinite;
-}
-
-.boot-screen__stage {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: min(360px, 86vw);
-}
-
-/* ── Dino icon — gentle breathing (mirrors the cube's idle breath) ── */
-.boot-screen__icon {
-    width: clamp(120px, 26vw, 160px);
-    height: clamp(120px, 26vw, 160px);
-    object-fit: contain;
-    animation: boot-breathe 2.4s ease-in-out infinite;
-}
-
-@keyframes boot-breathe {
-    0%,
-    100% {
-        transform: scale(1);
-    }
-
-    50% {
-        transform: scale(1.04);
-    }
-}
-
-/* ── Corner brackets — draw in around the icon ── */
-.boot-screen__brackets {
-    position: absolute;
-    inset: -20px;
-    pointer-events: none;
-}
-
-.boot-screen__bracket {
-    position: absolute;
-    width: 30px;
-    height: 30px;
-    border: 0 solid var(--void-marker);
-    animation: boot-bracket 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-}
-
-.boot-screen__bracket--tl {
-    top: 0;
-    left: 0;
-    border-top-width: 2px;
-    border-left-width: 2px;
-    transform-origin: top left;
-}
-
-.boot-screen__bracket--tr {
-    top: 0;
-    right: 0;
-    border-top-width: 2px;
-    border-right-width: 2px;
-    transform-origin: top right;
-}
-
-.boot-screen__bracket--bl {
-    bottom: 0;
-    left: 0;
-    border-bottom-width: 2px;
-    border-left-width: 2px;
-    transform-origin: bottom left;
-}
-
-.boot-screen__bracket--br {
-    bottom: 0;
-    right: 0;
-    border-bottom-width: 2px;
-    border-right-width: 2px;
-    transform-origin: bottom right;
-}
-
-@keyframes boot-bracket {
-    from {
-        transform: scale(0);
-        opacity: 0;
-    }
-
-    to {
-        transform: scale(1);
-        opacity: 1;
-    }
-}
-
-/* ── Boot progress — four ticks reflecting real preload progress ── */
-.boot-screen__progress {
-    display: flex;
-    gap: 9px;
-    margin-top: 34px;
-}
-
-.boot-screen__progress span {
-    width: 30px;
-    height: 6px;
-    background-color: var(--void-marker);
-    opacity: 0.25;
-    transition: opacity 0.35s ease;
-}
-
-.boot-screen__progress .boot-screen__tick--on {
-    opacity: 1;
-}
-
-/* ── Labels — mono, wide tracking, blinking block cursor ── */
-.boot-screen__label {
-    margin-top: 26px;
-    font-family: 'Space Grotesk', monospace;
-    font-size: 13px;
-    font-weight: 400;
-    letter-spacing: 0.32em;
-    text-transform: uppercase;
-    color: var(--void-text-dim);
-    animation: boot-fade 0.7s ease-out 0.15s backwards;
-}
-
-.boot-screen__label::after {
-    content: '▮';
-    margin-left: 6px;
-    color: var(--void-text-full);
-    animation: boot-blink 1s steps(1) infinite;
-}
-
-@keyframes boot-blink {
-    50% {
-        opacity: 0;
-    }
-}
-
-.boot-screen__sub-label {
-    margin-top: 12px;
-    font-family: 'Space Grotesk', monospace;
-    font-size: 12px;
-    letter-spacing: 0.3em;
-    text-transform: uppercase;
-    color: var(--void-text-muted);
-    animation: boot-fade 0.7s ease-out 0.55s backwards;
-}
-
-@keyframes boot-fade {
-    from {
-        opacity: 0;
-        transform: translateY(6px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-/* ══════════════════════════════════════════════════════
-   REDUCED MOTION — static loader, still fades out
-   ══════════════════════════════════════════════════════ */
+.boot-screen__stage { position: relative; z-index: 1; padding: 32px 40px; text-align: center; }
+.boot-screen__icon { display: block; margin: 0 auto 24px; object-fit: contain; }
+.boot-screen__bracket { position: absolute; width: 18px; height: 18px; border-color: var(--void-border); border-style: solid; }
+.boot-screen__bracket--tl { top: 0; left: 0; border-width: 1px 0 0 1px; }
+.boot-screen__bracket--tr { top: 0; right: 0; border-width: 1px 1px 0 0; }
+.boot-screen__bracket--bl { bottom: 0; left: 0; border-width: 0 0 1px 1px; }
+.boot-screen__bracket--br { bottom: 0; right: 0; border-width: 0 1px 1px 0; }
+.boot-screen__progress { display: flex; justify-content: center; gap: 6px; margin-bottom: 18px; }
+.boot-screen__progress span { width: 20px; height: 3px; background: currentColor; animation: boot-pulse 900ms ease-in-out infinite alternate; }
+.boot-screen__progress span:nth-child(2) { animation-delay: 150ms; }
+.boot-screen__progress span:nth-child(3) { animation-delay: 300ms; }
+.boot-screen__label, .boot-screen__sub-label { font-family: ui-monospace, 'Cascadia Code', 'Liberation Mono', monospace; }
+.boot-screen__label { font-size: 11px; letter-spacing: .25em; }
+.boot-screen__sub-label { margin-top: 8px; color: var(--void-text-dim); font-size: 9px; letter-spacing: .12em; }
+@keyframes boot-pulse { from { opacity: .25; } to { opacity: 1; } }
 @media (prefers-reduced-motion: reduce) {
-    .boot-screen__grid--drift,
-    .boot-screen__icon,
-    .boot-screen__bracket,
-    .boot-screen__label,
-    .boot-screen__label::after,
-    .boot-screen__sub-label {
-        animation: none !important;
-        opacity: 1 !important;
-        transform: none !important;
-    }
+    .boot-screen { transition: none; }
+    .boot-screen__progress span { animation: none; }
 }

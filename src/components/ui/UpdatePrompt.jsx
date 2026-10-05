@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import OverlayNavIcon from './OverlayNavIcon';
 
-export default function UpdatePrompt() {
+export default function UpdatePrompt({ onUpdate }) {
     const [visible, setVisible] = useState(true);
 
     if (!visible) return null;
@@ -21,7 +21,7 @@ export default function UpdatePrompt() {
                 New version available
             </span>
             <button
-                onClick={() => window.location.reload()}
+                onClick={onUpdate}
                 className="px-3 py-1.5 border text-[11px] tracking-[0.15em] uppercase transition-all duration-300 cursor-pointer"
                 style={{
                     color: 'var(--void-text-full)',

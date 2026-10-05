@@ -1,4 +1,6 @@
-import React, { useRef, useState, useCallback } from 'react';
+import { useRef, useState, useCallback } from 'react';
+
+import { useRenderProfile } from '../../context/RenderProfileContext';
 
 /**
  * TiltCard — 3D perspective tilt effect.
@@ -21,6 +23,7 @@ export default function TiltCard({
     perspective = 1000,
     depth = 0,
 }) {
+    const { reduceEffects } = useRenderProfile();
     const cardRef = useRef(null);
     const [transform, setTransform] = useState('');
     const [glarePos, setGlarePos] = useState({ x: 50, y: 50 });
@@ -68,30 +71,30 @@ export default function TiltCard({
                 verticalAlign: 'top',
                 position: 'relative',
                 ...style,
-                transform:
+                transform: reduceEffects ? undefined :
                     transform || `perspective(${perspective}px) rotateX(0deg) rotateY(0deg)`,
                 transition: isHovered
                     ? 'transform 0.1s ease-out'
                     : 'transform 0.5s cubic-bezier(0.23, 1, 0.32, 1)',
                 transformStyle: 'preserve-3d',
-                willChange: 'transform',
+                willChange: !reduceEffects && isHovered ? 'transform' : undefined,
             }}
-            onMouseMove={handleMouseMove}
-            onMouseLeave={handleMouseLeave}
-            onMouseEnter={handleMouseEnter}
+            onMouseMove={reduceEffects ? undefined : handleMouseMove}
+            onMouseLeave={reduceEffects ? undefined : handleMouseLeave}
+            onMouseEnter={reduceEffects ? undefined : handleMouseEnter}
         >
             {/* Inner content — only lift if depth > 0 */}
             <div
                 style={{
                     position: 'relative',
                     zIndex: 2,
-                    transform: depth ? `translateZ(${depth}px)` : undefined,
+                    transform: !reduceEffects && depth ? `translateZ(${depth}px)` : undefined,
                 }}
             >
                 {children}
             </div>
 
-            {glare && (
+            {glare && !reduceEffects && (
                 <div
                     aria-hidden="true"
                     style={{

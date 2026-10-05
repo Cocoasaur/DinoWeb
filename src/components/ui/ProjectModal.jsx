@@ -6,14 +6,14 @@ import OverlayNavIcon from './OverlayNavIcon';
 import { STATUS_COLORS } from '../../data/projectsData';
 
 // ── GitHub button icon assets ──────────────────────────────────────────────
-// Light-dark_Github.png         → dark octocat, for light/white button backgrounds
-// Tomorrow_Night_Blue_Github.png → light octocat, for dark/black button backgrounds
+// Light-dark_Github.webp         → dark octocat, for light/white button backgrounds
+// Tomorrow_Night_Blue_Github.webp → light octocat, for dark/black button backgrounds
 import githubIconLight from '../../assets/repoButton/Light-dark_Github.webp';
 import githubIconDark from '../../assets/repoButton/Tomorrow_Night_Blue_Github.webp';
 
 // ── Three.js theme-aware icons ─────────────────────────────────────────────
-// Three.js_black.png → for light theme (clair-obscur)
-// Three.js_white.png → for dark theme (demain-soir-bleu)
+// Three.js_black.svg → for light theme (clair-obscur)
+// Three.js_white.svg → for dark theme (demain-soir-bleu)
 import threejsBlackIcon from '../../assets/icons/skills/frontend/Three.js_black.svg';
 import threejsWhiteIcon from '../../assets/icons/skills/frontend/Three.js_white.svg';
 

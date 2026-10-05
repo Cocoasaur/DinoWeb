@@ -1,18 +1,14 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import '@fontsource/space-grotesk/latin-700.css'
 import './index.css'
 import './styles/boot-screen.css'
-import { loadDeferredStyles } from './utils/deferredLoad'
-import RootApp from './RootApp.jsx'
+import './styles/stage-backdrop.css'
+import { installLoadRecovery, handleAppLoadFailure, recoverImportFailure } from './utils/loadRecovery'
 
-const root = createRoot(document.getElementById('root'))
+installLoadRecovery()
 
-// Warms secondary fonts + animation/layout CSS after first paint (idle callback).
-loadDeferredStyles()
-
-root.render(
-  <StrictMode>
-    <RootApp />
-  </StrictMode>,
-)
+// Paint the HTML loader before downloading or evaluating React. The app and
+// its scene facade then load together; real 3D still starts automatically.
+requestAnimationFrame(() => requestAnimationFrame(() => {
+  void import('./renderApp.jsx').then(({ mountPortfolio }) => mountPortfolio()).catch(handleAppLoadFailure)
+  // This only warms the lightweight facade, not the Three.js fallback.
+  void import('./components/three/CubeStage.jsx').catch(recoverImportFailure)
+}))

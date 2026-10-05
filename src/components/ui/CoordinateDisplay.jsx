@@ -1,15 +1,12 @@
 import { useRef, useEffect } from 'react';
 
-export default function CoordinateDisplay({ coordsRef }) {
+export default function CoordinateDisplay({ coordsRef, paused }) {
     const spanRef = useRef(null);
     const lastTextRef = useRef('');
 
     useEffect(() => {
-        let frameId;
-        let lastSample = 0;
-        const tick = (ts) => {
-            if (ts - lastSample >= 100) {
-                lastSample = ts;
+        const tick = () => {
+            if (document.visibilityState !== 'hidden') {
                 if (spanRef.current && coordsRef.current) {
                     const { x, y, z } = coordsRef.current;
                     const w = window.innerWidth;
@@ -27,11 +24,12 @@ export default function CoordinateDisplay({ coordsRef }) {
                     }
                 }
             }
-            frameId = requestAnimationFrame(tick);
         };
-        frameId = requestAnimationFrame(tick);
-        return () => cancelAnimationFrame(frameId);
-    }, [coordsRef]);
+        tick();
+        if (paused) return;
+        const timer = setInterval(tick, 100);
+        return () => clearInterval(timer);
+    }, [coordsRef, paused]);
 
     return (
         <div className="home-coordinate coord-entrance">

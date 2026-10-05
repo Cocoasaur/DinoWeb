@@ -1,16 +1,16 @@
-import React, { useRef, useState, useCallback } from 'react';
-import { useTexture } from '@react-three/drei';
+import { useRef, useState, useCallback } from 'react';
 import * as THREE from 'three';
 import CubeFaceText from './CubeFaceText';
 import { DRAG_THRESHOLD } from '../../constants/cubeConfig';
-import dinoIcon from '../../assets/brand/dino-icon.webp';
+import { getHomeTexture } from '../../utils/cubeResources';
+
 
 function HomeIcon() {
-    const iconTexture = useTexture(dinoIcon);
+    const iconTexture = getHomeTexture();
     return (
         <mesh position={[0, 0, 0.01]}>
             <planeGeometry args={[1.6, 1.6]} />
-            <meshBasicMaterial map={iconTexture} transparent opacity={0.9} side={THREE.DoubleSide} />
+            <meshBasicMaterial map={iconTexture} transparent opacity={0.9} side={THREE.FrontSide} />
         </mesh>
     );
 }
@@ -18,8 +18,8 @@ function HomeIcon() {
 export default function CubeFace({
     name, position, rotation, text,
     onFaceClick, isZoomed, isZoomingOut, activeFace,   // ← ADDED isZoomingOut & activeFace
-    lastPointerDownFaceName, suppressFaceClickRef,
-    faceDownPosRef
+    lastPointerDownFaceNameRef, suppressFaceClickRef,
+    faceDownPosRef, reduceEffects
 }) {
     const [hovered, setHovered] = useState(false);
     const pointerDownPos = useRef({ x: 0, y: 0 });
@@ -37,8 +37,8 @@ export default function CubeFace({
             faceDownPosRef.current.y = e.clientY;
             faceDownPosRef.current.valid = true;
         }
-        if (lastPointerDownFaceName) lastPointerDownFaceName.current = name;
-    }, [name, lastPointerDownFaceName, isHome, faceDownPosRef]);
+        if (lastPointerDownFaceNameRef) lastPointerDownFaceNameRef.current = name;
+    }, [name, lastPointerDownFaceNameRef, isHome, faceDownPosRef]);
 
     const handleClick = useCallback((e) => {
         e.stopPropagation();
@@ -48,12 +48,12 @@ export default function CubeFace({
             suppressFaceClickRef.current = false;
             return;
         }
-        if (lastPointerDownFaceName && lastPointerDownFaceName.current !== name) return;
+        if (lastPointerDownFaceNameRef && lastPointerDownFaceNameRef.current !== name) return;
         const dx = e.clientX - pointerDownPos.current.x;
         const dy = e.clientY - pointerDownPos.current.y;
         if (Math.sqrt(dx * dx + dy * dy) > DRAG_THRESHOLD) return;
         onFaceClick(name);
-    }, [name, onFaceClick, isZoomed, lastPointerDownFaceName, isHome, suppressFaceClickRef]);
+    }, [name, onFaceClick, isZoomed, lastPointerDownFaceNameRef, isHome, suppressFaceClickRef]);
 
     const handlePointerOver = useCallback((e) => {
         e.stopPropagation();
@@ -79,9 +79,8 @@ export default function CubeFace({
             >
                 <planeGeometry args={[2, 2]} />
                 <meshBasicMaterial
-                    transparent
-                    opacity={0}
-                    side={THREE.DoubleSide}
+                    visible={false}
+                    side={THREE.FrontSide}
                     depthWrite={false}
                 />
             </mesh>
@@ -89,7 +88,7 @@ export default function CubeFace({
             {hovered && !isHome && (
                 <mesh position={[0, 0, 0.001]}>
                     <planeGeometry args={[2, 2]} />
-                    <meshBasicMaterial color="#ffffff" transparent opacity={0.05} side={THREE.DoubleSide} depthWrite={false} />
+                    <meshBasicMaterial color="#ffffff" transparent opacity={0.05} side={THREE.FrontSide} depthWrite={false} />
                 </mesh>
             )}
 
@@ -98,6 +97,7 @@ export default function CubeFace({
             ) : (
                 <CubeFaceText
                     text={text}
+                    reduceEffects={reduceEffects}
                     hovered={hovered}
                     forceHighlight={forceHighlight}   // ← ADDED
                 />

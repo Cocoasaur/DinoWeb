@@ -6,9 +6,29 @@ export default defineConfig({
   base: '/DinoWeb/',
   plugins: [
     react(),
+    {
+      name: 'inline-critical-styles',
+      transformIndexHtml: {
+        order: 'post',
+        handler(html, { bundle }) {
+          if (!bundle) return;
+          // The homepage's small stylesheet is needed on every navigation.
+          // Inline the built CSS to remove its extra blocking network trip;
+          // section styles keep their existing deferred boundaries.
+          return html.replace(/<link\b[^>]*rel="stylesheet"[^>]*>/g, (link) => {
+            const href = link.match(/href="([^"]+)"/)?.[1];
+            const asset = href && bundle[href.replace(/^\/DinoWeb\//, '')];
+            if (asset?.type !== 'asset' || !href.endsWith('.css')) return link;
+            return `<style data-critical-styles>${asset.source}</style>`;
+          });
+        },
+      },
+    },
     VitePWA({
-      registerType: 'autoUpdate',
-      includeAssets: ['dino-icon.png', 'favicon.svg'],
+      // Keep the current worker and its chunks until the visitor accepts the
+      // update. Activating immediately can strand an already-open lazy page.
+      registerType: 'prompt',
+      includeAssets: ['dino-icon.webp', 'favicon.svg'],
       manifest: {
         name: 'DinoWeb — Interactive 3D Portfolio',
         short_name: 'DinoWeb',
@@ -19,15 +39,15 @@ export default defineConfig({
         start_url: '/DinoWeb/',
         scope: '/DinoWeb/',
         icons: [
-          { src: '/DinoWeb/pwa-192x192.png', sizes: '192x192', type: 'image/png' },
-          { src: '/DinoWeb/pwa-512x512.png', sizes: '512x512', type: 'image/png' },
+          { src: '/DinoWeb/pwa-192x192.webp', sizes: '192x192', type: 'image/webp' },
+          { src: '/DinoWeb/pwa-512x512.webp', sizes: '512x512', type: 'image/webp' },
         ],
       },
       workbox: {
-        // Precache only the navigation shell. Versioned code and media enter
-        // runtime caches when visitors actually request them instead of making
-        // every first visit download the full portfolio in the background.
-        globPatterns: ['**/*.{html,webmanifest}'],
+        // Registration runs after the first paint. Download the full portfolio
+        // then, without evaluating WebGL/PDF code or delaying the homepage.
+        globPatterns: ['**/*.{html,webmanifest,js,mjs,css,woff2,svg,webp,pdf}'],
+        cleanupOutdatedCaches: true,
         navigateFallback: '/DinoWeb/index.html',
         runtimeCaching: [
           {
@@ -47,7 +67,7 @@ export default defineConfig({
             },
           },
           {
-            urlPattern: /\.(webp|png|pdf)$/,
+            urlPattern: /\.(webp|pdf)$/,
             handler: 'CacheFirst',
             options: {
               cacheName: 'dinoweb-images',
@@ -59,6 +79,11 @@ export default defineConfig({
     }),
   ],
   build: {
+    // Separate files can be precached and shared between sections. Inlining
+    // SVGs duplicated the same icons inside several JavaScript chunks.
+    // Only the tiny, first-paint loader icon is embedded. Other assets stay
+    // separate so section chunks can share their cached files.
+    assetsInlineLimit: (filePath) => filePath.endsWith('/brand/dino-loader.webp'),
     target: 'es2020',
     cssTarget: 'chrome61',
     rollupOptions: {

@@ -1,11 +1,13 @@
-import { useRef, useEffect, useMemo } from 'react';
+import { useRef, useEffect, useLayoutEffect, useMemo, useCallback } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
-import { RoundedBox } from '@react-three/drei';
+import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import * as THREE from 'three';
 import CubeFace from './CubeFace';
 import { FACE_CONFIG, DEFAULT_ROTATION, DEFAULT_CAMERA_DISTANCE, CUBE_CENTER_X } from '../../constants/cubeConfig';
 import { useCSSVars } from '../../hooks/useCSSVars';
 import { useReducedMotion } from '../../hooks/useReducedMotion';
+import { getCubeTransition, transitionProgress, easeInOut } from '../../utils/cubeTransition';
+import { CUBE_SHININESS, CUBE_SPECULAR, shadeCubeVertex } from '../../utils/cubeLighting';
 import { useHomeViewportLayout } from '../../hooks/useHomeViewportLayout';
 
 function shortestPath(current, target) {
@@ -24,16 +26,14 @@ const IDLE_DRIFT_X_STEP = THREE.MathUtils.degToRad(30);
 const IDLE_DRIFT_X_LIMIT = THREE.MathUtils.degToRad(40);
 const IDLE_DRIFT_Y_STEP = THREE.MathUtils.degToRad(140);
 
-// ── Idle breath: barely-perceptible scale oscillation ──
-const BREATH_PERIOD_S = 5;
-const BREATH_AMPLITUDE = 0.012;
-
 // ── Idle frame throttle: drift + breath are slow, so ~30fps is plenty ──
 const IDLE_DRIFT_FRAME_MS = 33;
 
 const rand = (min, max) => min + Math.random() * (max - min);
 
 const screenPosVector = new THREE.Vector3();
+const lightingNormal = new THREE.Vector3();
+const lightingRotation = new THREE.Quaternion();
 
 function getZoomedCameraZ(camera, cubeScale, breakpoint) {
     const halfFov = THREE.MathUtils.degToRad(camera.fov) / 2;
@@ -56,32 +56,35 @@ export default function InteractiveCube({
     onZoomComplete, onZoomOutComplete,
     activeFace,
     reduceEffects = false,
+    holdCamera = false,
+    faceCount = FACE_CONFIG.length,
     screenPosRef,
     faceDownPosRef,
 }) {
     const groupRef = useRef();
+    const bodyRef = useRef();
     const rotationRef = useRef({
         x: THREE.MathUtils.degToRad(DEFAULT_ROTATION.x),
         y: THREE.MathUtils.degToRad(DEFAULT_ROTATION.y)
     });
     const lastMouse = useRef({ x: 0, y: 0 });
-    const lastPointerDownFaceName = useRef(null);
+    const lastPointerDownFaceNameRef = useRef(null);
     const pinchRef = useRef({
         active: false,
         lastDistance: 0,
     });
     const suppressFaceClickRef = useRef(false);
     const suppressFaceClickTimerRef = useRef(0);
-    const animTimerRef = useRef(0);
+    const zoomPoseRef = useRef(null);
     const hasNotifiedRef = useRef(false);
-    const zoomOutTimerRef = useRef(0);
+    const zoomOutPoseRef = useRef(null);
     const hasNotifiedOutRef = useRef(false);
     const idleDriftRef = useRef({ active: false, x: 0, y: 0, reRollIn: 0 });
-    const breathTimeRef = useRef(0);
     const lastInteractTimeRef = useRef(0);
     const idleFrameTimeRef = useRef(0);
-    const { camera, gl, invalidate } = useThree();
+    const { camera, invalidate } = useThree();
     const reducedMotion = useReducedMotion();
+    const transition = getCubeTransition(reduceEffects, reducedMotion);
 
     const cssVars = useCSSVars([
         '--cube-color',
@@ -101,7 +104,7 @@ export default function InteractiveCube({
         scaleMin: 0.88,
         durationPress: reducedMotion ? 0.05 : 0.08,
         durationHold: 0,
-        durationRelease: reducedMotion ? 0.05 : 0.25,
+        durationRelease: reducedMotion ? 0.05 : reduceEffects ? 0.16 : 0.25,
     });
 
     const targetRad = useMemo(() => targetRotation ? {
@@ -112,44 +115,54 @@ export default function InteractiveCube({
     useEffect(() => {
         pressRef.current.durationPress = reducedMotion ? 0.05 : 0.08;
         pressRef.current.durationHold = 0;
-        pressRef.current.durationRelease = reducedMotion ? 0.05 : 0.25;
-    }, [reducedMotion]);
+        pressRef.current.durationRelease = reducedMotion ? 0.05 : reduceEffects ? 0.16 : 0.25;
+    }, [reducedMotion, reduceEffects]);
 
-    useEffect(() => {
+    // Reset phase bookkeeping before the next rendered frame, including repeat visits.
+    useLayoutEffect(() => {
         if (!isZoomed || !targetRad || !groupRef.current) return;
-        animTimerRef.current = 0;
+        const group = groupRef.current;
+        zoomPoseRef.current = {
+            startedAt: performance.now(),
+            x: group.position.x, y: group.position.y, z: camera.position.z,
+            rx: shortestPath(group.rotation.x, targetRad.x),
+            ry: shortestPath(group.rotation.y, targetRad.y),
+        };
         hasNotifiedRef.current = false;
-        const nx = shortestPath(groupRef.current.rotation.x, targetRad.x);
-        const ny = shortestPath(groupRef.current.rotation.y, targetRad.y);
-        groupRef.current.rotation.x = nx;
-        groupRef.current.rotation.y = ny;
-        rotationRef.current = { x: nx, y: ny };
-    }, [isZoomed, targetRad]);
+        invalidate();
+    }, [isZoomed, targetRad, camera, invalidate]);
 
-    useEffect(() => {
-        if (!isZoomingOut) return;
-        zoomOutTimerRef.current = 0;
+    useLayoutEffect(() => {
+        if (!isZoomingOut || !groupRef.current) return;
+        const group = groupRef.current;
+        zoomOutPoseRef.current = {
+            startedAt: performance.now(),
+            x: group.position.x, y: group.position.y, z: camera.position.z,
+            rx: shortestPath(group.rotation.x, rotationRef.current.x),
+            ry: shortestPath(group.rotation.y, rotationRef.current.y),
+        };
         hasNotifiedOutRef.current = false;
-    }, [isZoomingOut]);
+        invalidate();
+    }, [isZoomingOut, camera, invalidate]);
 
-
-    const clearSuppressFaceClickTimer = () => {
+    const clearSuppressFaceClickTimer = useCallback(() => {
         if (!suppressFaceClickTimerRef.current) return;
         window.clearTimeout(suppressFaceClickTimerRef.current);
         suppressFaceClickTimerRef.current = 0;
-    };
+    }, []);
 
-    const suppressFaceClickBriefly = () => {
+    const suppressFaceClickBriefly = useCallback(() => {
         suppressFaceClickRef.current = true;
         clearSuppressFaceClickTimer();
         suppressFaceClickTimerRef.current = window.setTimeout(() => {
             suppressFaceClickRef.current = false;
             suppressFaceClickTimerRef.current = 0;
         }, 350);
-    };
+    }, [clearSuppressFaceClickTimer]);
 
     useEffect(() => {
-        const canvas = gl.domElement;
+        const canvas = document.querySelector('.cube-entrance canvas');
+        if (!canvas) return;
         const previousTouchAction = canvas.style.touchAction;
 
         canvas.style.touchAction = 'none';
@@ -195,7 +208,7 @@ export default function InteractiveCube({
                 pinchRef.current.active = true;
                 pinchRef.current.lastDistance = getTouchDistance(e.touches);
                 isDraggingRef.current = false;
-                lastPointerDownFaceName.current = null;
+                lastPointerDownFaceNameRef.current = null;
                 suppressFaceClickBriefly();
                 invalidate();
                 return;
@@ -220,7 +233,7 @@ export default function InteractiveCube({
                 pinchRef.current.active = true;
                 pinchRef.current.lastDistance = distance;
                 isDraggingRef.current = false;
-                lastPointerDownFaceName.current = null;
+                lastPointerDownFaceNameRef.current = null;
                 suppressFaceClickBriefly();
                 onPinchZoom?.(distanceDelta);
                 invalidate();
@@ -285,7 +298,7 @@ export default function InteractiveCube({
             document.removeEventListener('touchend', handleTouchEnd);
             document.removeEventListener('touchcancel', handleTouchCancel);
         };
-    }, [isZoomed, isZoomingOut, isDraggingRef, gl, invalidate, onPinchZoom]);
+    }, [isZoomed, isZoomingOut, isDraggingRef, invalidate, onPinchZoom, suppressFaceClickBriefly, clearSuppressFaceClickTimer]);
 
     const handleFaceClickWithPress = (faceName) => {
         if (pressRef.current.active) return;
@@ -293,12 +306,24 @@ export default function InteractiveCube({
         onFacePressStart?.(faceName);
         pressRef.current.active = true;
         pressRef.current.t = 0;
+        pressRef.current.startedAt = performance.now();
         pressRef.current.targetFaceName = faceName;
+        invalidate();
     };
 
+    // Analytic normals avoid extruding and rebuilding creased normals at mount.
+    const boxGeometry = useMemo(() => {
+        const geometry = new RoundedBoxGeometry(2, 2, 2, reduceEffects ? 1 : 3, 0.06);
+        if (reduceEffects) geometry.setAttribute('color', new THREE.Float32BufferAttribute(new Float32Array(geometry.attributes.position.count * 3), 3));
+        return geometry;
+    }, [reduceEffects]);
+    const lightingColor = useMemo(() => new THREE.Color(cubeColor), [cubeColor]);
+    const lightingPoseRef = useRef({ x: NaN, y: NaN, color: null });
+    useEffect(() => () => boxGeometry.dispose(), [boxGeometry]);
+
     const boxMaterial = useMemo(() => (
-        <meshStandardMaterial color={cubeColor} roughness={0.55} metalness={0.2} />
-    ), [cubeColor]);
+        reduceEffects ? <meshBasicMaterial vertexColors /> : <meshPhongMaterial color={cubeColor} shininess={CUBE_SHININESS} specular={CUBE_SPECULAR} />
+    ), [cubeColor, reduceEffects]);
 
     const edgeMaterial = useMemo(() => (
         <meshBasicMaterial
@@ -315,7 +340,7 @@ export default function InteractiveCube({
         onZoomOutComplete?.();
     };
 
-    useFrame((_, delta) => {
+    useFrame(({ camera, gl }, delta) => {
         if (!groupRef.current) return;
         const rotX = groupRef.current.rotation.x;
         const rotY = groupRef.current.rotation.y;
@@ -323,10 +348,13 @@ export default function InteractiveCube({
         const posY = groupRef.current.position.y;
 
         const dt = Math.min(delta, 0.1);
+        const smoothing = (rate) => reducedMotion ? 1 : 1 - Math.exp(-rate * delta);
+        let completedIn = false;
+        let completedOut = false;
 
         let pressScale = 1;
         if (pressRef.current.active) {
-            pressRef.current.t += dt;
+            pressRef.current.t = (performance.now() - pressRef.current.startedAt) / 1000;
             const { t, scaleMin, durationPress, durationHold, durationRelease } = pressRef.current;
             const total = durationPress + durationHold + durationRelease;
 
@@ -348,92 +376,58 @@ export default function InteractiveCube({
             }
         }
 
-        const lerpFactor = reducedMotion ? 1 : 0.025;
-
-        if (isZoomingOut) {
-            invalidate();
-            const targetDist = DEFAULT_CAMERA_DISTANCE * (1 + zoomZ / 1000);
-            camera.position.z = THREE.MathUtils.lerp(camera.position.z, targetDist, lerpFactor);
-            groupRef.current.position.x = THREE.MathUtils.lerp(posX, restingX, lerpFactor);
-            groupRef.current.position.y = THREE.MathUtils.lerp(posY, restingY, lerpFactor);
-
-            if (!reducedMotion) {
-                groupRef.current.rotation.x = THREE.MathUtils.lerp(rotX, rotationRef.current.x, 0.03);
-                groupRef.current.rotation.y = THREE.MathUtils.lerp(rotY, rotationRef.current.y, 0.03);
-            } else {
-                groupRef.current.rotation.x = rotationRef.current.x;
-                groupRef.current.rotation.y = rotationRef.current.y;
-            }
-
-            if (
-                Math.abs(camera.position.z - targetDist) < 0.05 &&
-                Math.abs(posX - restingX) < 0.05 &&
-                Math.abs(posY - restingY) < 0.05 &&
-                !hasNotifiedOutRef.current
-            ) {
+        if (isZoomingOut && zoomOutPoseRef.current) {
+            const pose = zoomOutPoseRef.current;
+            const t = transitionProgress(pose.startedAt, performance.now(), transition.zoomOutMs);
+            const p = easeInOut(t);
+            camera.position.z = THREE.MathUtils.lerp(pose.z, DEFAULT_CAMERA_DISTANCE * (1 + zoomZ / 1000), p);
+            groupRef.current.position.x = THREE.MathUtils.lerp(pose.x, restingX, p);
+            groupRef.current.position.y = THREE.MathUtils.lerp(pose.y, restingY, p);
+            groupRef.current.rotation.x = THREE.MathUtils.lerp(pose.rx, rotationRef.current.x, p);
+            groupRef.current.rotation.y = THREE.MathUtils.lerp(pose.ry, rotationRef.current.y, p);
+            if (t < 1) invalidate();
+            else if (!hasNotifiedOutRef.current) {
                 hasNotifiedOutRef.current = true;
-                handleZoomOutDone();
+                completedOut = true;
             }
-        } else if (isZoomed && targetRad) {
-            if (!hasNotifiedRef.current) invalidate();
-            animTimerRef.current += dt;
-            const idleCameraZ = DEFAULT_CAMERA_DISTANCE * (1 + zoomZ / 1000);
-            const zoomedCameraZ = getZoomedCameraZ(camera, cubeScale, breakpoint);
-            const zoomLerpFactor = reducedMotion ? 1 : (breakpoint === 'phone' ? 0.18 : 0.12);
-
-            if (!reducedMotion) {
-                groupRef.current.rotation.x = THREE.MathUtils.lerp(rotX, targetRad.x, 0.04);
-                groupRef.current.rotation.y = THREE.MathUtils.lerp(rotY, targetRad.y, 0.04);
-            } else {
-                groupRef.current.rotation.x = targetRad.x;
-                groupRef.current.rotation.y = targetRad.y;
-            }
-
-            groupRef.current.position.x = THREE.MathUtils.lerp(posX, CUBE_CENTER_X, 0.05);
-            groupRef.current.position.y = THREE.MathUtils.lerp(posY, 0, 0.05);
-            const rawT = (animTimerRef.current - 0.4) / 1.0;
-            const t = Math.min(Math.max(rawT, 0), 1);
-            const eased = t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
-
-            camera.position.z = THREE.MathUtils.lerp(
-                camera.position.z,
-                THREE.MathUtils.lerp(idleCameraZ, zoomedCameraZ, eased),
-                zoomLerpFactor
-            );
-
-            const zoomSettled = Math.abs(camera.position.z - zoomedCameraZ) < 0.04;
-            const cubeCentered = Math.abs(groupRef.current.position.x - CUBE_CENTER_X) < 0.05 &&
-                Math.abs(groupRef.current.position.y) < 0.05;
-
-            if (
-                !hasNotifiedRef.current &&
-                ((animTimerRef.current > 1.6 && zoomSettled && cubeCentered) || animTimerRef.current > 2.3)
-            ) {
+        } else if (isZoomed && targetRad && zoomPoseRef.current && !holdCamera) {
+            const pose = zoomPoseRef.current;
+            const t = transitionProgress(pose.startedAt, performance.now(), transition.zoomInMs);
+            const p = easeInOut(t);
+            camera.position.z = THREE.MathUtils.lerp(pose.z, getZoomedCameraZ(camera, cubeScale, breakpoint), p);
+            groupRef.current.position.x = THREE.MathUtils.lerp(pose.x, CUBE_CENTER_X, p);
+            groupRef.current.position.y = THREE.MathUtils.lerp(pose.y, 0, p);
+            groupRef.current.rotation.x = THREE.MathUtils.lerp(pose.rx, targetRad.x, p);
+            groupRef.current.rotation.y = THREE.MathUtils.lerp(pose.ry, targetRad.y, p);
+            if (t < 1) invalidate();
+            // Publish the completed face pose before the page dissolve starts
+            // and the renderer pauses on this frame.
+            if (t >= 1 && !hasNotifiedRef.current) {
                 hasNotifiedRef.current = true;
-                onZoomComplete?.();
+                completedIn = true;
             }
-        } else {
+        } else if (!holdCamera) {
             const isLerpingRot = Math.abs(rotX - rotationRef.current.x) > 0.001 || Math.abs(rotY - rotationRef.current.y) > 0.001;
             const isLerpingPos = Math.abs(posX - restingX) > 0.001 || Math.abs(posY - restingY) > 0.001;
 
             if (!reducedMotion) {
-                groupRef.current.rotation.x = THREE.MathUtils.lerp(rotX, rotationRef.current.x, 0.1);
-                groupRef.current.rotation.y = THREE.MathUtils.lerp(rotY, rotationRef.current.y, 0.1);
+                groupRef.current.rotation.x = THREE.MathUtils.lerp(rotX, rotationRef.current.x, smoothing(6));
+                groupRef.current.rotation.y = THREE.MathUtils.lerp(rotY, rotationRef.current.y, smoothing(6));
             } else {
                 groupRef.current.rotation.x = rotationRef.current.x;
                 groupRef.current.rotation.y = rotationRef.current.y;
             }
 
             const drift = idleDriftRef.current;
-            const neverInteracted = lastInteractTimeRef.current === 0;
             const canDrift = !reducedMotion &&
                 !reduceEffects &&
                 !isDraggingRef.current &&
                 !pinchRef.current.active &&
-                (neverInteracted ||
-                    (performance.now() - lastInteractTimeRef.current) > IDLE_DRIFT_SETTLE_MS);
+                lastInteractTimeRef.current > 0 &&
+                (performance.now() - lastInteractTimeRef.current) > IDLE_DRIFT_SETTLE_MS;
 
-            if (pressRef.current.active || isDraggingRef.current || isLerpingRot || isLerpingPos) {
+            if (pressRef.current.active || isDraggingRef.current || isLerpingRot || isLerpingPos ||
+                Math.abs(camera.position.z - DEFAULT_CAMERA_DISTANCE * (1 + zoomZ / 1000)) > 0.001) {
                 invalidate();
             } else if (canDrift) {
                 const now = performance.now();
@@ -469,18 +463,32 @@ export default function InteractiveCube({
                 drift.active = false;
             }
 
-            groupRef.current.position.x = THREE.MathUtils.lerp(posX, restingX, 0.05);
-            groupRef.current.position.y = THREE.MathUtils.lerp(posY, restingY, 0.05);
-            camera.position.z = THREE.MathUtils.lerp(camera.position.z, DEFAULT_CAMERA_DISTANCE * (1 + zoomZ / 1000), 0.08);
+            groupRef.current.position.x = THREE.MathUtils.lerp(posX, restingX, smoothing(3));
+            groupRef.current.position.y = THREE.MathUtils.lerp(posY, restingY, smoothing(3));
+            camera.position.z = THREE.MathUtils.lerp(camera.position.z, DEFAULT_CAMERA_DISTANCE * (1 + zoomZ / 1000), smoothing(5));
         }
 
-        breathTimeRef.current += dt;
-        const breathScale = (reducedMotion || reduceEffects || isZoomed)
-            ? 1
-            : 1 + BREATH_AMPLITUDE * Math.sin(breathTimeRef.current * (2 * Math.PI / BREATH_PERIOD_S));
-
-        const finalScale = cubeScale * pressScale * breathScale;
+        // Idle breathing is composited by the canvas wrapper in both renderers.
+        const finalScale = cubeScale * pressScale;
         groupRef.current.scale.setScalar(finalScale);
+
+        if (reduceEffects) {
+            const group = groupRef.current;
+            const pose = lightingPoseRef.current;
+            if (pose.x !== group.rotation.x || pose.y !== group.rotation.y || pose.color !== cubeColor) {
+                // Bake subtle lighting on low/mobile profiles, retaining the
+                // inexpensive unlit fragment shader and existing draw count.
+                group.getWorldQuaternion(lightingRotation);
+                const normals = bodyRef.current.geometry.attributes.normal;
+                const colors = bodyRef.current.geometry.attributes.color;
+                for (let i = 0; i < normals.count; i++) {
+                    lightingNormal.fromBufferAttribute(normals, i).applyQuaternion(lightingRotation);
+                    shadeCubeVertex(lightingNormal, lightingColor, colors, i);
+                }
+                colors.needsUpdate = true;
+                pose.x = group.rotation.x; pose.y = group.rotation.y; pose.color = cubeColor;
+            }
+        }
 
         if (screenPosRef && screenPosRef.current) {
             groupRef.current.updateWorldMatrix(true, false);
@@ -495,6 +503,8 @@ export default function InteractiveCube({
             THREE.MathUtils.radToDeg(groupRef.current.rotation.x),
             THREE.MathUtils.radToDeg(groupRef.current.rotation.y)
         );
+        if (completedIn) onZoomComplete?.();
+        if (completedOut) handleZoomOutDone();
     });
 
     return (
@@ -507,19 +517,20 @@ export default function InteractiveCube({
                 0,
             ]}
         >
-            <RoundedBox args={[2, 2, 2]} radius={0.06} smoothness={4}>
+            <mesh ref={bodyRef} geometry={boxGeometry}>
                 {boxMaterial}
-            </RoundedBox>
-            <RoundedBox args={[2.002, 2.002, 2.002]} radius={0.06} smoothness={4}>
+            </mesh>
+            {!reduceEffects && <mesh geometry={boxGeometry} scale={1.001}>
                 {edgeMaterial}
-            </RoundedBox>
-            {FACE_CONFIG.map((face) => (
+            </mesh>}
+            {FACE_CONFIG.slice(0, faceCount).map((face) => (
                 <CubeFace key={face.name} {...face}
                     onFaceClick={handleFaceClickWithPress}
                     isZoomed={isZoomed}
                     isZoomingOut={isZoomingOut}
                     activeFace={activeFace}
-                    lastPointerDownFaceName={lastPointerDownFaceName}
+                    reduceEffects={reduceEffects}
+                    lastPointerDownFaceNameRef={lastPointerDownFaceNameRef}
                     suppressFaceClickRef={suppressFaceClickRef}
                     faceDownPosRef={faceDownPosRef} />
             ))}

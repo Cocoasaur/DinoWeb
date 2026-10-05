@@ -4,20 +4,44 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content" />
+  <script>
+    try {
+      document.documentElement.dataset.theme = localStorage.getItem('dinoweb-theme-v2') === 'demain-soir-bleu' ? 'demain-soir-bleu' : 'clair-obscur';
+    } catch {}
+  </script>
   <meta name="description" content="Interactive 3D Portfolio built with React Three Fiber" />
   <meta property="og:title" content="DinoWeb — 3D Portfolio" />
   <meta property="og:description" content="Explore an interactive 3D portfolio experience." />
   <meta property="og:type" content="website" />
-  <link rel="preload" href="/src/assets/brand/dino-icon.webp" as="image" type="image/webp" fetchpriority="high" />
-  <link rel="preload" href="/node_modules/@fontsource/space-grotesk/files/space-grotesk-latin-700-normal.woff2" as="font" type="font/woff2" crossorigin />
-  <link rel="icon" type="image/png" href="/dino-icon.png" />
-  <link rel="apple-touch-icon" href="/dino-icon.png" />
+  <link rel="icon" type="image/webp" href="/dino-icon.webp" />
+  <link rel="apple-touch-icon" href="/pwa-192x192.webp" />
   <meta name="theme-color" content="#002451" />
   <title>DinoWeb</title>
 </head>
 
 <body>
+  <!-- Paint the actual loading screen before React downloads and starts.
+       React preserves this shell and releases it on the first
+       interactive frame; no static cube or extra loading timer is involved. -->
   <div id="root"></div>
+    <div id="portfolio-boot-shell" class="boot-screen" role="status" aria-live="polite" aria-label="Loading the interactive portfolio">
+      <div class="boot-screen__background" aria-hidden="true">
+        <div class="boot-screen__grid"></div>
+        <div class="home-stage-backdrop__floor"></div>
+      </div>
+      <div class="boot-screen__stage">
+        <div class="boot-screen__brackets" aria-hidden="true">
+          <span class="boot-screen__bracket boot-screen__bracket--tl"></span>
+          <span class="boot-screen__bracket boot-screen__bracket--tr"></span>
+          <span class="boot-screen__bracket boot-screen__bracket--bl"></span>
+          <span class="boot-screen__bracket boot-screen__bracket--br"></span>
+        </div>
+        <img src="/src/assets/brand/dino-loader.webp" alt="" width="80" height="80" draggable="false" class="boot-screen__icon" />
+        <div class="boot-screen__progress" aria-hidden="true"><span></span><span></span><span></span></div>
+        <p class="boot-screen__label">ARCHIVE_SYSTEM</p>
+        <p class="boot-screen__sub-label">INITIALIZING PORTFOLIO</p>
+      </div>
+    </div>
   <script type="module" src="/src/main.jsx"></script>
 </body>
 

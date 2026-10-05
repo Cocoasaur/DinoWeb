@@ -12,12 +12,12 @@ export default function Scene(props) {
                     <directionalLight position={[0, -4, 2]} intensity={0.4} color="#ffffff" />
                 </>
             )}
-            <Stage
+            {!props.reduceEffects && <Stage
                 isLowEnd={props.reduceEffects}
                 isZoomed={props.isZoomed}
                 isZoomingOut={props.isZoomingOut}
                 isDraggingRef={props.isDraggingRef}
-            />
+            />}
             <InteractiveCube {...props} />
         </>
     );

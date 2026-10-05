@@ -1,0 +1,46 @@
+/* Shared by the first-paint loader and home screen; loaded by main.jsx. */
+.void-grid,
+.boot-screen__grid {
+    background-image: linear-gradient(var(--void-grid) 1px, transparent 1px), linear-gradient(90deg, var(--void-grid) 1px, transparent 1px);
+    background-size: 50px 50px;
+    background-position: center center;
+    transition: background-image 0.5s ease;
+}
+@media (max-width: 767px) {
+    .void-grid,
+    .boot-screen__grid { background-size: 45px 75px; background-position: 0 0; }
+}
+
+/* A compositor-transformed floor replaces full-screen transparent GL draws. */
+.home-stage-backdrop { position: absolute; inset: 0; overflow: hidden; pointer-events: none; transition: opacity 180ms ease; }
+.home-stage-backdrop,
+.boot-screen__background {
+    /* Same focal length and eye position as the cube, with a level horizon. */
+    perspective: calc(var(--portfolio-viewport-height, 100dvh) * 1.20710678);
+    perspective-origin: 50% 50%;
+}
+.home-stage-backdrop__floor {
+    position: absolute; left: 50%; top: 50%; width: 250%; height: 150%;
+    background-image: linear-gradient(var(--void-grid) 1px, transparent 1px), linear-gradient(90deg, var(--void-grid) 1px, transparent 1px);
+    background-size: calc(var(--portfolio-viewport-height, 100dvh) * .241421356) calc(var(--portfolio-viewport-height, 100dvh) * .241421356);
+    background-position: center top;
+    /* Ground at world y=-2.35: depth changes convergence, not horizon roll. */
+    transform: translate3d(calc(-50% + var(--floor-camera-x, 0px)), calc(var(--portfolio-viewport-height, 100dvh) * .567340187 + var(--floor-camera-y, 0px)), var(--floor-camera-z, 0px)) rotateX(-90deg);
+    transform-origin: center top;
+    transition: transform 850ms cubic-bezier(.18, .72, .32, 1);
+    mask-image: linear-gradient(to bottom, #000, transparent 95%);
+}
+.home-stage-backdrop__pool {
+    position: absolute; bottom: -7%; width: 55%; height: 30%;
+    transform: translateX(-50%) translate3d(calc(var(--floor-shadow-x, 0px) * var(--floor-zoom-scale, 1)), calc(var(--floor-shadow-y, 0px) * var(--floor-zoom-scale, 1)), 0);
+    transition: transform 850ms cubic-bezier(.18, .72, .32, 1);
+}
+.home-stage-backdrop__shadow {
+    position: absolute;
+    max-width: 82vw;
+    transform: translate(-50%, -50%) translate3d(calc(var(--floor-shadow-x, 0px) * var(--floor-zoom-scale, 1)), calc(var(--floor-shadow-y, 0px) * var(--floor-zoom-scale, 1)), 0);
+    transition: transform 850ms cubic-bezier(.18, .72, .32, 1);
+}
+@media (prefers-reduced-motion: reduce) {
+    .home-stage-backdrop, .home-stage-backdrop__floor, .home-stage-backdrop__pool, .home-stage-backdrop__shadow { transition: none; }
+}

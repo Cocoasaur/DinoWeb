@@ -10,26 +10,34 @@ import ThemeLabel from './components/ui/ThemeLabel';
 import CoordinateDisplay from './components/ui/CoordinateDisplay';
 import Footer from './components/ui/Footer';
 import Overlay from './components/ui/Overlay';
+import BootScreen from './components/ui/BootScreen';
 import { useCubeInteraction } from './hooks/useCubeInteraction';
 import { useTheme } from './context/ThemeContext';
 import { useAdaptiveDPR } from './hooks/useAdaptiveDPR';
 import { useReducedMotion } from './hooks/useReducedMotion';
 import { usePortfolioViewportSize } from './hooks/usePortfolioViewportSize';
 import { getHomeViewportLayout } from './hooks/useHomeViewportLayout';
-import dinoIcon from './assets/brand/dino-icon.webp';
 import './styles/home-layout.css';
+import { RenderProfileContext } from './context/RenderProfileContext';
 
-// The 3D stage chunks (three / drei / fiber) are deferred until the hero
-// (LCP) has painted. Loaded lazily so Vite emits them as a dynamic chunk
-// rather than eagerly modulepreloading them in index.html.
-const LazyCubeStage = lazy(() => import('./components/three/CubeStage'));
+// Start the scene automatically. The boot overlay stays up until its first
+// rendered frame, then reveals the real interactive cube.
+const LazyCubeStage = lazy(async () => {
+  // Paint the loader before evaluating/initializing the renderer. Preloaded
+  // modules download in parallel, but do not monopolize the first paint.
+  await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+  const stage = await import('./components/three/CubeStage');
+  await stage.default.prepareResources();
+  return stage;
+});
 
 const SCENE_CAMERA_FOV = 45;
 const SCENE_CAMERA_Z = 5;
 
 function getCubeScreenOrigin(zoomZ) {
-  const width = window.innerWidth;
-  const height = window.innerHeight;
+  const viewport = document.querySelector('.portfolio-viewport');
+  const width = viewport?.clientWidth || window.innerWidth;
+  const height = viewport?.clientHeight || window.innerHeight;
   const { restingX, restingY } = getHomeViewportLayout(width, height);
   const cameraZ = SCENE_CAMERA_Z * (1 + zoomZ / 1000);
   const fov = SCENE_CAMERA_FOV * Math.PI / 180;
@@ -60,7 +68,7 @@ export default function App() {
     handleZoomOutComplete, handleWheel, handlePinchZoom,
     handleRotationChange, updateZoomCoord, handleZoomComplete,
     handleThemeTransitionComplete,
-    handleOverlayCloseComplete,
+    handleOverlayCloseComplete, handleOverlayOpenComplete,
   } = useCubeInteraction();
 
   // ── Lifted project selection state ────────────────────────────────────────
@@ -145,92 +153,17 @@ export default function App() {
     return () => cancelAnimationFrame(rafId);
   }, [themeTransitionActive, isDark, toggle, handleThemeTransitionComplete, reducedMotion, zoomZ]);
 
-  // Some mobile browsers don't fire a native `resize` when the tab/search bar
-  // collapses or expands. Bridge the visual viewport changes into a synthetic
-  // `resize` so the layout hook and the R3F canvas re-frame the scene.
-  useEffect(() => {
-    const vv = window.visualViewport;
-    if (!vv) return;
-
-    let rafId = 0;
-    const onViewportChange = () => {
-      cancelAnimationFrame(rafId);
-      rafId = requestAnimationFrame(() => {
-        window.dispatchEvent(new Event('resize'));
-      });
-    };
-
-    vv.addEventListener('resize', onViewportChange);
-    vv.addEventListener('scroll', onViewportChange);
-
-    return () => {
-      cancelAnimationFrame(rafId);
-      vv.removeEventListener('resize', onViewportChange);
-      vv.removeEventListener('scroll', onViewportChange);
-    };
-  }, []);
-
   const isLowEnd = tier === 'low';
-  const reduceEffects = isLowEnd || isMobile;
+  const reduceEffects = tier !== 'high' || isMobile || reducedMotion;
 
   const canvasZIndex = (isZoomed || isZoomingOut) ? 60 : 10;
 
-  // ── Deferred 3D mount ──────────────────────────────────────────────────
-  // Lets the hero (LCP) paint before pulling in the heavy three/drei chunks.
-  //   high   → first animation frame
-  //   medium → first idle slot
-  //   low    → first idle slot AND first pointer gesture (protect weak devices)
-  //   mobile → explicit opt-in; WebGL startup is expensive on throttled phones
-  const [stageReady, setStageReady] = useState(false);
-  useEffect(() => {
-    let rafId = 0;
-    let idleId = 0;
-    let onGesture = null;
-
-    const mountNow = () => setStageReady(true);
-
-    const scheduleForTier = () => {
-      // Keep the initial mobile page responsive. A CSS cube below preserves
-      // the composition until the visitor asks for the full WebGL experience.
-      if (isMobile) return;
-
-      if (tier === 'high' && !isMobile) {
-        rafId = requestAnimationFrame(mountNow);
-        return;
-      }
-      const fn = () => setStageReady(true);
-      if (typeof window.requestIdleCallback === 'function') {
-        idleId = window.requestIdleCallback(fn, { timeout: 2500 });
-      } else {
-        idleId = window.setTimeout(fn, 400);
-      }
-      if (tier === 'low') {
-        onGesture = () => {
-          mountNow();
-          window.removeEventListener('pointerdown', onGesture);
-          window.removeEventListener('touchstart', onGesture);
-        };
-        window.addEventListener('pointerdown', onGesture, { passive: true, once: true });
-        window.addEventListener('touchstart', onGesture, { passive: true, once: true });
-      }
-    };
-
-    // Defer one frame so the hero text paints first.
-    rafId = requestAnimationFrame(scheduleForTier);
-    return () => {
-      cancelAnimationFrame(rafId);
-      if (idleId && window.cancelIdleCallback) cancelIdleCallback(idleId);
-      window.clearTimeout(idleId);
-      if (onGesture) {
-        window.removeEventListener('pointerdown', onGesture);
-        window.removeEventListener('touchstart', onGesture);
-      }
-    };
-  }, [tier, isMobile]);
+  const [stagePainted, setStagePainted] = useState(false);
 
   return (
+    <RenderProfileContext.Provider value={{ reduceEffects }}>
     <div
-      className={`portfolio-viewport${reduceEffects ? '' : ' stage-active'}`}
+      className={`portfolio-viewport${stagePainted && !reduceEffects ? ' stage-active' : ''}`}
       style={{ backgroundColor: 'var(--void-bg)', transition: reducedMotion ? 'none' : 'background-color 0.5s ease' }}
     >
       <div className="portfolio-viewport__stage">
@@ -241,7 +174,6 @@ export default function App() {
 
         <Sidebar />
 
-        {stageReady ? (
           <Suspense fallback={null}>
             <LazyCubeStage
               dpr={dpr}
@@ -249,6 +181,7 @@ export default function App() {
               reduceEffects={reduceEffects}
               isZoomed={isZoomed}
               isZoomingOut={isZoomingOut}
+              overlayPhase={overlayPhase}
               canvasZIndex={canvasZIndex}
               handleFaceClick={handleFaceClick}
               handleFacePressStart={handleFacePressStart}
@@ -262,49 +195,32 @@ export default function App() {
               handleZoomOutComplete={handleZoomOutComplete}
               screenPosRef={screenPosRef}
               faceDownPosRef={faceDownPosRef}
+              onReady={() => setStagePainted(true)}
             />
           </Suspense>
-        ) : isMobile ? (
-          <button
-            type="button"
-            className="mobile-cube-loader cube-entrance"
-            style={{ zIndex: canvasZIndex }}
-            onClick={() => setStageReady(true)}
-            aria-label="Load the interactive 3D portfolio cube"
-          >
-            <span className="mobile-cube-loader__cube" aria-hidden="true">
-              <span className="mobile-cube-loader__face mobile-cube-loader__face--front">
-                <img src={dinoIcon} alt="" width="76" height="76" />
-              </span>
-              <span className="mobile-cube-loader__face mobile-cube-loader__face--right">PROJECTS</span>
-              <span className="mobile-cube-loader__face mobile-cube-loader__face--top">ABOUT</span>
-            </span>
-            <span className="mobile-cube-loader__label">TAP TO EXPLORE IN 3D</span>
-          </button>
-        ) : (
-          <div className="absolute inset-0 w-full h-full cube-entrance" style={{ zIndex: canvasZIndex }} />
-        )}
 
         <CornerMarkers />
         <ThemeLabel />
         {!reduceEffects && <Scrubber />}
-        <CoordinateDisplay coordsRef={coordsRef} />
+        <CoordinateDisplay coordsRef={coordsRef} paused={overlayPhase === 'open'} />
         <Footer />
         <MobileBranding />
         {!isZoomed && (
-          <RotatePrompt label={isMobile && !stageReady ? 'TAP THE CUBE TO LOAD 3D' : 'ROTATE THE CUBE'} />
+          <RotatePrompt />
         )}
       </div>
 
-      <Overlay
-        active={showOverlay}
+      <BootScreen ready={stagePainted} />
+      {showOverlay && <Overlay
         phase={overlayPhase}
         faceName={activeFace}
-        onClose={() => {
+        onClose={handleCloseOverlay}
+        onCloseComplete={() => {
+          handleOverlayCloseComplete();
           setSelectedProject(null);
-          handleCloseOverlay();
         }}
-        onCloseComplete={handleOverlayCloseComplete}
+        onOpenComplete={handleOverlayOpenComplete}
+        reduceEffects={reduceEffects}
         reducedMotion={reducedMotion}
         selectedProject={selectedProject}
         onSelectProject={setSelectedProject}
@@ -332,7 +248,8 @@ export default function App() {
             <OverlayNavIcon variant={selectedProject ? 'back' : 'close'} />
           </button>
         ) : undefined}
-      />
+      />}
     </div>
+    </RenderProfileContext.Provider>
   );
 }

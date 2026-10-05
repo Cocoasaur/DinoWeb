@@ -51,6 +51,9 @@ dist/
 coverage/
 .nyc_output/
 .jest/test-results/
+playwright-report/
+test-results/
+blob-report/
 *.lcov
 *.lcov.info
 *.gcda
@@ -108,3 +111,7 @@ Thumbs.db
 # Locally installed agent skills (installed via skills.sh, not committed)
 .agents/
 skills-lock.json
+
+# Python bytecode
+__pycache__/
+*.py[cod]

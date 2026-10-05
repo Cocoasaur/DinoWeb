@@ -8,7 +8,7 @@
     height: 100svh;
     height: 100dvh;
     height: var(--portfolio-viewport-height, 100dvh);
-    min-height: 100svh;
+    min-height: 0;
 }
 
 .portfolio-viewport__stage {
@@ -16,9 +16,44 @@
     inset: 0;
 }
 
-.void-grid {
-    background-position: center center;
+.void-grid-drift {
+    /* Oversize by one tile so the composited translate3d drift never reveals
+       an edge; the background repeats every tile so the shift loops seamlessly. */
+    --drift-step-x: 100px;
+    --drift-step-y: 100px;
+    position: absolute;
+    background-image:
+        linear-gradient(var(--void-grid-drift) 1px, transparent 1px),
+        linear-gradient(90deg, var(--void-grid-drift) 1px, transparent 1px);
+    background-size: var(--drift-step-x) var(--drift-step-y);
+    background-position: 0 0;
+    animation: drift 60s linear infinite;
+    transition: background-image 0.5s ease;
 }
+
+/* Keep the overlap stable even when a shared utility stylesheet loads later.
+   Vite's CSS minifier expands inset-0 into longhands, so source order alone
+   cannot reliably preserve this layer's bounds. */
+.portfolio-viewport__stage > .void-grid-drift {
+    top: calc(-1 * var(--drift-step-y));
+    right: calc(-1 * var(--drift-step-x));
+    bottom: calc(-1 * var(--drift-step-y));
+    left: calc(-1 * var(--drift-step-x));
+}
+
+/* ── Grid handoff with the 3D floor (Stage.jsx) ──
+   The perspective floor's vanishing line sits at the vertical center of the
+   screen (the camera never tilts), so the 2D wallpaper owns the top half and
+   fades out across the band where the 3D far-field lines are already faint.
+   `stage-active` is set only while the 3D stage is mounted (App.jsx), so
+   low-tier / no-WebGL sessions keep the full 2D grid untouched. */
+.stage-active .void-grid,
+.stage-active .void-grid-drift {
+    -webkit-mask-image: linear-gradient(to bottom, #fff 50%, transparent 75%);
+    mask-image: linear-gradient(to bottom, #fff 50%, transparent 75%);
+}
+
+
 
 .home-coordinate {
     position: absolute;
@@ -242,92 +277,6 @@
     text-transform: uppercase;
 }
 
-/* Lightweight first-render cube for phones. The full WebGL scene is loaded
-   only after an explicit tap, avoiding a multi-second main-thread stall on
-   low-power devices while retaining the portfolio's visual identity. */
-.mobile-cube-loader {
-    position: absolute;
-    top: clamp(390px, 58dvh, 535px);
-    left: 50%;
-    width: 210px;
-    height: 210px;
-    padding: 0;
-    border: 0;
-    color: var(--void-text-full);
-    background: transparent;
-    transform: translate(-50%, -50%);
-    cursor: pointer;
-    perspective: 720px;
-    -webkit-tap-highlight-color: transparent;
-}
-
-.mobile-cube-loader__cube {
-    position: absolute;
-    top: 42px;
-    left: 50%;
-    width: 112px;
-    height: 112px;
-    transform: translateX(-50%) rotateX(-20deg) rotateY(-42deg);
-    transform-style: preserve-3d;
-    transition: transform 240ms ease;
-}
-
-.mobile-cube-loader:active .mobile-cube-loader__cube {
-    transform: translateX(-50%) rotateX(-16deg) rotateY(-35deg) scale(0.96);
-}
-
-.mobile-cube-loader__face {
-    position: absolute;
-    inset: 0;
-    display: grid;
-    place-items: center;
-    box-sizing: border-box;
-    border: 1px solid var(--cube-edge-color);
-    color: var(--cube-text-accent);
-    background: var(--cube-color);
-    font-family: 'Space Grotesk', monospace;
-    font-size: 9px;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    backface-visibility: hidden;
-}
-
-.mobile-cube-loader__face--front {
-    transform: translateZ(56px);
-}
-
-.mobile-cube-loader__face--front img {
-    width: 76px;
-    height: 76px;
-    object-fit: contain;
-    opacity: 0.9;
-}
-
-.mobile-cube-loader__face--right {
-    transform: rotateY(90deg) translateZ(56px);
-}
-
-.mobile-cube-loader__face--top {
-    transform: rotateX(90deg) translateZ(56px);
-}
-
-.mobile-cube-loader__label {
-    position: absolute;
-    right: 0;
-    bottom: 5px;
-    left: 0;
-    color: var(--void-text-dim);
-    font-family: 'Space Grotesk', monospace;
-    font-size: 9px;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-}
-
-.mobile-cube-loader:focus-visible {
-    outline: 1px solid var(--void-text-full);
-    outline-offset: 5px;
-}
-
 .sidebar-home {
     position: absolute;
     top: 46%;
@@ -436,11 +385,6 @@
 }
 
 @media (max-width: 767px) {
-    .void-grid {
-        background-size: 45px 75px;
-        background-position: 0 0;
-    }
-
     .void-grid-drift {
         --drift-step-x: 90px;
         --drift-step-y: 150px;
@@ -504,10 +448,6 @@
 }
 
 @media (min-width: 768px) {
-    .mobile-cube-loader {
-        display: none;
-    }
-
     .home-coordinate {
         /* ══ 16 px gap from the 32 px corner markers ══ */
         top: 48px;

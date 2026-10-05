@@ -1,14 +1,28 @@
+import { useRenderProfile } from '../../context/RenderProfileContext';
 import { useState } from 'react';
 import { Document, Page, pdfjs } from 'react-pdf';
-import resumePdf from '../../assets/resume/Arquesola_Curriculum_Vitae.pdf';
+import resumePdf from '../../assets/resume/John_Arquesola_Resume.pdf';
+import cvPdf from '../../assets/resume/John_Arquesola_Curriculum_Vitae.pdf';
 
 pdfjs.GlobalWorkerOptions.workerSrc = new URL(
     'pdfjs-dist/build/pdf.worker.min.mjs',
     import.meta.url,
 ).toString();
 
-const CV_PDF_URL = resumePdf;
-const CV_FILENAME = 'Arquesola_Curriculum_Vitae.pdf';
+const DOCUMENTS = [
+    {
+        id: 'resume',
+        label: 'Résumé',
+        url: resumePdf,
+        filename: 'John_Arquesola_Resume.pdf',
+    },
+    {
+        id: 'cv',
+        label: 'Curriculum Vitae',
+        url: cvPdf,
+        filename: 'John_Arquesola_Curriculum_Vitae.pdf',
+    },
+];
 const MIN_SCALE = 0.5;
 const MAX_SCALE = 2;
 const SCALE_STEP = 0.25;
@@ -55,17 +69,70 @@ function DownloadIcon() {
 }
 
 export default function CvViewer() {
+    const { reduceEffects } = useRenderProfile();
+    const [activeDocumentId, setActiveDocumentId] = useState(DOCUMENTS[0].id);
     const [numPages, setNumPages] = useState(null);
     const [scale, setScale] = useState(1);
+    const [loadError, setLoadError] = useState(false);
+
+    const activeDocument = DOCUMENTS.find(({ id }) => id === activeDocumentId) || DOCUMENTS[0];
 
     const zoomIn = () => setScale((s) => Math.min(MAX_SCALE, Math.round((s + SCALE_STEP) * 100) / 100));
     const zoomOut = () => setScale((s) => Math.max(MIN_SCALE, Math.round((s - SCALE_STEP) * 100) / 100));
+    const selectDocument = (id) => {
+        setActiveDocumentId(id);
+        setNumPages(null);
+        setLoadError(false);
+        setScale(1);
+    };
+
+    const handleTabKeyDown = (event) => {
+        const currentIndex = DOCUMENTS.findIndex(({ id }) => id === activeDocumentId);
+        let nextIndex;
+
+        if (event.key === 'ArrowRight') nextIndex = (currentIndex + 1) % DOCUMENTS.length;
+        else if (event.key === 'ArrowLeft') nextIndex = (currentIndex - 1 + DOCUMENTS.length) % DOCUMENTS.length;
+        else if (event.key === 'Home') nextIndex = 0;
+        else if (event.key === 'End') nextIndex = DOCUMENTS.length - 1;
+        else return;
+
+        event.preventDefault();
+        const nextDocument = DOCUMENTS[nextIndex];
+        selectDocument(nextDocument.id);
+        event.currentTarget.querySelector(`#document-tab-${nextDocument.id}`)?.focus();
+    };
 
     return (
         <div className="about-cv-viewer-container border" style={{ borderColor: 'var(--void-border)' }}>
+            <div
+                className="about-cv-tabs"
+                role="tablist"
+                aria-label="Document preview"
+                onKeyDown={handleTabKeyDown}
+            >
+                {DOCUMENTS.map((document) => {
+                    const isActive = document.id === activeDocument.id;
+                    return (
+                        <button
+                            key={document.id}
+                            id={`document-tab-${document.id}`}
+                            type="button"
+                            role="tab"
+                            aria-selected={isActive}
+                            aria-controls="document-preview-panel"
+                            tabIndex={isActive ? 0 : -1}
+                            className={`about-cv-tab${isActive ? ' about-cv-tab--active' : ''}`}
+                            onClick={() => selectDocument(document.id)}
+                        >
+                            {document.label}
+                        </button>
+                    );
+                })}
+            </div>
+
             {/* Zoom toolbar */}
             <div className="about-cv-toolbar">
-                <span className="about-cv-toolbar-label">VIEWER</span>
+                <span className="about-cv-toolbar-label">{activeDocument.label}</span>
                 <div className="about-cv-toolbar-actions">
                     <ZoomButton
                         ariaLabel="Zoom out"
@@ -88,17 +155,34 @@ export default function CvViewer() {
             </div>
 
             {/* Scrollable page column */}
-            <div className="about-cv-scroll overlay-scroll">
+            <div
+                id="document-preview-panel"
+                className="about-cv-scroll overlay-scroll"
+                role="tabpanel"
+                aria-labelledby={`document-tab-${activeDocument.id}`}
+                aria-busy={numPages === null && !loadError}
+            >
                 <div className="about-cv-page-stack">
                     <Document
-                        file={CV_PDF_URL}
-                        onLoadSuccess={({ numPages: n }) => setNumPages(n)}
+                        key={activeDocument.id}
+                        file={activeDocument.url}
+                        loading={<p className="about-cv-status" role="status">Loading {activeDocument.label}…</p>}
+                        error={<p className="about-cv-status" role="alert">The document preview could not be loaded.</p>}
+                        onLoadSuccess={({ numPages: n }) => {
+                            setNumPages(n);
+                            setLoadError(false);
+                        }}
+                        onLoadError={() => {
+                            setNumPages(0);
+                            setLoadError(true);
+                        }}
                     >
                         {Array.from({ length: numPages || 0 }, (_, i) => (
                             <div key={`page-${i + 1}`} className="about-cv-page-wrap">
                                 <Page
                                     pageNumber={i + 1}
                                     scale={scale}
+                                    devicePixelRatio={Math.min(window.devicePixelRatio || 1, reduceEffects ? 1 : 1.5)}
                                     className="about-cv-page"
                                     renderTextLayer={false}
                                     renderAnnotationLayer={false}
@@ -111,15 +195,15 @@ export default function CvViewer() {
 
             {/* Footer */}
             <div className="about-cv-footer">
-                <span className="about-cv-filename">{CV_FILENAME}</span>
+                <span className="about-cv-filename">{activeDocument.filename}</span>
                 <a
-                    href={CV_PDF_URL}
-                    download={CV_FILENAME}
+                    href={activeDocument.url}
+                    download={activeDocument.filename}
                     className="about-cv-download"
-                    aria-label="Download CV"
+                    aria-label={`Download ${activeDocument.label}`}
                 >
                     <DownloadIcon />
-                    DOWNLOAD CV ↓
+                    DOWNLOAD {activeDocument.id === 'cv' ? 'CV' : 'RÉSUMÉ'} ↓
                 </a>
             </div>
         </div>

@@ -1,12 +1,14 @@
-import { Suspense, lazy, useEffect, useState } from 'react'
+import { Suspense, lazy, useEffect, useRef, useState } from 'react'
 import App from './App.jsx'
-import BootScreen from './components/ui/BootScreen.jsx'
+import { prefetchLazyChunks } from './utils/prefetchPages'
 import { ThemeProvider } from './context/ThemeContext'
+import { recoverImportFailure } from './utils/loadRecovery'
 
 const LazyUpdatePrompt = lazy(() => import('./components/ui/UpdatePrompt.jsx'))
 
 export default function RootApp() {
   const [updateAvailable, setUpdateAvailable] = useState(false)
+  const applyUpdate = useRef(null)
 
   useEffect(() => {
     let idleId = 0
@@ -16,14 +18,22 @@ export default function RootApp() {
     const register = () => {
       import('virtual:pwa-register').then(({ registerSW }) => {
         if (cancelled) return
-        registerSW({
+        applyUpdate.current = registerSW({
           immediate: false,
           updateViaCache: 'none',
-          onNeedReload() {
+          onNeedRefresh() {
             setUpdateAvailable(true)
           },
+          onNeedReload() {
+            window.location.reload()
+          },
         })
-      })
+        // Also warm section modules on refresh when the worker is already
+        // installed. Heavy WebGL/PDF modules remain cached without evaluation.
+        navigator.serviceWorker?.ready.then(() => {
+          if (!cancelled) return Promise.allSettled(prefetchLazyChunks())
+        }).catch(() => {})
+      }).catch(recoverImportFailure)
     }
 
     const scheduleIdle = () => {
@@ -55,10 +65,9 @@ export default function RootApp() {
   return (
     <ThemeProvider>
       <App />
-      <BootScreen />
       {updateAvailable && (
         <Suspense fallback={null}>
-          <LazyUpdatePrompt />
+          <LazyUpdatePrompt onUpdate={() => applyUpdate.current?.(true)} />
         </Suspense>
       )}
     </ThemeProvider>

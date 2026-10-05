@@ -13,7 +13,7 @@
 | **3D Engine** | Three.js, React Three Fiber, React Three Drei |
 | **Styling** | Tailwind CSS, CSS Variables |
 | **Animation** | CSS Keyframes, View Transitions API |
-| **Icons & Assets** | Custom SVG, PNG sprites |
+| **Icons & Assets** | SVG icons, WebP images |
 | **Deployment** | GitHub Pages (gh-pages) |
 
 --- 

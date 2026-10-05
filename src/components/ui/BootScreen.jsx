@@ -1,66 +1,50 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import dinoIcon from '../../assets/brand/dino-icon.webp';
-import { useAssetPreloader } from '../../hooks/useAssetPreloader';
+import { useEffect, useState } from 'react';
+import dinoIcon from '../../assets/brand/dino-loader.webp';
+// Boot styles load in main.jsx so they also apply to the initial HTML shell.
 
-const FLASH_GUARD_MS = 350;
-const FADE_MS = 600;
-const TICK_COUNT = 4;
-
-export default function BootScreen() {
-    const { progress, done } = useAssetPreloader();
-    const [phase, setPhase] = useState('booting');
-    const mountedAtRef = useRef(0);
-    const phaseTimerRef = useRef(0);
+// The loader follows the first rendered WebGL frame, with no asset-count gate
+// or minimum display time. Remaining portfolio assets cache in the background.
+export default function BootScreen({ ready }) {
+    const [visible, setVisible] = useState(true);
+    // Preserve the first-painted HTML image instead of replacing it with an
+    // identical React image (which would create a later LCP candidate).
+    const [shell] = useState(() => document.getElementById('portfolio-boot-shell'));
 
     useEffect(() => {
-        mountedAtRef.current = performance.now();
-    }, []);
-
-    useEffect(() => {
-        if (!done || phase !== 'booting') return;
-
-        let cancelled = false;
-        const settlePaint = new Promise((resolve) => {
-            requestAnimationFrame(() => requestAnimationFrame(resolve));
-        });
-
-        settlePaint.then(() => {
-            if (cancelled) return;
-            const remain = FLASH_GUARD_MS - (performance.now() - mountedAtRef.current);
-            phaseTimerRef.current = window.setTimeout(
-                () => setPhase('fading'),
-                Math.max(0, remain)
-            );
-        });
-
-        return () => {
-            cancelled = true;
-            window.clearTimeout(phaseTimerRef.current);
+        if (!ready) return;
+        const finish = () => {
+            shell?.remove();
+            setVisible(false);
         };
-    }, [done, phase]);
+        const onFade = (event) => {
+            if (event.target === shell && event.propertyName === 'opacity') finish();
+        };
+        shell?.classList.add('boot-screen--fading');
+        shell?.addEventListener('transitionend', onFade);
+        // Also complete when reduced motion disables the opacity transition.
+        const timer = setTimeout(finish, 240);
+        return () => {
+            clearTimeout(timer);
+            shell?.removeEventListener('transitionend', onFade);
+        };
+    }, [ready, shell]);
 
-    useEffect(() => {
-        if (phase !== 'fading') return;
-        phaseTimerRef.current = window.setTimeout(() => setPhase('done'), FADE_MS);
-        return () => window.clearTimeout(phaseTimerRef.current);
-    }, [phase]);
-
-    useLayoutEffect(() => {
-        // Add `home-entered` immediately (hero-first): the entrance reveals run
-        // underneath the boot overlay, so the DINOWEB hero (LCP) is already
-        // finishing its reveal the moment the boot fades — it no longer waits
-        // for heavy preload before it can paint.
-        document.documentElement.classList.add('home-entered');
-    }, []);
-
-    if (phase === 'done') return null;
-
-    const ticksFilled = Math.round(progress * TICK_COUNT);
+    if (shell || !visible) return null;
 
     return (
-        <div className={`boot-screen${phase === 'fading' ? ' boot-screen--fading' : ''}`}>
-            <div className="boot-screen__grid" />
-            <div className="boot-screen__grid boot-screen__grid--drift" />
+        <div
+            className={`boot-screen${ready ? ' boot-screen--fading' : ''}`}
+            role="status"
+            aria-live="polite"
+            aria-label="Loading the interactive portfolio"
+            onTransitionEnd={(event) => {
+                if (ready && event.target === event.currentTarget && event.propertyName === 'opacity') setVisible(false);
+            }}
+        >
+            <div className="boot-screen__background" aria-hidden="true">
+                <div className="boot-screen__grid" />
+                <div className="home-stage-backdrop__floor" />
+            </div>
             <div className="boot-screen__stage">
                 <div className="boot-screen__brackets" aria-hidden="true">
                     <span className="boot-screen__bracket boot-screen__bracket--tl" />
@@ -68,19 +52,10 @@ export default function BootScreen() {
                     <span className="boot-screen__bracket boot-screen__bracket--bl" />
                     <span className="boot-screen__bracket boot-screen__bracket--br" />
                 </div>
-                <img
-                    src={dinoIcon}
-                    alt=""
-                    draggable={false}
-                    className="boot-screen__icon"
-                />
-                <div className="boot-screen__progress" aria-hidden="true">
-                    {Array.from({ length: TICK_COUNT }, (_, i) => (
-                        <span key={i} className={i < ticksFilled ? 'boot-screen__tick--on' : ''} />
-                    ))}
-                </div>
+                <img src={dinoIcon} alt="" width="80" height="80" draggable={false} className="boot-screen__icon" />
+                <div className="boot-screen__progress" aria-hidden="true"><span /><span /><span /></div>
                 <p className="boot-screen__label">ARCHIVE_SYSTEM</p>
-                <p className="boot-screen__sub-label">INITIALIZE SEQUENCE</p>
+                <p className="boot-screen__sub-label">INITIALIZING PORTFOLIO</p>
             </div>
         </div>
     );

@@ -1,11 +1,13 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import { createPortal } from 'react-dom';
+import DeferredSection from '../components/ui/DeferredSection';
 import TiltCard from '../components/ui/TiltCard';
 import OverlayNavIcon from '../components/ui/OverlayNavIcon';
 import GitHubContributions from '../components/ui/GitHubContributions';
-import CvViewer from '../components/ui/CvViewer';
 import { useTimelineSpy } from '../hooks/useTimelineSpy';
 import profileImage from '../assets/images/profile/me.webp';
+
+const CvViewer = lazy(() => import('../components/ui/CvViewer'));
 
 // Certificates
 import aignite from '../assets/certifications/AIgnite.webp';
@@ -62,27 +64,25 @@ const EDUCATION = [
         school: "St. Anthony's College",
         desc: 'Foundation in programming, science, and mathematics.',
     },
+    {
+        year: '2011 — 2020',
+        degree: 'Junior High School and Elementary Education',
+        school: 'Dao Catholic High School, Inc.',
+        desc: 'Completed elementary and junior high school education.',
+    },
 ];
 
 const CERTIFICATIONS = [
-    aignite,
-    courseraExcel,
-    courseraExcel1,
-    zuittCodingBootcamp,
-    gdgBacolod,
-    googleForEducation,
-    ciscoIntroDS,
+    { id: 'aignite', src: aignite, title: 'A.IGNITE', issuer: 'NVIDIA AI Academy PH', category: 'AI & Data' },
+    { id: 'excel-start', src: courseraExcel, title: 'Getting Started with Microsoft Excel', issuer: 'Coursera', category: 'Excel' },
+    { id: 'excel-data', src: courseraExcel1, title: 'Finding, Sorting, & Filtering Data in Microsoft Excel', issuer: 'Coursera', category: 'Excel' },
+    { id: 'zuitt', src: zuittCodingBootcamp, title: 'Basic Web Development Workshop', issuer: 'ZUITT', category: 'Programming' },
+    { id: 'devfest', src: gdgBacolod, title: 'DevFest 2023', issuer: 'GDG Bacolod', category: 'Tech Events' },
+    { id: 'talkbot', src: googleForEducation, title: 'Code a Joke-Telling Talkbot', issuer: 'Google for Education', category: 'Programming' },
+    { id: 'data-science', src: ciscoIntroDS, title: 'Introduction to Data Science', issuer: 'Cisco Networking Academy', category: 'AI & Data' },
 ];
 
-const CERT_NAMES = [
-    'AIgnite Certificate',
-    'Coursera Excel Certificate 1',
-    'Coursera Excel Certificate 2',
-    'ZUITT Free Coding Bootcamp Certificate',
-    'GDG Bacolod Certificate',
-    'Google for Education Certificate',
-    'Cisco Data Science Certificate',
-];
+const CERT_CATEGORIES = ['All', 'AI & Data', 'Programming', 'Excel', 'Tech Events'];
 
 function useStaggeredReveal(target, delayMs) {
     const [lit, setLit] = useState(target);
@@ -161,7 +161,8 @@ function TimelineItem({ year, degree, academic_track, school, desc, active, ref 
 export default function AboutPage() {
     const { itemRefs, activeIndex } = useTimelineSpy(EDUCATION.length);
     const litIndex = useStaggeredReveal(activeIndex, DOT_GLOW_STAGGER_MS);
-    const [lightboxIndex, setLightboxIndex] = useState(null);
+    const [lightboxCertificate, setLightboxCertificate] = useState(null);
+    const [certCategory, setCertCategory] = useState('All');
     const [certPage, setCertPage] = useState(0);
     const [certPageSize, setCertPageSize] = useState(() =>
         window.matchMedia('(min-width: 768px)').matches ? 9 : 6
@@ -175,18 +176,21 @@ export default function AboutPage() {
     }, []);
 
     useEffect(() => {
-        if (lightboxIndex === null) return;
+        if (lightboxCertificate === null) return;
         const onKeyDown = (e) => {
-            if (e.key === 'Escape') setLightboxIndex(null);
+            if (e.key === 'Escape') setLightboxCertificate(null);
         };
         window.addEventListener('keydown', onKeyDown);
         return () => window.removeEventListener('keydown', onKeyDown);
-    }, [lightboxIndex]);
+    }, [lightboxCertificate]);
 
-    const certTotalPages = Math.max(1, Math.ceil(CERTIFICATIONS.length / certPageSize));
+    const filteredCerts = certCategory === 'All'
+        ? CERTIFICATIONS
+        : CERTIFICATIONS.filter(cert => cert.category === certCategory);
+    const certTotalPages = Math.max(1, Math.ceil(filteredCerts.length / certPageSize));
     const certSafePage = Math.min(certPage, certTotalPages - 1);
     const certStart = certSafePage * certPageSize;
-    const visibleCerts = CERTIFICATIONS.slice(certStart, certStart + certPageSize);
+    const visibleCerts = filteredCerts.slice(certStart, certStart + certPageSize);
 
     return (
         <div className="about-page">
@@ -270,45 +274,59 @@ export default function AboutPage() {
                 <h3 className="about-section-title uppercase mb-5" style={S.h3}>
                     Certifications
                 </h3>
-                <div className="about-certifications-grid grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
-                    {visibleCerts.map((src, idx) => {
-                        const fullIdx = certStart + idx;
-                        return (
-                            <button
-                                key={fullIdx}
-                                type="button"
-                                aria-label={`View ${CERT_NAMES[fullIdx]}`}
-                                className="about-cert-cell relative aspect-[4/3] border overflow-hidden transition-all duration-300 cursor-zoom-in"
-                                style={{
-                                    borderColor: 'var(--void-border)',
-                                    backgroundColor: 'var(--void-surface-80)',
-                                    padding: 0,
-                                }}
-                                onMouseEnter={e => {
-                                    e.currentTarget.style.borderColor = 'var(--void-text-dim)';
-                                    e.currentTarget.style.transform = 'translateY(-2px)';
-                                }}
-                                onMouseLeave={e => {
-                                    e.currentTarget.style.borderColor = 'var(--void-border)';
-                                    e.currentTarget.style.transform = 'translateY(0)';
-                                }}
-                                onClick={() => setLightboxIndex(fullIdx)}
-                            >
+                <div className="about-cert-filters" role="group" aria-label="Filter certifications by topic">
+                    {CERT_CATEGORIES.map(category => (
+                        <button
+                            key={category}
+                            type="button"
+                            className="about-cert-filter"
+                            aria-pressed={certCategory === category}
+                            aria-controls="about-certifications-grid"
+                            onClick={() => {
+                                setCertCategory(category);
+                                setCertPage(0);
+                            }}
+                        >
+                            {category}
+                            <span className="about-cert-filter-count" aria-hidden="true">
+                                {category === 'All' ? CERTIFICATIONS.length : CERTIFICATIONS.filter(cert => cert.category === category).length}
+                            </span>
+                        </button>
+                    ))}
+                </div>
+                <p className="about-cert-results" role="status">
+                    {filteredCerts.length} {filteredCerts.length === 1 ? 'certificate' : 'certificates'}
+                    {certCategory === 'All' ? ' across all topics' : ` in ${certCategory}`}
+                </p>
+                <div id="about-certifications-grid" className="about-certifications-grid grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
+                    {visibleCerts.map(cert => (
+                        <button
+                            key={cert.id}
+                            type="button"
+                            aria-label={`View ${cert.title} certificate from ${cert.issuer}`}
+                            className="about-cert-cell relative border overflow-hidden cursor-zoom-in"
+                            onClick={() => setLightboxCertificate(cert)}
+                        >
+                            <span className="about-cert-thumbnail block aspect-[4/3]">
                                 <img
-                                    src={src}
-                                    alt={CERT_NAMES[fullIdx]}
+                                    src={cert.src}
+                                    alt=""
                                     className="w-full h-full object-contain p-2"
                                     loading="lazy"
                                     decoding="async"
                                     draggable={false}
                                 />
-                            </button>
-                        );
-                    })}
+                            </span>
+                            <span className="about-cert-caption">
+                                <span className="about-cert-title" title={cert.title}>{cert.title}</span>
+                                <span className="about-cert-issuer">{cert.issuer}</span>
+                                <span className="about-cert-topic">{cert.category}</span>
+                            </span>
+                        </button>
+                    ))}
                 </div>
 
-                {/* Fixed page switcher — always rendered under the grid */}
-                <div
+                {certTotalPages > 1 && <div
                     className="about-certifications-pagination"
                     role="navigation"
                     aria-label="Certifications pages"
@@ -347,19 +365,19 @@ export default function AboutPage() {
                             <path d="M9 18l6-6-6-6" />
                         </svg>
                     </button>
-                </div>
+                </div>}
             </div>
 
             {/* ── Certification lightbox — portaled to <body> so the
                 overlay panel's transform can't contain it ── */}
-            {lightboxIndex !== null && createPortal(
+            {lightboxCertificate !== null && createPortal(
                 <div
                     className="cert-lightbox fixed inset-0 z-[150] flex items-center justify-center"
                     style={{
                         backgroundColor: 'rgba(0, 0, 0, 0.7)',
                         backdropFilter: 'blur(6px)',
                     }}
-                    onClick={() => setLightboxIndex(null)}
+                    onClick={() => setLightboxCertificate(null)}
                 >
                     <div
                         className="cert-lightbox-in relative flex items-center justify-center max-w-[92vw] max-h-[88vh] border"
@@ -367,8 +385,8 @@ export default function AboutPage() {
                         onClick={e => e.stopPropagation()}
                     >
                         <img
-                            src={CERTIFICATIONS[lightboxIndex]}
-                            alt={CERT_NAMES[lightboxIndex]}
+                            src={lightboxCertificate.src}
+                            alt={`${lightboxCertificate.title} certificate from ${lightboxCertificate.issuer}`}
                             className="max-w-[92vw] max-h-[88vh] object-contain"
                             draggable={false}
                         />
@@ -390,7 +408,7 @@ export default function AboutPage() {
                             e.currentTarget.style.backgroundColor = 'var(--void-surface-80)';
                             e.currentTarget.style.borderColor = 'var(--void-border)';
                         }}
-                        onClick={() => setLightboxIndex(null)}
+                        onClick={() => setLightboxCertificate(null)}
                     >
                         <OverlayNavIcon variant="close" />
                     </button>
@@ -402,13 +420,17 @@ export default function AboutPage() {
             <div className="about-divider my-10 w-full h-px" style={{ backgroundColor: 'var(--void-border)' }} />
 
             {/* ═══════════════════════════════════════════════════════
-                MIDDLE SECTION: Curriculum Vitae Viewer (full width)
+                MIDDLE SECTION: Document Viewer (full width)
             ═══════════════════════════════════════════════════════ */}
             <div className="about-section about-cv-viewer mb-0">
                 <h3 className="about-section-title uppercase mb-5" style={S.h3}>
-                    Curriculum Vitae
+                    Résumé and Curriculum Vitae
                 </h3>
-                <CvViewer />
+                <DeferredSection minHeight={500}>
+                    <Suspense fallback={null}>
+                        <CvViewer />
+                    </Suspense>
+                </DeferredSection>
             </div>
 
             {/* Divider: CV Viewer → GitHub Contributions */}
@@ -421,7 +443,9 @@ export default function AboutPage() {
                 <h3 className="about-section-title uppercase mb-5" style={S.h3}>
                     GitHub Contributions
                 </h3>
-                <GitHubContributions username="Cocoasaur" />
+                <DeferredSection>
+                    <GitHubContributions username="Cocoasaur" />
+                </DeferredSection>
             </div>
 
             {/* Divider 3: GitHub Contributions → Bottom */}
