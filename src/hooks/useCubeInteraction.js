@@ -1,9 +1,8 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { PAGE_LOADERS, prefetchPage } from '../utils/prefetchPages';
 import { FACE_ROTATIONS, ZOOM_MIN, ZOOM_MAX, DEFAULT_ROTATION } from '../constants/cubeConfig';
-import { getCubeTransition } from '../utils/cubeTransition';
 
-export function useCubeInteraction(reduceEffects = false, reducedMotion = false) {
+export function useCubeInteraction() {
     const [isZoomed, setIsZoomed] = useState(false);
     const [isZoomingOut, setIsZoomingOut] = useState(false);
     const [showOverlay, setShowOverlay] = useState(false);
@@ -14,9 +13,6 @@ export function useCubeInteraction(reduceEffects = false, reducedMotion = false)
     const [overlayPhase, setOverlayPhase] = useState('hidden');
     const isDraggingRef = useRef(false);
     const phaseRef = useRef('hidden');
-    const cameraCompleteRef = useRef(true);
-    const pageFadedRef = useRef(false);
-    const { blurInMs } = getCubeTransition(reduceEffects, reducedMotion);
     const wheelAccumRef = useRef(0);
     const wheelFrameRef = useRef(0);
 
@@ -42,10 +38,8 @@ export function useCubeInteraction(reduceEffects = false, reducedMotion = false)
         setIsZoomed(true);
         setIsZoomingOut(false);
         // Mount the real page while the camera approaches, so cold imports do
-        // not add a second pause after zoom-in. Keep it transparent until blur.
+        // not add a second pause after zoom-in. Keep it transparent until arrival.
         setShowOverlay(true);
-        cameraCompleteRef.current = false;
-        pageFadedRef.current = false;
         phaseRef.current = 'preparing';
         setOverlayPhase('preparing');
         coordsRef.current = { x: target.x, y: target.y, z: coordsRef.current.z };
@@ -70,34 +64,19 @@ export function useCubeInteraction(reduceEffects = false, reducedMotion = false)
         }
     }, []);
 
-    useEffect(() => {
-        if (!isZoomed || overlayPhase !== 'preparing') return;
-        // Share timing with the CSS blur. Dissolve overlaps the slow camera
-        // approach without revealing a clear face or a loading skeleton.
-        const timer = setTimeout(() => {
-            if (phaseRef.current !== 'preparing') return;
-            phaseRef.current = 'fading-in';
-            setOverlayPhase('fading-in');
-        }, blurInMs);
-        return () => clearTimeout(timer);
-    }, [isZoomed, overlayPhase, blurInMs]);
-
-    const finishOpening = useCallback(() => {
-        if (!cameraCompleteRef.current || !pageFadedRef.current || phaseRef.current !== 'fading-in') return;
-        phaseRef.current = 'open';
-        setOverlayPhase('open');
-    }, []);
-
     const handleZoomComplete = useCallback(() => {
-        cameraCompleteRef.current = true;
-        finishOpening();
-    }, [finishOpening]);
+        if (phaseRef.current !== 'preparing') return;
+        // Both renderers emit this after publishing the final camera pose.
+        // Start dissolving immediately at the face; no post-zoom delay timer.
+        phaseRef.current = 'fading-in';
+        setOverlayPhase('fading-in');
+    }, []);
 
     const handleOverlayOpenComplete = useCallback(() => {
         if (phaseRef.current !== 'fading-in') return;
-        pageFadedRef.current = true;
-        finishOpening();
-    }, [finishOpening]);
+        phaseRef.current = 'open';
+        setOverlayPhase('open');
+    }, []);
 
     const handleCloseOverlay = useCallback(() => {
         if (!['open', 'fading-in'].includes(phaseRef.current)) return;

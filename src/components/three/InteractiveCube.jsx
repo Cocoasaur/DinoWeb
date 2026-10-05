@@ -400,8 +400,8 @@ export default function InteractiveCube({
             groupRef.current.rotation.x = THREE.MathUtils.lerp(pose.rx, targetRad.x, p);
             groupRef.current.rotation.y = THREE.MathUtils.lerp(pose.ry, targetRad.y, p);
             if (t < 1) invalidate();
-            // Camera completion remains independent of the overlapping page
-            // dissolve, so demand rendering pauses only when both finish.
+            // Publish the completed face pose before the page dissolve starts
+            // and the renderer pauses on this frame.
             if (t >= 1 && !hasNotifiedRef.current) {
                 hasNotifiedRef.current = true;
                 completedIn = true;

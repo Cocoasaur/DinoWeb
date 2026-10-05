@@ -10,21 +10,23 @@ export function easeInOut(t) {
 }
 
 export function getCubeTransition(reduceEffects, reducedMotion) {
+    const zoomInMs = reducedMotion ? 0 : reduceEffects ? 1200 : 1450;
     return {
-        zoomInMs: reducedMotion ? 0 : reduceEffects ? 1200 : 1450,
-        blurInMs: reducedMotion ? 0 : reduceEffects ? 180 : 240,
+        zoomInMs,
+        blurInMs: zoomInMs,
         zoomOutMs: reducedMotion ? 0 : reduceEffects ? 1300 : 1550,
         fadeMs: reducedMotion ? 0 : reduceEffects ? 750 : 900,
         blurPx: reducedMotion ? 0 : reduceEffects ? 12 : 24,
     };
 }
 
-export function getCubeStageStyle(isZoomed, isZoomingOut, transition) {
+export function getCubeStageStyle(isZoomed, isZoomingOut, transition, overlayPhase) {
     const covered = isZoomed && !isZoomingOut;
+    const held = covered && ['fading-in', 'open', 'fading-out'].includes(overlayPhase);
     const duration = isZoomingOut ? transition.zoomOutMs : transition.blurInMs;
     return {
         transform: covered ? 'scale(1.04)' : 'none',
         filter: covered ? `blur(${transition.blurPx}px)` : 'blur(0px)',
-        transition: `filter ${duration}ms cubic-bezier(0.65, 0, 0.35, 1), transform ${duration}ms cubic-bezier(0.65, 0, 0.35, 1)`,
+        transition: held ? 'none' : `filter ${duration}ms cubic-bezier(0.65, 0, 0.35, 1), transform ${duration}ms cubic-bezier(0.65, 0, 0.35, 1)`,
     };
 }

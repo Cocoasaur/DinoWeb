@@ -7,8 +7,8 @@ No development or preview servers were started or stopped during this work.
 
 | Profile | Performance | Accessibility | Best practices | SEO | FCP | LCP | Blocking time | CLS |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| Desktop | 100 | 100 | 100 | 100 | 0.33 s | 0.53 s | 4.5 ms | 0.00015 |
-| Mobile | 100 | 100 | 100 | 100 | 0.97 s | 1.30 s | 33 ms | 0.00087 |
+| Desktop | 100 | 100 | 100 | 100 | 0.33 s | 0.53 s | 7.5 ms | 0.00016 |
+| Mobile | 100 | 100 | 100 | 100 | 0.84 s | 1.24 s | 32 ms | 0.00092 |
 
 These are local startup audits using software WebGL. Their paint metrics include
 the initial loading UI; interactive-cube readiness is checked separately below.
@@ -19,8 +19,8 @@ with the device and hosting; they do not guarantee a frame rate during use.
 The HTML/JSON reports and a video of the slow transitions are saved in
 `/home/jl/.codex/visualizations/2026/10/04/01a10732-0c71-75b1-930b-235ade9c735f/`:
 
-- `lighthouse-ground-parallax-desktop.report.html` and `.json`
-- `lighthouse-ground-parallax-mobile.report.html` and `.json`
+- `lighthouse-arrival-dissolve-desktop.report.html` and `.json`
+- `lighthouse-arrival-dissolve-mobile.report.html` and `.json`
 - `progressive-blur-transitions.webm`
 - `cursor-baseplate-lighting.webm`
 
@@ -110,13 +110,15 @@ Reduced-motion preferences skip camera movement, breathing and blur.
 The sequence is clear → progressive blur → full blur → dissolve → page →
 dissolve → full blur → progressive unblur → clear. The real page begins
 preparing during the cube press animation and stays transparent. Opening blur
-reaches its maximum in 240 ms on desktop or 180 ms on mobile/low profiles. As
-soon as the blur completes and the real page is ready, its opacity dissolve
-starts while the camera continues its slow approach. There is no wait for camera
-completion before page loading or fading. The scene pauses only after both the
-camera approach and page dissolve finish.
+progresses across the full 1,450 ms desktop / 1,200 ms mobile/low approach.
+At the final face pose, the renderer's actual camera-completion event starts
+the opacity dissolve immediately. There is no post-zoom delay timer and no
+early page fade during the approach. The real page is prepared ahead of arrival;
+a loading skeleton is never dissolved into view. The completed 3D frame and
+full blur are held through the incoming dissolve, page view and outgoing
+dissolve. The renderer resumes for the camera return after the page is gone.
 
-Closing holds the camera at its final or interrupted approach pose throughout
+Closing holds the camera at its final face pose throughout
 the outgoing dissolve. Only after the page is gone does the camera return and
 blur progressively clear over the full return duration. Reversing a partially
 completed opacity transition can shorten that early-close dissolve; the camera
@@ -190,7 +192,7 @@ pausing. Both share the same filter timing and clipped blur edges.
   time. The dissolve-adjustment runs also scored 100 in both profiles, with
   0 ms desktop / 19 ms mobile blocking time. Enlarged-floor runs scored 100
   with 0 ms desktop / 39 ms mobile blocking time. The latest camera-matched
-  ground-parallax runs appear in the table above.
+  arrival-triggered dissolve runs appear in the table above.
   Earlier reports are retained as `lighthouse-load-recovery-before-loader-*`.
 
 - Overlapping-dissolve checks pass desktop, mobile, forced fallback, reduced
@@ -264,3 +266,20 @@ that same project folder.
   best practices and SEO on both desktop and mobile, without run warnings or
   runtime errors. A cropped MP4 motion preview is saved as
   `ground-perspective-motion.mp4`; the full recording remains available as WebM.
+
+- Arrival-triggered dissolve checks pass desktop/mobile, forced fallback, a
+  simulated 2-core/2 GB mobile with 6× CPU throttling and reduced motion.
+  Sampling actual worker completion messages shows the fade phase and opacity
+  target update within the next UI update (9 ms desktop, 34 ms mobile, 13 ms
+  simulated low-end in this run). A 400 ms cold Projects module delay still
+  leaves the actual page ready before arrival. Samples verify no early opacity,
+  full blur during fade, a held final face, progressive return unblur, early
+  close, restored breathing, visibility pause/resume and no page errors.
+  The software-rendered compositor can paint less frequently than UI updates;
+  these event timings measure the absence of a post-arrival delay timer.
+  Results and the saved check script are `arrival-dissolve-*`.
+
+- Fresh arrival-dissolve Lighthouse runs score 100 for performance, accessibility,
+  best practices and SEO on desktop and mobile, without run warnings or runtime
+  errors. Their initial paint/readiness scope is the same as the earlier audits;
+  the navigation timeline is measured separately by the sequence checks above.

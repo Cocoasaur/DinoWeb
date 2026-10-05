@@ -33,7 +33,7 @@ export default function CubeStage(props) {
     const colors = useCSSVars(['--cube-color', '--cube-edge-color', '--cube-edge-opacity', '--cube-text-accent', '--cube-ticks-idle', '--cube-ticks-hover', '--cube-ticks-hover-scale']);
     const { reduceEffects, isZoomed, isZoomingOut, overlayPhase, canvasZIndex } = props;
     const transition = getCubeTransition(reduceEffects, reducedMotion);
-    const paused = !visible || overlayPhase === 'open';
+    const paused = !visible || ['fading-in', 'open', 'fading-out'].includes(overlayPhase);
     useIdleBreathing(hostRef, visible && !fallback && !isZoomed && !isZoomingOut, reducedMotion);
 
     useEffect(() => { propsRef.current = props; });
@@ -138,7 +138,7 @@ export default function CubeStage(props) {
     if (fallback) return <Suspense fallback={null}><FallbackStage {...props} /></Suspense>;
     return (
         <div className="absolute inset-0 w-full h-full overflow-hidden cube-entrance" data-renderer="worker" data-render-paused={paused} style={{ zIndex: canvasZIndex }}>
-            <div className="w-full h-full" style={getCubeStageStyle(isZoomed, isZoomingOut, transition)}>
+            <div className="w-full h-full" style={getCubeStageStyle(isZoomed, isZoomingOut, transition, overlayPhase)}>
                 <StageBackdrop hidden={isZoomed || isZoomingOut} paused={paused} reduceEffects={reduceEffects} zoomZ={props.zoomZ} />
                 <div ref={hostRef} className="w-full h-full cube-breath" />
             </div>
