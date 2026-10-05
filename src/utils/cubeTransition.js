@@ -12,6 +12,7 @@ export function easeInOut(t) {
 export function getCubeTransition(reduceEffects, reducedMotion) {
     return {
         zoomInMs: reducedMotion ? 0 : reduceEffects ? 1200 : 1450,
+        blurInMs: reducedMotion ? 0 : reduceEffects ? 180 : 240,
         zoomOutMs: reducedMotion ? 0 : reduceEffects ? 1300 : 1550,
         fadeMs: reducedMotion ? 0 : reduceEffects ? 750 : 900,
         blurPx: reducedMotion ? 0 : reduceEffects ? 12 : 24,
@@ -20,7 +21,7 @@ export function getCubeTransition(reduceEffects, reducedMotion) {
 
 export function getCubeStageStyle(isZoomed, isZoomingOut, transition) {
     const covered = isZoomed && !isZoomingOut;
-    const duration = isZoomingOut ? transition.zoomOutMs : transition.zoomInMs * 0.85;
+    const duration = isZoomingOut ? transition.zoomOutMs : transition.blurInMs;
     return {
         transform: covered ? 'scale(1.04)' : 'none',
         filter: covered ? `blur(${transition.blurPx}px)` : 'blur(0px)',

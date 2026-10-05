@@ -39,12 +39,12 @@ export default function CubeStage(props) {
     useEffect(() => { propsRef.current = props; });
     useEffect(() => {
         const state = { theme, colors, layout, reduceEffects, reducedMotion, paused,
-            isZoomed, isZoomingOut, activeFace: props.activeFace, targetRotation: props.targetRotation,
+            isZoomed, isZoomingOut, overlayPhase, activeFace: props.activeFace, targetRotation: props.targetRotation,
             zoomZ: props.zoomZ, dpr: Math.min(window.devicePixelRatio || 1, props.dpr[1]),
             transition: getCubeTransition(reduceEffects, reducedMotion) };
         stateRef.current = state;
         workerRef.current?.postMessage({ type: 'state', state });
-    }, [theme, colors, layout, reduceEffects, reducedMotion, paused, isZoomed, isZoomingOut,
+    }, [theme, colors, layout, reduceEffects, reducedMotion, paused, isZoomed, isZoomingOut, overlayPhase,
         props.activeFace, props.targetRotation, props.zoomZ, props.dpr]);
 
     useEffect(() => {

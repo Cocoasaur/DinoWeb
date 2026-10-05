@@ -1,8 +1,9 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { prefetchPage } from '../utils/prefetchPages';
+import { PAGE_LOADERS, prefetchPage } from '../utils/prefetchPages';
 import { FACE_ROTATIONS, ZOOM_MIN, ZOOM_MAX, DEFAULT_ROTATION } from '../constants/cubeConfig';
+import { getCubeTransition } from '../utils/cubeTransition';
 
-export function useCubeInteraction() {
+export function useCubeInteraction(reduceEffects = false, reducedMotion = false) {
     const [isZoomed, setIsZoomed] = useState(false);
     const [isZoomingOut, setIsZoomingOut] = useState(false);
     const [showOverlay, setShowOverlay] = useState(false);
@@ -13,6 +14,9 @@ export function useCubeInteraction() {
     const [overlayPhase, setOverlayPhase] = useState('hidden');
     const isDraggingRef = useRef(false);
     const phaseRef = useRef('hidden');
+    const cameraCompleteRef = useRef(true);
+    const pageFadedRef = useRef(false);
+    const { blurInMs } = getCubeTransition(reduceEffects, reducedMotion);
     const wheelAccumRef = useRef(0);
     const wheelFrameRef = useRef(0);
 
@@ -37,14 +41,26 @@ export function useCubeInteraction() {
         setActiveFace(faceName);
         setIsZoomed(true);
         setIsZoomingOut(false);
-        setShowOverlay(false);
-        phaseRef.current = 'hidden';
-        setOverlayPhase('hidden');
+        // Mount the real page while the camera approaches, so cold imports do
+        // not add a second pause after zoom-in. Keep it transparent until blur.
+        setShowOverlay(true);
+        cameraCompleteRef.current = false;
+        pageFadedRef.current = false;
+        phaseRef.current = 'preparing';
+        setOverlayPhase('preparing');
         coordsRef.current = { x: target.x, y: target.y, z: coordsRef.current.z };
     }, []);
 
     const handleFacePressStart = useCallback((faceName) => {
         if (faceName !== 'theme') prefetchPage(faceName).catch(() => {});
+        if (PAGE_LOADERS[faceName] && phaseRef.current === 'hidden') {
+            // Use the existing press animation to prepare the actual page too,
+            // not just its module, before the camera/blur timeline begins.
+            setActiveFace(faceName);
+            setShowOverlay(true);
+            phaseRef.current = 'preparing';
+            setOverlayPhase('preparing');
+        }
         if (faceName === 'theme' && !document.querySelector('.cube-entrance[data-renderer="worker"]')) {
             // Defer the 3D text prewarm off the interaction path; three is already
             // a lazy-loaded chunk by the time a face is pressed.
@@ -54,17 +70,34 @@ export function useCubeInteraction() {
         }
     }, []);
 
-    const handleZoomComplete = useCallback(() => {
-        phaseRef.current = 'fading-in';
-        setShowOverlay(true);
-        setOverlayPhase('fading-in');
-    }, []);
+    useEffect(() => {
+        if (!isZoomed || overlayPhase !== 'preparing') return;
+        // Share timing with the CSS blur. Dissolve overlaps the slow camera
+        // approach without revealing a clear face or a loading skeleton.
+        const timer = setTimeout(() => {
+            if (phaseRef.current !== 'preparing') return;
+            phaseRef.current = 'fading-in';
+            setOverlayPhase('fading-in');
+        }, blurInMs);
+        return () => clearTimeout(timer);
+    }, [isZoomed, overlayPhase, blurInMs]);
 
-    const handleOverlayOpenComplete = useCallback(() => {
-        if (phaseRef.current !== 'fading-in') return;
+    const finishOpening = useCallback(() => {
+        if (!cameraCompleteRef.current || !pageFadedRef.current || phaseRef.current !== 'fading-in') return;
         phaseRef.current = 'open';
         setOverlayPhase('open');
     }, []);
+
+    const handleZoomComplete = useCallback(() => {
+        cameraCompleteRef.current = true;
+        finishOpening();
+    }, [finishOpening]);
+
+    const handleOverlayOpenComplete = useCallback(() => {
+        if (phaseRef.current !== 'fading-in') return;
+        pageFadedRef.current = true;
+        finishOpening();
+    }, [finishOpening]);
 
     const handleCloseOverlay = useCallback(() => {
         if (!['open', 'fading-in'].includes(phaseRef.current)) return;

@@ -180,6 +180,7 @@ export default function MainThreadCubeStage({
                         faceCount={faceCount}
                         isLowEnd={isLowEnd}
                         reduceEffects={reduceEffects}
+                        holdCamera={overlayPhase === 'fading-out'}
                         onFaceClick={handleFaceClick}
                         onFacePressStart={handleFacePressStart}
                         targetRotation={targetRotation}

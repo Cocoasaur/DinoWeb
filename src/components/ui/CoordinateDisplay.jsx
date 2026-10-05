@@ -5,7 +5,6 @@ export default function CoordinateDisplay({ coordsRef, paused }) {
     const lastTextRef = useRef('');
 
     useEffect(() => {
-        if (paused) return;
         const tick = () => {
             if (document.visibilityState !== 'hidden') {
                 if (spanRef.current && coordsRef.current) {
@@ -27,6 +26,7 @@ export default function CoordinateDisplay({ coordsRef, paused }) {
             }
         };
         tick();
+        if (paused) return;
         const timer = setInterval(tick, 100);
         return () => clearInterval(timer);
     }, [coordsRef, paused]);

@@ -56,6 +56,7 @@ export default function InteractiveCube({
     onZoomComplete, onZoomOutComplete,
     activeFace,
     reduceEffects = false,
+    holdCamera = false,
     faceCount = FACE_CONFIG.length,
     screenPosRef,
     faceDownPosRef,
@@ -348,6 +349,8 @@ export default function InteractiveCube({
 
         const dt = Math.min(delta, 0.1);
         const smoothing = (rate) => reducedMotion ? 1 : 1 - Math.exp(-rate * delta);
+        let completedIn = false;
+        let completedOut = false;
 
         let pressScale = 1;
         if (pressRef.current.active) {
@@ -385,9 +388,9 @@ export default function InteractiveCube({
             if (t < 1) invalidate();
             else if (!hasNotifiedOutRef.current) {
                 hasNotifiedOutRef.current = true;
-                handleZoomOutDone();
+                completedOut = true;
             }
-        } else if (isZoomed && targetRad && zoomPoseRef.current) {
+        } else if (isZoomed && targetRad && zoomPoseRef.current && !holdCamera) {
             const pose = zoomPoseRef.current;
             const t = transitionProgress(pose.startedAt, performance.now(), transition.zoomInMs);
             const p = easeInOut(t);
@@ -397,12 +400,13 @@ export default function InteractiveCube({
             groupRef.current.rotation.x = THREE.MathUtils.lerp(pose.rx, targetRad.x, p);
             groupRef.current.rotation.y = THREE.MathUtils.lerp(pose.ry, targetRad.y, p);
             if (t < 1) invalidate();
-            // Dissolve only after the camera and progressive blur finish.
+            // Camera completion remains independent of the overlapping page
+            // dissolve, so demand rendering pauses only when both finish.
             if (t >= 1 && !hasNotifiedRef.current) {
                 hasNotifiedRef.current = true;
-                onZoomComplete?.();
+                completedIn = true;
             }
-        } else {
+        } else if (!holdCamera) {
             const isLerpingRot = Math.abs(rotX - rotationRef.current.x) > 0.001 || Math.abs(rotY - rotationRef.current.y) > 0.001;
             const isLerpingPos = Math.abs(posX - restingX) > 0.001 || Math.abs(posY - restingY) > 0.001;
 
@@ -499,6 +503,8 @@ export default function InteractiveCube({
             THREE.MathUtils.radToDeg(groupRef.current.rotation.x),
             THREE.MathUtils.radToDeg(groupRef.current.rotation.y)
         );
+        if (completedIn) onZoomComplete?.();
+        if (completedOut) handleZoomOutDone();
     });
 
     return (

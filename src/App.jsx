@@ -69,7 +69,7 @@ export default function App() {
     handleRotationChange, updateZoomCoord, handleZoomComplete,
     handleThemeTransitionComplete,
     handleOverlayCloseComplete, handleOverlayOpenComplete,
-  } = useCubeInteraction();
+  } = useCubeInteraction(tier !== 'high' || isMobile || reducedMotion, reducedMotion);
 
   // ── Lifted project selection state ────────────────────────────────────────
   const [selectedProject, setSelectedProject] = useState(null);
