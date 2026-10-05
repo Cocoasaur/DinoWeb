@@ -6,14 +6,30 @@ import dinoIcon from '../../assets/brand/dino-loader.webp';
 // or minimum display time. Remaining portfolio assets cache in the background.
 export default function BootScreen({ ready }) {
     const [visible, setVisible] = useState(true);
+    // Preserve the first-painted HTML image instead of replacing it with an
+    // identical React image (which would create a later LCP candidate).
+    const [shell] = useState(() => document.getElementById('portfolio-boot-shell'));
 
     useEffect(() => {
         if (!ready) return;
-        const timer = setTimeout(() => setVisible(false), 240);
-        return () => clearTimeout(timer);
-    }, [ready]);
+        const finish = () => {
+            shell?.remove();
+            setVisible(false);
+        };
+        const onFade = (event) => {
+            if (event.target === shell && event.propertyName === 'opacity') finish();
+        };
+        shell?.classList.add('boot-screen--fading');
+        shell?.addEventListener('transitionend', onFade);
+        // Also complete when reduced motion disables the opacity transition.
+        const timer = setTimeout(finish, 240);
+        return () => {
+            clearTimeout(timer);
+            shell?.removeEventListener('transitionend', onFade);
+        };
+    }, [ready, shell]);
 
-    if (!visible) return null;
+    if (shell || !visible) return null;
 
     return (
         <div

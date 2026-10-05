@@ -21,10 +21,10 @@
 
 <body>
   <!-- Paint the actual loading screen before React downloads and starts.
-       React replaces this shell and releases it on the first
+       React preserves this shell and releases it on the first
        interactive frame; no static cube or extra loading timer is involved. -->
-  <div id="root">
-    <div class="boot-screen" role="status" aria-live="polite" aria-label="Loading the interactive portfolio">
+  <div id="root"></div>
+    <div id="portfolio-boot-shell" class="boot-screen" role="status" aria-live="polite" aria-label="Loading the interactive portfolio">
       <div class="boot-screen__background" aria-hidden="true">
         <div class="boot-screen__grid"></div>
         <div class="home-stage-backdrop__floor"></div>
@@ -42,7 +42,6 @@
         <p class="boot-screen__sub-label">INITIALIZING PORTFOLIO</p>
       </div>
     </div>
-  </div>
   <script type="module" src="/src/main.jsx"></script>
 </body>
 
