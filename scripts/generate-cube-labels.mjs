@@ -27,7 +27,8 @@ try {
     const out = new URL('../src/assets/cube-labels/', import.meta.url);
     await mkdir(out, { recursive: true });
     const metadata = {};
-    for (const palette of palettes) for (const scale of [.5, 2]) for (const text of ['Projects', 'Contacts', 'Skills', 'About', 'Theme']) {
+    const scales = process.env.CUBE_LABEL_SCALES ? process.env.CUBE_LABEL_SCALES.split(',').map(Number) : [.5, 1, 2];
+    for (const palette of palettes) for (const scale of scales) for (const text of ['Projects', 'Contacts', 'Skills', 'About', 'Theme']) {
         const result = await page.evaluate(({ rasterizer, palette, scale, text }) => {
             const render = new Function(`${rasterizer}; return rasterizeCubeLabel;`)();
             const idle = render(text, 'idle', { hatch: palette.hatch, hatchOpacity: .75, stroke: palette.stroke, strokeWidth: 3.5, strokeOpacity: 1 }, scale);
@@ -42,5 +43,5 @@ try {
         metadata[text] = { widthRatio: result.widthRatio, heightRatio: result.heightRatio };
     }
     await writeFile(new URL('metrics.json', out), JSON.stringify(metadata, null, 2) + '\n');
-    console.log(`Generated 20 WebP label atlases in ${fileURLToPath(out)}`);
+    console.log(`Generated ${palettes.length * scales.length * 5} WebP label atlases in ${fileURLToPath(out)}`);
 } finally { await browser.close(); }
