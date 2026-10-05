@@ -100,16 +100,16 @@ export default function StageBackdrop({ hidden, paused = false, reduceEffects = 
             {!reduceEffects && <>
                 <div className="home-stage-backdrop__floor" />
                 <div className="home-stage-backdrop__pool" style={{ left, background: isDark
-                    ? 'radial-gradient(ellipse, rgba(255,255,255,.12), transparent 68%)'
-                    : 'radial-gradient(ellipse, rgba(0,0,0,.16), transparent 68%)' }} />
+                    ? 'radial-gradient(ellipse, rgba(255,255,255,.07), transparent 68%)'
+                    : 'radial-gradient(ellipse, rgba(0,0,0,.09), transparent 68%)' }} />
             </>}
             <div className="home-stage-backdrop__shadow" style={{
                 left, top: shadowTop,
-                width: `calc(var(--portfolio-viewport-height, 100dvh) * ${cubeScale * zoomScale * .78})`,
-                height: `calc(var(--portfolio-viewport-height, 100dvh) * ${cubeScale * zoomScale * .12})`,
+                width: `calc(var(--portfolio-viewport-height, 100dvh) * ${cubeScale * zoomScale * 1.02})`,
+                height: `calc(var(--portfolio-viewport-height, 100dvh) * ${cubeScale * zoomScale * .20})`,
                 background: isDark
-                    ? 'radial-gradient(ellipse, rgba(0,0,0,.48), rgba(0,0,0,.24) 22%, rgba(0,0,0,.08) 48%, transparent 72%)'
-                    : 'radial-gradient(ellipse, rgba(0,0,0,.32), rgba(0,0,0,.17) 22%, rgba(0,0,0,.055) 48%, transparent 72%)',
+                    ? 'radial-gradient(ellipse, rgba(255,255,255,.14), rgba(255,255,255,.07) 22%, rgba(255,255,255,.02) 48%, transparent 72%)'
+                    : 'radial-gradient(ellipse, rgba(0,0,0,.16), rgba(0,0,0,.08) 22%, rgba(0,0,0,.025) 48%, transparent 72%)',
             }} />
         </div>
     );

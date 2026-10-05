@@ -7,8 +7,8 @@ No development or preview servers were started or stopped during this work.
 
 | Profile | Performance | Accessibility | Best practices | SEO | FCP | LCP | Blocking time | CLS |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| Desktop | 100 | 100 | 100 | 100 | 0.34 s | 0.55 s | 0 ms | 0.00005 |
-| Mobile | 100 | 100 | 100 | 100 | 0.75 s | 0.98 s | 19 ms | 0.00098 |
+| Desktop | 100 | 100 | 100 | 100 | 0.21 s | 0.55 s | 0 ms | 0.00015 |
+| Mobile | 100 | 100 | 100 | 100 | 0.80 s | 0.95 s | 39 ms | 0.00093 |
 
 These are local startup audits using software WebGL. Their paint metrics include
 the initial loading UI; interactive-cube readiness is checked separately below.
@@ -19,8 +19,8 @@ with the device and hosting; they do not guarantee a frame rate during use.
 The HTML/JSON reports and a video of the slow transitions are saved in
 `/home/jl/.codex/visualizations/2026/10/04/01a10732-0c71-75b1-930b-235ade9c735f/`:
 
-- `lighthouse-overlapping-dissolve-desktop.report.html` and `.json`
-- `lighthouse-overlapping-dissolve-mobile.report.html` and `.json`
+- `lighthouse-enlarged-floor-desktop.report.html` and `.json`
+- `lighthouse-enlarged-floor-mobile.report.html` and `.json`
 - `progressive-blur-transitions.webm`
 - `cursor-baseplate-lighting.webm`
 
@@ -56,12 +56,18 @@ The HTML/JSON reports and a video of the slow transitions are saved in
   retaining the unlit fragment shader, existing draw count and cached lighting
   until rotation or theme changes. Physical materials and environment maps are
   not required.
-- A focused contact shadow is restored beneath the cube in both themes and
+- A soft, broad contact shadow appears beneath the cube in both themes and
   every rendering profile, including mobile, low-end and reduced motion. It is
-  a small CSS radial gradient with no shadow map, raster asset, blur filter or
+  a CSS radial gradient with no shadow map, raster asset, blur filter or
   extra GL draw. Its center and size follow the responsive cube layout and home
-  camera zoom. The broad high-profile glow/baseplate remain intact; low profiles
-  draw only the inexpensive contact shadow and skip floor/hover effects.
+  camera zoom. Clair Obscur uses a subtle dark gradient; Demain Soir Bleu uses
+  a subtle white gradient. Both fade smoothly into the floor with no hard edge.
+  The broad high-profile glow/baseplate remain intact; low profiles draw only
+  the inexpensive contact shadow and skip floor/hover effects.
+- The perspective floor spans the viewport and reaches approximately 25% of
+  its height, about twice the previous visible depth. Larger 100–160 px grid
+  tiles and viewport-scaled perspective match the reference's broad baseplate.
+  The loading screen shares these styles, without adding assets or GL draws.
 - The home baseplate reacts to a fine-pointer cursor with ±3° pitch, ±1.4°
   roll, small perspective shifts and matching shadow movement. Pointer events
   coalesce into one transform update per animation frame, with a 480 ms ease.
@@ -177,8 +183,9 @@ pausing. Both share the same filter timing and clipped blur edges.
   desktop and 99 on mobile (2.11 s simulated LCP, 0 ms blocking time). The final
   build preserves the first-painted image instead of recreating it when React
   mounts; the earlier recovery-only runs both scored 100 with 0 ms blocking
-  time. The latest runs after the dissolve adjustment are recorded in the table
-  above (0 ms desktop / 19 ms mobile blocking time, both performance 100).
+  time. The dissolve-adjustment runs also scored 100 in both profiles, with
+  0 ms desktop / 19 ms mobile blocking time. The latest enlarged-floor runs
+  appear in the table above, with 0 ms desktop / 39 ms mobile blocking time.
   Earlier reports are retained as `lighthouse-load-recovery-before-loader-*`.
 
 - Overlapping-dissolve checks pass desktop, mobile, forced fallback, reduced
@@ -226,3 +233,13 @@ For production testing, run `npm run build`, then start `npm run preview` yourse
 and use the URL Vite prints. An existing preview can serve a successfully rebuilt
 `dist` folder; refresh after the build finishes. Audits must use the build from
 that same project folder.
+
+- Enlarged-floor checks pass desktop/mobile in both themes, simulated 2-core/2 GB
+  mobile with 6× CPU throttling, the fallback renderer and reduced motion. They
+  verify floor depth/full-width coverage, cursor response/idle reset, dark versus
+  light shadow colors, projected alignment, home zoom scaling, navigation, idle
+  draw counts and no page errors. Screenshots are `enlarged-floor-*.png`; the
+  check script is saved as `enlarged-floor-check.cjs`. Loader checks were repeated
+  in both themes on desktop/mobile, including refresh; initial HTML and home
+  floors match. Fresh desktop/mobile Lighthouse reports have all four categories
+  at 100, with no run warnings or runtime errors.

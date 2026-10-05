@@ -14,10 +14,11 @@
 /* A compositor-transformed floor replaces full-screen transparent GL draws. */
 .home-stage-backdrop { position: absolute; inset: 0; overflow: hidden; pointer-events: none; transition: opacity 180ms ease; }
 .home-stage-backdrop__floor {
-    position: absolute; left: -50%; right: -50%; bottom: 0; height: 46%;
+    position: absolute; left: -50%; right: -50%; bottom: 0; height: 70%;
     background-image: linear-gradient(var(--void-grid) 1px, transparent 1px), linear-gradient(90deg, var(--void-grid) 1px, transparent 1px);
-    background-size: 80px 80px;
-    transform: perspective(400px) rotateX(calc(58deg + var(--floor-tilt-x, 0deg))) rotateZ(var(--floor-tilt-z, 0deg)) translate3d(var(--floor-shift-x, 0px), var(--floor-shift-y, 0px), 0);
+    background-size: clamp(100px, 8vw, 160px) clamp(100px, 8vw, 160px);
+    /* Scale perspective with the viewport so tall screens retain floor depth. */
+    transform: perspective(120vh) rotateX(calc(58deg + var(--floor-tilt-x, 0deg))) rotateZ(var(--floor-tilt-z, 0deg)) translate3d(var(--floor-shift-x, 0px), var(--floor-shift-y, 0px), 0);
     transform-origin: center bottom;
     transition: transform 480ms cubic-bezier(0.16, 1, 0.3, 1);
     mask-image: linear-gradient(to top, #000, transparent 95%);
