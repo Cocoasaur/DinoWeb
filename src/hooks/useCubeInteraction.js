@@ -1,16 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
+import { prefetchPage } from '../utils/prefetchPages';
 import { FACE_ROTATIONS, ZOOM_MIN, ZOOM_MAX, DEFAULT_ROTATION } from '../constants/cubeConfig';
-
-// ─── Overlay phase lifecycle ──────────────────────────────────────────────────
-//
-//  hidden          → camera idle, no overlay
-//  fading-in       → zoom just completed, overlay is transitioning IN  (≈600ms)
-//  open            → overlay fully visible and interactive
-//  fading-out      → user closed overlay, overlay transitioning OUT    (≈600ms)
-//  bg-restoring    → overlay gone, background UI fading back in        (≈500ms)
-//  ready-to-zoom-out → zoom-out animation starts
-//
-// ─────────────────────────────────────────────────────────────────────────────
 
 export function useCubeInteraction() {
     const [isZoomed, setIsZoomed] = useState(false);
@@ -22,7 +12,7 @@ export function useCubeInteraction() {
     const [themeTransitionActive, setThemeTransitionActive] = useState(false);
     const [overlayPhase, setOverlayPhase] = useState('hidden');
     const isDraggingRef = useRef(false);
-    const phaseTimeoutRef = useRef(null);
+    const phaseRef = useRef('hidden');
     const wheelAccumRef = useRef(0);
     const wheelFrameRef = useRef(0);
 
@@ -31,23 +21,6 @@ export function useCubeInteraction() {
         y: DEFAULT_ROTATION.y,
         z: 0,
     });
-
-    const clearPhaseTimeout = useCallback(() => {
-        if (phaseTimeoutRef.current) {
-            clearTimeout(phaseTimeoutRef.current);
-            phaseTimeoutRef.current = null;
-        }
-    }, []);
-
-    const advanceToBgRestoring = useCallback(() => {
-        clearPhaseTimeout();
-        setOverlayPhase('bg-restoring');
-        setShowOverlay(false);
-        phaseTimeoutRef.current = setTimeout(() => {
-            setOverlayPhase('ready-to-zoom-out');
-            setIsZoomingOut(true);
-        }, 100);
-    }, [clearPhaseTimeout]);
 
     const handleFaceClick = useCallback((faceName) => {
         if (faceName === 'theme') {
@@ -60,64 +33,60 @@ export function useCubeInteraction() {
         const target = FACE_ROTATIONS[faceName];
         if (!target) return;
 
-        clearPhaseTimeout();
-
         setTargetRotation(target);
         setActiveFace(faceName);
         setIsZoomed(true);
         setIsZoomingOut(false);
         setShowOverlay(false);
+        phaseRef.current = 'hidden';
         setOverlayPhase('hidden');
         coordsRef.current = { x: target.x, y: target.y, z: coordsRef.current.z };
-    }, [clearPhaseTimeout]);
+    }, []);
 
     const handleFacePressStart = useCallback((faceName) => {
-        if (faceName === 'theme') {
+        if (faceName !== 'theme') prefetchPage(faceName).catch(() => {});
+        if (faceName === 'theme' && !document.querySelector('.cube-entrance[data-renderer="worker"]')) {
             // Defer the 3D text prewarm off the interaction path; three is already
             // a lazy-loaded chunk by the time a face is pressed.
             import('../components/three/CubeFaceText').then(({ default: CubeFaceText }) => {
                 CubeFaceText.prewarmFaceTextures();
             }).catch(() => {});
         }
-        clearPhaseTimeout();
-    }, [clearPhaseTimeout]);
+    }, []);
 
     const handleZoomComplete = useCallback(() => {
-        clearPhaseTimeout();
-
-        // No pre-delay — dissolve starts the moment zoom completes.
-        // Mount the overlay and immediately begin its fade-in transition.
+        phaseRef.current = 'fading-in';
         setShowOverlay(true);
         setOverlayPhase('fading-in');
+    }, []);
 
-        // After the fade-in duration (600ms) mark it fully open.
-        phaseTimeoutRef.current = setTimeout(() => {
-            setOverlayPhase('open');
-        }, 600);
-    }, [clearPhaseTimeout]);
+    const handleOverlayOpenComplete = useCallback(() => {
+        if (phaseRef.current !== 'fading-in') return;
+        phaseRef.current = 'open';
+        setOverlayPhase('open');
+    }, []);
 
     const handleCloseOverlay = useCallback(() => {
-        clearPhaseTimeout();
-
-        // Begin overlay fade-out.
+        if (!['open', 'fading-in'].includes(phaseRef.current)) return;
+        phaseRef.current = 'fading-out';
         setOverlayPhase('fading-out');
+        // Hold the fully blurred face still until the page dissolve completes.
+    }, []);
 
-        // After fade-out completes, restore background and start zoom-out.
-        // Safety: advanceToBgRestoring also cancels any leftover timeout.
-        phaseTimeoutRef.current = setTimeout(advanceToBgRestoring, 650);
-    }, [clearPhaseTimeout, advanceToBgRestoring]);
-
-    // Called by Overlay when its own CSS transition ends (optional fast-path).
-    // If the timeout above fires first, this is a no-op (clearPhaseTimeout prevents double-fire).
     const handleOverlayCloseComplete = useCallback(() => {
-        advanceToBgRestoring();
-    }, [advanceToBgRestoring]);
+        if (phaseRef.current !== 'fading-out') return;
+        phaseRef.current = 'ready-to-zoom-out';
+        setOverlayPhase(phaseRef.current);
+        setShowOverlay(false);
+        setIsZoomingOut(true);
+    }, []);
 
     const handleZoomOutComplete = useCallback(() => {
         setIsZoomingOut(false);
         setIsZoomed(false);
-        setActiveFace(null);
         setTargetRotation(null);
+        setActiveFace(null);
+        phaseRef.current = 'hidden';
         setOverlayPhase('hidden');
         coordsRef.current = {
             x: DEFAULT_ROTATION.x,
@@ -166,10 +135,9 @@ export function useCubeInteraction() {
 
     useEffect(() => {
         return () => {
-            clearPhaseTimeout();
             if (wheelFrameRef.current) cancelAnimationFrame(wheelFrameRef.current);
         };
-    }, [clearPhaseTimeout]);
+    }, []);
 
     return {
         isZoomed, isZoomingOut, showOverlay, activeFace, targetRotation,
@@ -179,6 +147,6 @@ export function useCubeInteraction() {
         handleZoomOutComplete, handleWheel, handlePinchZoom,
         handleRotationChange, updateZoomCoord, handleZoomComplete,
         handleThemeTransitionComplete,
-        handleOverlayCloseComplete,
+        handleOverlayCloseComplete, handleOverlayOpenComplete,
     };
 }

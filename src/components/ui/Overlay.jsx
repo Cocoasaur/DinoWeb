@@ -1,10 +1,18 @@
-import { useState, useEffect, useRef, Suspense, lazy } from 'react';
+import { useState, useEffect, useRef, useCallback, Suspense, lazy } from 'react';
 import OverlayNavIcon from './OverlayNavIcon';
+import { PAGE_LOADERS } from '../../utils/prefetchPages';
+import { getCubeTransition } from '../../utils/cubeTransition';
 
-const AboutPage = lazy(() => import('../../pages/AboutPage'));
-const ContactsPage = lazy(() => import('../../pages/ContactsPage'));
-const ProjectsPage = lazy(() => import('../../pages/ProjectsPage'));
-const SkillsPage = lazy(() => import('../../pages/SkillsPage'));
+const AboutPage = lazy(PAGE_LOADERS.about);
+const ContactsPage = lazy(PAGE_LOADERS.contacts);
+const ProjectsPage = lazy(PAGE_LOADERS.projects);
+const SkillsPage = lazy(PAGE_LOADERS.skills);
+
+// Commit the actual page before beginning the dissolve; never fade a skeleton.
+function ReadyContent({ onReady, children }) {
+    useEffect(onReady, [onReady]);
+    return children;
+}
 
 const PAGE_MAP = {
     about: <AboutPage />,
@@ -13,56 +21,44 @@ const PAGE_MAP = {
 };
 
 export default function Overlay({
-    active,
     phase,
     faceName,
     onClose,
     onCloseComplete,
+    onOpenComplete,
+    reduceEffects,
     reducedMotion,
     renderCloseButton,
     selectedProject,
     onSelectProject,
 }) {
-    const [mounted, setMounted] = useState(false);
     const [entering, setEntering] = useState(false);
-    const closeCompleteCalledRef = useRef(false);
-    const scrollPanelRef = useRef(null); // ← ref for the scrollable panel
+    const scrollPanelRef = useRef(null);
+    const transition = getCubeTransition(reduceEffects, reducedMotion);
+    const isVisible = (phase === 'fading-in' && entering) || phase === 'open';
+    const fading = phase === 'fading-in' || phase === 'fading-out';
+    const complete = useCallback(() => {
+        if (phase === 'fading-in' && entering) onOpenComplete?.();
+        if (phase === 'fading-out') onCloseComplete?.();
+    }, [phase, entering, onOpenComplete, onCloseComplete]);
+    const pageReady = useCallback(() => {
+        // Two frames establish the starting opacity even with a cached chunk.
+        let second = 0;
+        const first = requestAnimationFrame(() => {
+            second = requestAnimationFrame(() => setEntering(true));
+        });
+        return () => {
+            cancelAnimationFrame(first);
+            cancelAnimationFrame(second);
+        };
+    }, []);
 
     useEffect(() => {
-        if (active) {
-            setMounted(true);
-            setEntering(false);
-            closeCompleteCalledRef.current = false;
-        }
-    }, [active]);
-
-    useEffect(() => {
-        if (!mounted || !active) return;
-        const raf = requestAnimationFrame(() => setEntering(true));
-        return () => cancelAnimationFrame(raf);
-    }, [mounted, active]);
-
-    useEffect(() => {
-        if (phase !== 'fading-out') return;
-        const duration = reducedMotion ? 100 : 650;
-        const timer = setTimeout(() => {
-            if (!closeCompleteCalledRef.current) {
-                closeCompleteCalledRef.current = true;
-                onCloseComplete?.();
-            }
-        }, duration);
+        if (!fading || (phase === 'fading-in' && !entering)) return;
+        // Fallback for reduced motion, an interrupted transition, or a hidden tab.
+        const timer = setTimeout(complete, transition.fadeMs + 80);
         return () => clearTimeout(timer);
-    }, [phase, reducedMotion, onCloseComplete]);
-
-    useEffect(() => {
-        if (!active && mounted) {
-            const timer = setTimeout(() => {
-                setMounted(false);
-                setEntering(false);
-            }, reducedMotion ? 50 : 100);
-            return () => clearTimeout(timer);
-        }
-    }, [active, mounted, reducedMotion]);
+    }, [fading, phase, entering, transition.fadeMs, complete]);
 
     // ── RESET SCROLL TO TOP WHENEVER selectedProject CHANGES ──
     useEffect(() => {
@@ -71,10 +67,7 @@ export default function Overlay({
         }
     }, [selectedProject]);
 
-    if (!mounted) return null;
-
-    const isVisible = (phase === 'fading-in' && entering) || phase === 'open';
-    const dur = reducedMotion ? '0.05s' : '0.55s';
+    const dur = `${transition.fadeMs}ms`;
     const ease = 'cubic-bezier(0.4, 0, 0.2, 1)';
 
     const pageContent = faceName === 'projects'
@@ -83,49 +76,46 @@ export default function Overlay({
 
     return (
         <div
-            className="fixed inset-0 z-[100] flex items-center justify-center"
+            className="fixed inset-0 z-[100] flex items-center justify-center overflow-hidden"
+            data-phase={phase}
             role="dialog"
             aria-modal="true"
             aria-label={`${faceName || 'Portfolio'} details`}
             style={{
                 opacity: isVisible ? 1 : 0,
                 transition: `opacity ${dur} ${ease}`,
+                willChange: fading ? 'opacity' : undefined,
                 pointerEvents: isVisible ? 'auto' : 'none',
+            }}
+            onTransitionEnd={(event) => {
+                if (event.target === event.currentTarget && event.propertyName === 'opacity') complete();
             }}
         >
             <div
                 className="absolute inset-0"
                 style={{
                     backgroundColor: 'var(--void-bg)',
-                    opacity: isVisible ? 1 : 0,
-                    transition: `opacity ${dur} ${ease}`,
                 }}
             />
             <div
-                className="absolute inset-0 pointer-events-none overlay-grid-drift"
+                className={`absolute inset-0 pointer-events-none${reduceEffects ? '' : ' overlay-grid-drift'}`}
                 style={{
                     backgroundImage: `
                         linear-gradient(var(--void-overlay-grid) 1px, transparent 1px),
                         linear-gradient(90deg, var(--void-overlay-grid) 1px, transparent 1px)
                     `,
                     backgroundSize: '40px 40px',
-                    opacity: isVisible ? 0.6 : 0,
-                    transition: `opacity ${dur} ${ease}`,
+                    inset: reduceEffects ? 0 : '-40px',
+                    opacity: 0.6,
                 }}
             />
-            {/* Panel container — attach ref here */}
             <div
-                ref={scrollPanelRef} // ← attach ref
+                ref={scrollPanelRef}
                 className="portfolio-overlay-panel relative w-[90vw] max-w-5xl max-h-[85vh] border overlay-scroll"
                 style={{
                     backgroundColor: 'var(--void-surface)',
                     borderColor: 'var(--void-border)',
-                    maxHeight: '85dvh', // ← iOS: tracks the visible viewport (falls back to max-h-[85vh] where unsupported)
-                    opacity: isVisible ? 1 : 0,
-                    transform: isVisible ? 'translateY(0) scale(1)' : 'translateY(-16px) scale(1.02)',
-                    transition: reducedMotion
-                        ? 'none'
-                        : `opacity ${dur} ${ease}, transform ${dur} ${ease}`,
+                    maxHeight: '85dvh',
                     overflowY: 'auto',
                     overflowX: 'hidden',
                 }}
@@ -159,7 +149,7 @@ export default function Overlay({
                     <Suspense fallback={
                         <div className="animate-pulse h-32 rounded" style={{ backgroundColor: 'var(--void-border)' }} />
                     }>
-                        {pageContent}
+                        <ReadyContent onReady={pageReady}>{pageContent}</ReadyContent>
                     </Suspense>
                 </div>
             </div>
