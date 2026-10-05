@@ -1,5 +1,6 @@
 import { Suspense, lazy, useEffect, useState } from 'react'
 import App from './App.jsx'
+import { prefetchLazyChunks } from './utils/prefetchPages'
 import { ThemeProvider } from './context/ThemeContext'
 
 const LazyUpdatePrompt = lazy(() => import('./components/ui/UpdatePrompt.jsx'))
@@ -22,6 +23,9 @@ export default function RootApp() {
             setUpdateAvailable(true)
           },
         })
+        navigator.serviceWorker?.ready.then(() => {
+          if (!cancelled) return Promise.allSettled(prefetchLazyChunks())
+        }).catch(() => {})
       })
     }
 
