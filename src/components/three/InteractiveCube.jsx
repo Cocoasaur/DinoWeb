@@ -426,7 +426,9 @@ export default function InteractiveCube({
                 lastInteractTimeRef.current > 0 &&
                 (performance.now() - lastInteractTimeRef.current) > IDLE_DRIFT_SETTLE_MS;
 
-            if (pressRef.current.active || isDraggingRef.current || isLerpingRot || isLerpingPos ||
+            // Movement handlers wake demand rendering. A stationary finger
+            // holding a highlighted face does not need an endless draw loop.
+            if (pressRef.current.active || isLerpingRot || isLerpingPos ||
                 Math.abs(camera.position.z - DEFAULT_CAMERA_DISTANCE * (1 + zoomZ / 1000)) > 0.001) {
                 invalidate();
             } else if (canDrift) {
