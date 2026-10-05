@@ -1,0 +1,38 @@
+/* Shared by the first-paint loader and home screen; loaded by main.jsx. */
+.void-grid,
+.boot-screen__grid {
+    background-image: linear-gradient(var(--void-grid) 1px, transparent 1px), linear-gradient(90deg, var(--void-grid) 1px, transparent 1px);
+    background-size: 50px 50px;
+    background-position: center center;
+    transition: background-image 0.5s ease;
+}
+@media (max-width: 767px) {
+    .void-grid,
+    .boot-screen__grid { background-size: 45px 75px; background-position: 0 0; }
+}
+
+/* A compositor-transformed floor replaces full-screen transparent GL draws. */
+.home-stage-backdrop { position: absolute; inset: 0; overflow: hidden; pointer-events: none; transition: opacity 180ms ease; }
+.home-stage-backdrop__floor {
+    position: absolute; left: -50%; right: -50%; bottom: 0; height: 46%;
+    background-image: linear-gradient(var(--void-grid) 1px, transparent 1px), linear-gradient(90deg, var(--void-grid) 1px, transparent 1px);
+    background-size: 80px 80px;
+    transform: perspective(400px) rotateX(calc(58deg + var(--floor-tilt-x, 0deg))) rotateZ(var(--floor-tilt-z, 0deg)) translate3d(var(--floor-shift-x, 0px), var(--floor-shift-y, 0px), 0);
+    transform-origin: center bottom;
+    transition: transform 480ms cubic-bezier(0.16, 1, 0.3, 1);
+    mask-image: linear-gradient(to top, #000, transparent 95%);
+}
+.home-stage-backdrop__pool {
+    position: absolute; bottom: -7%; width: 55%; height: 30%;
+    transform: translateX(-50%) translate3d(var(--floor-shadow-x, 0px), var(--floor-shadow-y, 0px), 0);
+    transition: transform 480ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.home-stage-backdrop__shadow {
+    position: absolute;
+    max-width: 82vw;
+    transform: translate(-50%, -50%) translate3d(var(--floor-shadow-x, 0px), var(--floor-shadow-y, 0px), 0);
+    transition: transform 480ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+@media (prefers-reduced-motion: reduce) {
+    .home-stage-backdrop, .home-stage-backdrop__floor, .home-stage-backdrop__pool, .home-stage-backdrop__shadow { transition: none; }
+}
