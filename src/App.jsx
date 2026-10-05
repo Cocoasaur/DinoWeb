@@ -56,7 +56,7 @@ export default function App() {
   const transitionInProgressRef = useRef(false);
   const screenPosRef = useRef({ x: 0, y: 0, valid: false });
   const faceDownPosRef = useRef({ x: 0, y: 0, valid: false });
-  const { dpr, tier, isMobile } = useAdaptiveDPR();
+  const { dpr, tier, isMobile, labelScale } = useAdaptiveDPR();
   const reducedMotion = useReducedMotion();
   usePortfolioViewportSize();
 
@@ -161,7 +161,7 @@ export default function App() {
   const [stagePainted, setStagePainted] = useState(false);
 
   return (
-    <RenderProfileContext.Provider value={{ reduceEffects }}>
+    <RenderProfileContext.Provider value={{ reduceEffects, labelScale }}>
     <div
       className={`portfolio-viewport${stagePainted && !reduceEffects ? ' stage-active' : ''}`}
       style={{ backgroundColor: 'var(--void-bg)', transition: reducedMotion ? 'none' : 'background-color 0.5s ease' }}
@@ -177,6 +177,7 @@ export default function App() {
           <Suspense fallback={null}>
             <LazyCubeStage
               dpr={dpr}
+              labelScale={labelScale}
               isLowEnd={isLowEnd}
               reduceEffects={reduceEffects}
               isZoomed={isZoomed}

@@ -45,7 +45,7 @@ async function imageTexture(url) {
 
 async function labelMaps(theme) {
     const palette = theme === 'demain-soir-bleu' ? 'demain' : 'clair';
-    const scale = state.reduceEffects ? .5 : 2;
+    const scale = state.labelScale;
     return Promise.all(FACE_CONFIG.filter((face) => face.text).map(async (face) => {
         const atlas = await imageTexture(assets.labels[`../assets/cube-labels/${face.text.toLowerCase()}-${palette}-${scale}.webp`]);
         const idle = atlas.clone(), hover = atlas.clone();
@@ -159,7 +159,7 @@ function receiveState(next) {
     // Early close can now overlap the approach. Hold its current camera pose
     // throughout the outgoing page dissolve, then return from that exact pose.
     if (state.overlayPhase === 'fading-out' && motion?.kind === 'in') motion = null;
-    if (previous.theme!==state.theme || previous.reduceEffects!==state.reduceEffects) {
+    if (previous.theme!==state.theme || previous.reduceEffects!==state.reduceEffects || previous.labelScale!==state.labelScale) {
         const version=++themeVersion;
         labelMaps(state.theme).then((maps)=>{
             if(version!==themeVersion)return;
@@ -292,9 +292,9 @@ async function init(message){
     const iconPromise = imageTexture(assets.icon);
     let maps, preparedTheme, preparedProfile;
     do {
-        preparedTheme = state.theme; preparedProfile = state.reduceEffects;
+        preparedTheme = state.theme; preparedProfile = state.labelScale;
         [homeIcon, maps] = await Promise.all([iconPromise, labelMaps(preparedTheme)]);
-    } while (preparedTheme !== state.theme || preparedProfile !== state.reduceEffects);
+    } while (preparedTheme !== state.theme || preparedProfile !== state.labelScale);
     buildScene(homeIcon,maps);await renderer.compileAsync(scene,camera);
     initialized=true;requestFrame();
 }

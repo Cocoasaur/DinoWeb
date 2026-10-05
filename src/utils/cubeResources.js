@@ -1,6 +1,7 @@
 import { TextureLoader, LinearFilter } from 'three';
 import dinoIcon from '../assets/brand/dino-icon.webp';
 import metrics from '../assets/cube-labels/metrics.json';
+import { getRenderProfile } from './renderProfile';
 import { THEME_CLAIR, THEME_DEMAIN } from '../context/ThemeContext';
 
 const urls = import.meta.glob('../assets/cube-labels/*.webp', { eager: true, query: '?url', import: 'default' });
@@ -10,14 +11,6 @@ const atlasCache = new Map();
 const loads = new Map();
 let iconTexture;
 let iconPromise;
-
-function rasterScale() {
-    const mobile = window.matchMedia('(max-width: 767px), (hover: none) and (pointer: coarse)').matches;
-    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const connection = navigator.connection;
-    return mobile || reduced || (navigator.deviceMemory || 4) <= 4 || (navigator.hardwareConcurrency || 4) <= 4 ||
-        connection?.saveData || ['2g', '3g'].includes(connection?.effectiveType) ? .5 : 2;
-}
 
 function prepareLabels(theme, scale) {
     const key = `${theme}:${scale}`;
@@ -45,7 +38,7 @@ export async function prepareCubeResources() {
         texture.generateMipmaps = false;
         iconTexture = texture;
     });
-    await Promise.all([iconPromise, prepareLabels(document.documentElement.getAttribute('data-theme') || THEME_CLAIR, rasterScale())]);
+    await Promise.all([iconPromise, prepareLabels(document.documentElement.getAttribute('data-theme') || THEME_CLAIR, getRenderProfile().labelScale)]);
 }
 
 export function getHomeTexture() { return iconTexture; }
@@ -57,5 +50,5 @@ export function getFaceTextures(text, theme, scale, fontSize) {
 }
 
 export function prewarmCubeLabels() {
-    return Promise.all([THEME_CLAIR, THEME_DEMAIN].map((theme) => prepareLabels(theme, rasterScale())));
+    return Promise.all([THEME_CLAIR, THEME_DEMAIN].map((theme) => prepareLabels(theme, getRenderProfile().labelScale)));
 }

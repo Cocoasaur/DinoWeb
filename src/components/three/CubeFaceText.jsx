@@ -3,6 +3,7 @@ import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import { useReducedMotion } from '../../hooks/useReducedMotion';
 import { useCSSVars } from '../../hooks/useCSSVars';
+import { useRenderProfile } from '../../context/RenderProfileContext';
 import { useTheme } from '../../context/ThemeContext';
 import { getFaceTextures, prewarmCubeLabels } from '../../utils/cubeResources';
 
@@ -134,6 +135,7 @@ export default function CubeFaceText({
     fontSize = FONT_SIZE,
 }) {
     const { theme } = useTheme();
+    const { labelScale = reduceEffects ? 1 : 2 } = useRenderProfile();
     const groupRef = useRef();
     const idleMatRef = useRef();
     const hoverMatRef = useRef();
@@ -162,7 +164,7 @@ export default function CubeFaceText({
         ticksHoverScale: parseFloat(cssVars['--cube-ticks-hover-scale']) || 1.15,
     }), [cssVars]);
 
-    const { idleTex, hoverTex, textWidth, textHeight } = getFaceTextures(text, theme, reduceEffects ? .5 : 2, fontSize);
+    const { idleTex, hoverTex, textWidth, textHeight } = getFaceTextures(text, theme, labelScale, fontSize);
 
 
     useFrame((_, delta) => {
