@@ -8,7 +8,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['dino-icon.png', 'favicon.svg'],
+      includeAssets: ['dino-icon.webp', 'favicon.svg'],
       manifest: {
         name: 'DinoWeb — Interactive 3D Portfolio',
         short_name: 'DinoWeb',
@@ -19,8 +19,8 @@ export default defineConfig({
         start_url: '/DinoWeb/',
         scope: '/DinoWeb/',
         icons: [
-          { src: '/DinoWeb/pwa-192x192.png', sizes: '192x192', type: 'image/png' },
-          { src: '/DinoWeb/pwa-512x512.png', sizes: '512x512', type: 'image/png' },
+          { src: '/DinoWeb/pwa-192x192.webp', sizes: '192x192', type: 'image/webp' },
+          { src: '/DinoWeb/pwa-512x512.webp', sizes: '512x512', type: 'image/webp' },
         ],
       },
       workbox: {
@@ -47,7 +47,7 @@ export default defineConfig({
             },
           },
           {
-            urlPattern: /\.(webp|png|pdf)$/,
+            urlPattern: /\.(webp|pdf)$/,
             handler: 'CacheFirst',
             options: {
               cacheName: 'dinoweb-images',
