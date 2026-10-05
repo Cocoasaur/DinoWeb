@@ -118,6 +118,65 @@
     background-color: var(--void-surface-80);
 }
 
+.about-cv-tabs {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    min-height: 42px;
+    border-bottom: 1px solid var(--void-border);
+    background-color: var(--void-surface-80);
+}
+
+.about-cv-tab {
+    position: relative;
+    min-height: 42px;
+    padding: 0 16px;
+    border: 0;
+    border-right: 1px solid var(--void-border);
+    background: transparent;
+    color: var(--void-text-muted);
+    font-family: 'Space Grotesk', monospace;
+    font-size: 10px;
+    font-weight: 400;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: color 0.2s ease, background-color 0.2s ease;
+}
+
+.about-cv-tab:last-child {
+    border-right: 0;
+}
+
+.about-cv-tab::after {
+    content: '';
+    position: absolute;
+    right: 16px;
+    bottom: -1px;
+    left: 16px;
+    height: 2px;
+    background-color: transparent;
+    transform: scaleX(0.35);
+    transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.about-cv-tab:hover,
+.about-cv-tab--active {
+    color: var(--void-text-full);
+    background-color: var(--void-surface);
+}
+
+.about-cv-tab--active::after {
+    background-color: var(--void-accent);
+    transform: scaleX(1);
+}
+
+.about-cv-tab:focus-visible,
+.about-cv-toolbar-btn:focus-visible,
+.about-cv-download:focus-visible {
+    outline: 2px solid var(--void-accent);
+    outline-offset: -3px;
+}
+
 /* ── Zoom toolbar ── */
 .about-cv-toolbar {
     display: flex;
@@ -188,6 +247,13 @@
     flex-direction: column;
     gap: 24px;
     padding: 24px;
+}
+
+.about-cv-status {
+    margin: auto;
+    color: var(--void-text-dim);
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
 }
 
 .about-cv-page-wrap {
@@ -261,6 +327,116 @@
 
 .about-parameter-value {
     font-size: 14px;
+}
+
+/* Certification topic filters and readable thumbnail captions. */
+.about-cert-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.about-cert-filter {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 44px;
+    padding: 8px 12px;
+    border: 1px solid var(--void-border);
+    background: var(--void-surface-80);
+    color: var(--void-text-dim);
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    cursor: pointer;
+    transition: border-color 0.2s, color 0.2s, background-color 0.2s;
+}
+
+.about-cert-filter:hover {
+    border-color: var(--void-text-full);
+    color: var(--void-text-full);
+}
+
+.about-cert-filter[aria-pressed='true'] {
+    border-color: var(--void-text-full);
+    background: var(--void-text-full);
+    color: var(--void-surface-80);
+}
+
+.about-cert-filter-count {
+    font-variant-numeric: tabular-nums;
+    opacity: 0.75;
+}
+
+.about-cert-results {
+    margin: 12px 0 16px;
+    min-height: 20px;
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    line-height: 20px;
+    color: var(--void-text-dim);
+}
+
+.about-cert-cell {
+    padding: 0;
+    text-align: left;
+    border-color: var(--void-border);
+    background: var(--void-surface-80);
+    transition: border-color 0.2s;
+}
+
+.about-cert-cell:hover,
+.about-cert-cell:focus-visible {
+    border-color: var(--void-text-full);
+}
+
+.about-cert-filter:focus-visible,
+.about-cert-cell:focus-visible,
+.about-cert-pagination-btn:focus-visible {
+    outline: 2px solid var(--void-text-full);
+    outline-offset: 3px;
+}
+
+.about-cert-caption {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 12px;
+    border-top: 1px solid var(--void-border);
+    font-family: 'Inter', sans-serif;
+}
+
+.about-cert-title {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+    min-height: 2.8em;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.4;
+    color: var(--void-text-full);
+}
+
+.about-cert-issuer {
+    font-size: 11px;
+    line-height: 1.5;
+    min-height: 3em;
+    color: var(--void-text-dim);
+}
+
+.about-cert-topic {
+    align-self: flex-start;
+    border-top: 1px solid var(--void-border);
+    padding-top: 8px;
+    font-size: 10px;
+    color: var(--void-text-dim);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .about-cert-filter,
+    .about-cert-cell {
+        transition: none;
+    }
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -521,6 +697,22 @@
 
     .about-cv-scroll {
         height: 500px;
+    }
+
+    .about-cv-tabs,
+    .about-cv-tab {
+        min-height: 38px;
+    }
+
+    .about-cv-tab {
+        padding: 0 10px;
+        font-size: 9px;
+        letter-spacing: 0.12em;
+    }
+
+    .about-cv-tab::after {
+        right: 10px;
+        left: 10px;
     }
 
     .about-cv-page-stack {
