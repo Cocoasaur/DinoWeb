@@ -99,7 +99,7 @@ export default function CubeStage(props) {
             workerRef.current = worker;
             worker.onmessage = ({ data }) => {
                 const current = propsRef.current;
-                if (data.type === 'ready') readyFrame = requestAnimationFrame(() => current.onReady?.());
+                if (data.type === 'ready') readyFrame = requestAnimationFrame(() => current.onReady());
                 if (data.type === 'frame') {
                     current.handleRotationChange(data.x, data.y);
                     if (current.screenPosRef?.current) Object.assign(current.screenPosRef.current, data.origin, { valid: true });

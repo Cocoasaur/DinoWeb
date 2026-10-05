@@ -1,6 +1,5 @@
 import { Suspense, lazy, useEffect, useState } from 'react'
 import App from './App.jsx'
-import BootScreen from './components/ui/BootScreen.jsx'
 import { ThemeProvider } from './context/ThemeContext'
 
 const LazyUpdatePrompt = lazy(() => import('./components/ui/UpdatePrompt.jsx'))
@@ -55,7 +54,6 @@ export default function RootApp() {
   return (
     <ThemeProvider>
       <App />
-      <BootScreen />
       {updateAvailable && (
         <Suspense fallback={null}>
           <LazyUpdatePrompt />

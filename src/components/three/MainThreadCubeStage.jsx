@@ -108,7 +108,7 @@ function SceneRenderer({ onReady, complete }) {
         gl.render(scene, camera);
         if (notifiedRef.current) return;
         notifiedRef.current = true;
-        frameRef.current = requestAnimationFrame(() => onReady?.());
+        frameRef.current = requestAnimationFrame(onReady);
     }, 1);
     return null;
 }

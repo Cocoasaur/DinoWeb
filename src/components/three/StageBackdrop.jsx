@@ -1,4 +1,3 @@
-import '../../styles/stage-backdrop.css';
 import { useEffect, useRef } from 'react';
 import { useTheme } from '../../context/ThemeContext';
 import { useHomeViewportLayout } from '../../hooks/useHomeViewportLayout';
