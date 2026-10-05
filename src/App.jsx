@@ -15,6 +15,7 @@ import { useCubeInteraction } from './hooks/useCubeInteraction';
 import { useTheme } from './context/ThemeContext';
 import { useAdaptiveDPR } from './hooks/useAdaptiveDPR';
 import { useReducedMotion } from './hooks/useReducedMotion';
+import { useHomeGridMotion } from './hooks/useHomeGridMotion';
 import { usePortfolioViewportSize } from './hooks/usePortfolioViewportSize';
 import { getHomeViewportLayout } from './hooks/useHomeViewportLayout';
 import './styles/home-layout.css';
@@ -159,18 +160,29 @@ export default function App() {
   const canvasZIndex = (isZoomed || isZoomingOut) ? 60 : 10;
 
   const [stagePainted, setStagePainted] = useState(false);
+  const viewportRef = useRef(null);
+  const [pageVisible, setPageVisible] = useState(() => document.visibilityState !== 'hidden');
+  useEffect(() => {
+    const update = () => setPageVisible(document.visibilityState !== 'hidden');
+    document.addEventListener('visibilitychange', update);
+    return () => document.removeEventListener('visibilitychange', update);
+  }, []);
+  const homeMotionPaused = !pageVisible || !stagePainted || isZoomed || isZoomingOut || themeTransitionActive;
+  useHomeGridMotion(viewportRef, { paused: homeMotionPaused, reducedMotion, lowEnd: isLowEnd });
 
   return (
     <RenderProfileContext.Provider value={{ reduceEffects, labelScale, tier }}>
     <div
-      className={`portfolio-viewport${stagePainted && !reduceEffects ? ' stage-active' : ''}`}
+      ref={viewportRef}
+      data-home-motion-paused={homeMotionPaused}
+      className={`portfolio-viewport${stagePainted ? ' stage-active' : ''}`}
       style={{ backgroundColor: 'var(--void-bg)', transition: reducedMotion ? 'none' : 'background-color 0.5s ease' }}
     >
       <div className="portfolio-viewport__stage">
-        <div className="absolute inset-0 pointer-events-none z-0 void-grid" />
-        {!reduceEffects && (
-          <div className="absolute inset-0 pointer-events-none z-0 opacity-50 void-grid-drift" />
-        )}
+        <div className="home-grid-parallax" aria-hidden="true">
+          <div className="absolute inset-0 void-grid" />
+          <div className="absolute inset-0 opacity-50 void-grid-drift" />
+        </div>
 
         <Sidebar />
 

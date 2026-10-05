@@ -20,8 +20,10 @@
     perspective-origin: 50% 50%;
 }
 .home-stage-backdrop__floor {
+    --floor-tile: calc(var(--portfolio-viewport-height, 100dvh) * .241421356);
+    --floor-grid: var(--void-grid-drift);
     position: absolute; left: 50%; top: 50%; width: 250%; height: 150%;
-    background-image: linear-gradient(var(--void-grid) 1px, transparent 1px), linear-gradient(90deg, var(--void-grid) 1px, transparent 1px);
+    background-image: linear-gradient(var(--floor-grid) 1px, transparent 1px), linear-gradient(90deg, var(--floor-grid) 1px, transparent 1px);
     background-size: calc(var(--portfolio-viewport-height, 100dvh) * .241421356) calc(var(--portfolio-viewport-height, 100dvh) * .241421356);
     background-position: center top;
     /* Ground at world y=-2.35: depth changes convergence, not horizon roll. */
@@ -29,6 +31,24 @@
     transform-origin: center top;
     transition: transform 850ms cubic-bezier(.18, .72, .32, 1);
     mask-image: linear-gradient(to bottom, #000, transparent 95%);
+}
+/* The floor plane and its camera projection remain fixed. Move only a tiled
+   child on the compositor, without repainting gradients or redrawing WebGL. */
+.home-stage-backdrop > .home-stage-backdrop__floor { background-image: none; overflow: hidden; }
+.home-stage-backdrop > .home-stage-backdrop__floor::before {
+    content: '';
+    position: absolute;
+    inset: calc(-1 * var(--floor-tile));
+    background-image: linear-gradient(var(--floor-grid) 1px, transparent 1px), linear-gradient(90deg, var(--floor-grid) 1px, transparent 1px);
+    background-size: var(--floor-tile) var(--floor-tile);
+    --drift-step-x: var(--floor-tile);
+    --drift-step-y: 0px;
+    animation: drift 45s linear infinite;
+}
+.home-stage-backdrop[data-motion-paused='true'] .home-stage-backdrop__floor::before,
+.portfolio-viewport[data-home-motion-paused='true'] .void-grid-drift,
+.portfolio-viewport[data-home-motion-paused='true'] .home-stage-backdrop__floor::before {
+    animation-play-state: paused;
 }
 .home-stage-backdrop__pool {
     position: absolute; bottom: -7%; width: 55%; height: 30%;
@@ -42,5 +62,8 @@
     transition: transform 850ms cubic-bezier(.18, .72, .32, 1);
 }
 @media (prefers-reduced-motion: reduce) {
+    .home-grid-parallax { transition: none; }
     .home-stage-backdrop, .home-stage-backdrop__floor, .home-stage-backdrop__pool, .home-stage-backdrop__shadow { transition: none; }
+    .void-grid-drift, .home-stage-backdrop__floor::before { animation: none !important; }
 }
+.theme-transitioning .home-stage-backdrop__floor::before { animation-play-state: paused; }

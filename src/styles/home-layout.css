@@ -34,7 +34,23 @@
 /* Keep the overlap stable even when a shared utility stylesheet loads later.
    Vite's CSS minifier expands inset-0 into longhands, so source order alone
    cannot reliably preserve this layer's bounds. */
-.portfolio-viewport__stage > .void-grid-drift {
+.home-grid-parallax {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    transform: translate3d(var(--grid-parallax-x, 0px), var(--grid-parallax-y, 0px), 0);
+    transition: transform 850ms cubic-bezier(.18, .72, .32, 1);
+}
+.home-grid-parallax > .void-grid {
+    top: -24px;
+    right: -24px;
+    bottom: -24px;
+    left: -24px;
+}
+@media (max-width: 767px) {
+    .home-grid-parallax > .void-grid { background-position: 24px 24px; }
+}
+.home-grid-parallax > .void-grid-drift {
     top: calc(-1 * var(--drift-step-y));
     right: calc(-1 * var(--drift-step-x));
     bottom: calc(-1 * var(--drift-step-y));
@@ -45,8 +61,8 @@
    The perspective floor's vanishing line sits at the vertical center of the
    screen (the camera never tilts), so the 2D wallpaper owns the top half and
    fades out across the band where the 3D far-field lines are already faint.
-   `stage-active` is set only while the 3D stage is mounted (App.jsx), so
-   low-tier / no-WebGL sessions keep the full 2D grid untouched. */
+   The compositor floor is available on every device tier; the wallpaper
+   stays complete until the home scene has painted. */
 .stage-active .void-grid,
 .stage-active .void-grid-drift {
     -webkit-mask-image: linear-gradient(to bottom, #fff 50%, transparent 75%);
