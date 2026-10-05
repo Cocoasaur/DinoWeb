@@ -85,7 +85,7 @@ function buildScene(icon, maps) {
     cube.position.set(state.layout.restingX, state.layout.restingY, 0);
     cube.rotation.set(rotation.x, rotation.y, 0); cube.scale.setScalar(state.layout.cubeScale);
     scene.add(cube);
-    geometry = new RoundedBoxGeometry(2,2,2,state.reduceEffects ? 1 : 3,.06);
+    geometry = new RoundedBoxGeometry(2,2,2,state.reduceEffects ? 2 : 3,.06);
     if (state.reduceEffects) geometry.setAttribute('color',new THREE.Float32BufferAttribute(new Float32Array(geometry.attributes.position.count*3),3));
     body = new THREE.Mesh(geometry, state.reduceEffects ? new THREE.MeshBasicMaterial({ vertexColors: true }) : new THREE.MeshPhongMaterial({ color: state.colors['--cube-color'], shininess:CUBE_SHININESS, specular:CUBE_SPECULAR }));
     cube.add(body);
@@ -290,7 +290,7 @@ function receivePointer(message){
 
 async function init(message){
     state=message.state;width=Math.max(1,message.width);height=Math.max(1,message.height);assets=message.assets;
-    renderer=new THREE.WebGLRenderer({canvas:message.canvas,alpha:true,antialias:false,powerPreference:state.reduceEffects?'low-power':'high-performance',stencil:false});
+    renderer=new THREE.WebGLRenderer({canvas:message.canvas,alpha:true,antialias:true,powerPreference:state.reduceEffects?'low-power':'high-performance',stencil:false});
     renderer.debug.checkShaderErrors=import.meta.env.DEV;renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.setPixelRatio(state.dpr);renderer.setSize(width,height,false);
     camera=new THREE.PerspectiveCamera(45,width/height,.1,100);camera.position.set(0,0,5);
     const iconPromise = imageTexture(assets.icon);

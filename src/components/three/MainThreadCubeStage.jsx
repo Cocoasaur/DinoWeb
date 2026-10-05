@@ -164,7 +164,7 @@ export default function MainThreadCubeStage({
                 onCreated={({ gl }) => { gl.debug.checkShaderErrors = import.meta.env.DEV; }}
                 camera={{ position: [0, 0, 5], fov: 45, near: 0.1, far: 100 }}
                 gl={{
-                    antialias: false,
+                    antialias: true,
                     alpha: true,
                     powerPreference: reduceEffects ? 'low-power' : 'high-performance',
                     stencil: false,

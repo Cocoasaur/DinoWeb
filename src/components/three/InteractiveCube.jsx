@@ -313,7 +313,7 @@ export default function InteractiveCube({
 
     // Analytic normals avoid extruding and rebuilding creased normals at mount.
     const boxGeometry = useMemo(() => {
-        const geometry = new RoundedBoxGeometry(2, 2, 2, reduceEffects ? 1 : 3, 0.06);
+        const geometry = new RoundedBoxGeometry(2, 2, 2, reduceEffects ? 2 : 3, 0.06);
         if (reduceEffects) geometry.setAttribute('color', new THREE.Float32BufferAttribute(new Float32Array(geometry.attributes.position.count * 3), 3));
         return geometry;
     }, [reduceEffects]);
