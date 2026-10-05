@@ -25,7 +25,9 @@ export default defineConfig({
       },
     },
     VitePWA({
-      registerType: 'autoUpdate',
+      // Keep the current worker and its chunks until the visitor accepts the
+      // update. Activating immediately can strand an already-open lazy page.
+      registerType: 'prompt',
       includeAssets: ['dino-icon.webp', 'favicon.svg'],
       manifest: {
         name: 'DinoWeb — Interactive 3D Portfolio',

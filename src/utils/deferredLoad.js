@@ -6,6 +6,8 @@
    overhead while keeping them outside the FCP/LCP path.
    ══════════════════════════════════════════════════════ */
 
+import { recoverImportFailure } from './loadRecovery';
+
 let started = false;
 
 function schedule(fn) {
@@ -21,5 +23,5 @@ export function loadDeferredStyles() {
     if (started) return;
     started = true;
 
-    schedule(() => import('../styles/deferred.css.js'));
+    schedule(() => import('../styles/deferred.css.js').catch(recoverImportFailure));
 }
