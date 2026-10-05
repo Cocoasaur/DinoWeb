@@ -123,6 +123,9 @@ export default function CubeStage(props) {
             canvas.addEventListener('pointermove', move);
             canvas.addEventListener('pointerup', up);
             canvas.addEventListener('pointercancel', up);
+            canvas.addEventListener('contextmenu', (event) => {
+                if (pointers.size) event.preventDefault();
+            });
             canvas.addEventListener('pointerleave', () => worker.postMessage({ type: 'pointer', kind: 'leave' }));
         } catch { queueMicrotask(() => setFallback(true)); }
         return () => {

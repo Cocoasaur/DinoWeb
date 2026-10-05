@@ -113,11 +113,11 @@ function buildScene(icon, maps) {
                 face.ticks = new THREE.Group(); face.text.add(face.ticks);
                 face.tickIdle = new THREE.Mesh(corners,new THREE.MeshBasicMaterial({ color:rgbaToRgb(state.colors['--cube-ticks-idle']),transparent:true,opacity:.85,depthWrite:false })); face.tickIdle.position.z=.005;face.ticks.add(face.tickIdle);
                 face.tickHover = new THREE.Mesh(corners,new THREE.MeshBasicMaterial({ color:rgbaToRgb(state.colors['--cube-ticks-hover']),transparent:true,opacity:0,depthWrite:false }));face.tickHover.position.z=.006;face.tickHover.visible=false;face.ticks.add(face.tickHover);
-                const points=Array.from({length:25},(_,i)=>new THREE.Vector3(-textWidth/2+textWidth*i/24,-.22*.65,.02));
-                const lineGeometry=new THREE.BufferGeometry().setFromPoints(points);lineGeometry.setDrawRange(0,0);
-                face.line = new THREE.Line(lineGeometry,new THREE.LineBasicMaterial({color:rgbaToRgb(state.colors['--cube-text-accent']),transparent:true,opacity:0,depthWrite:false}));face.line.visible=false;face.text.add(face.line);
-                face.dot=new THREE.Mesh(new THREE.CircleGeometry(.018,8),new THREE.MeshBasicMaterial({color:rgbaToRgb(state.colors['--cube-text-accent']),transparent:true,opacity:.9,depthWrite:false}));face.dot.visible=false;face.text.add(face.dot);face.textWidth=textWidth;
             }
+            const points=Array.from({length:25},(_,i)=>new THREE.Vector3(-textWidth/2+textWidth*i/24,-.22*.65,.02));
+            const lineGeometry=new THREE.BufferGeometry().setFromPoints(points);lineGeometry.setDrawRange(0,0);
+            face.line = new THREE.Line(lineGeometry,new THREE.LineBasicMaterial({color:rgbaToRgb(state.colors['--cube-text-accent']),transparent:true,opacity:0,depthWrite:false}));face.line.visible=false;face.text.add(face.line);
+            face.dot=new THREE.Mesh(new THREE.CircleGeometry(.018,8),new THREE.MeshBasicMaterial({color:rgbaToRgb(state.colors['--cube-text-accent']),transparent:true,opacity:.9,depthWrite:false}));face.dot.visible=false;face.text.add(face.dot);face.textWidth=textWidth;
         }
         faces.set(config.name,face);
     }
@@ -191,9 +191,9 @@ function receiveState(next) {
     }
     const edge=cube.getObjectByName('edge');
     if(edge){edge.material.color.set(state.colors['--cube-edge-color']);edge.material.opacity=parseFloat(state.colors['--cube-edge-opacity'])||.35;}
-    for(const face of faces.values())if(face.ticks){
-        face.tickIdle.material.color.set(rgbaToRgb(state.colors['--cube-ticks-idle']));face.tickHover.material.color.set(rgbaToRgb(state.colors['--cube-ticks-hover']));
-        face.line.material.color.set(rgbaToRgb(state.colors['--cube-text-accent']));face.dot.material.color.set(rgbaToRgb(state.colors['--cube-text-accent']));
+    for(const face of faces.values()){
+        if(face.ticks){face.tickIdle.material.color.set(rgbaToRgb(state.colors['--cube-ticks-idle']));face.tickHover.material.color.set(rgbaToRgb(state.colors['--cube-ticks-hover']));}
+        if(face.line){face.line.material.color.set(rgbaToRgb(state.colors['--cube-text-accent']));face.dot.material.color.set(rgbaToRgb(state.colors['--cube-text-accent']));}
     }
     if(state.paused){if(frameId)self.cancelAnimationFrame(frameId);frameId=0;previousTime=0;}
     else requestFrame();
@@ -232,7 +232,7 @@ function renderFrame(now) {
     cube.scale.setScalar(state.layout.cubeScale*pressScale);
     for(const[name,face]of faces){if(!face.text)continue;
         const target=name===hoverFace||name===state.activeFace&&(state.isZoomed||state.isZoomingOut)?1:0;
-        const next=state.reduceEffects||state.reducedMotion?target:face.p+(target-face.p)*smooth(8);
+        const next=state.reducedMotion?target:face.p+(target-face.p)*smooth(8);
         face.p=Math.abs(target-next)<.001?target:next;
         const scaleTarget=state.reduceEffects||state.reducedMotion?1:1+target*.1;
         const scaleNext=face.scale+(scaleTarget-face.scale)*smooth(6);face.scale=Math.abs(scaleTarget-scaleNext)<.001?scaleTarget:scaleNext;
@@ -240,6 +240,8 @@ function renderFrame(now) {
         if(face.ticks){
             const tickScale=1+face.p*((parseFloat(state.colors['--cube-ticks-hover-scale'])||1.05)-1);
             face.ticks.scale.set(tickScale,tickScale,1);face.tickIdle.material.opacity=(1-face.p)*.85;face.tickHover.material.opacity=face.p*.95;face.tickHover.visible=face.p>0;
+        }
+        if(face.line){
             face.line.visible=face.p>0;face.line.geometry.setDrawRange(0,Math.max(2,Math.floor(25*face.p)));face.line.material.opacity=Math.min(face.p*1.2,.85);
             face.dot.visible=face.p>.02&&face.p<.98;face.dot.position.set(-face.textWidth/2+face.textWidth*face.p,-.22*.65,.025);
         }
@@ -263,22 +265,24 @@ function receivePointer(message){
     if(!initialized||state.paused||state.isZoomed||state.isZoomingOut)return;
     const {kind,x,y,pointerType}=message;
     if(kind==='leave'){hoverFace=null;lastMove=0;clearTimeout(pointerIdleTimer);requestFrame();return;}
-    if(kind==='cancel'){dragging=false;down=null;touchAnchor=null;lastMove=0;clearTimeout(pointerIdleTimer);requestFrame();return;}
+    if(kind==='cancel'){hoverFace=null;dragging=false;down=null;touchAnchor=null;lastMove=0;clearTimeout(pointerIdleTimer);requestFrame();return;}
     pointer={x:x/width*2-1,y:1-y/height*2};lastMove=performance.now();isTouch=pointerType==='touch';
     clearTimeout(pointerIdleTimer);
     // Wake once to return the camera with the baseplate after cursor inactivity.
     if(!state.reduceEffects&&!state.reducedMotion)pointerIdleTimer=setTimeout(()=>{lastMove=0;requestFrame();},3000);
     if(kind==='down'){
+        hoverFace=pick(x,y);
         rotation={x:cube.rotation.x,y:cube.rotation.y};dragging=true;down={x,y,face:pick(x,y)};lastPointer={x,y};touchAnchor=isTouch?{...pointer}:null;send('cursor',{cursor:'grabbing'});
     }
     if(kind==='move'){
-        if(dragging&&lastPointer){rotation.x+=(y-lastPointer.y)*.008;rotation.y+=(x-lastPointer.x)*.008;lastPointer={x,y};}
+        if(dragging&&lastPointer){if(down&&Math.hypot(x-down.x,y-down.y)>DRAG_THRESHOLD){hoverFace=null;down.cancelled=true;}rotation.x+=(y-lastPointer.y)*.008;rotation.y+=(x-lastPointer.x)*.008;lastPointer={x,y};}
         else {hoverFace=pick(x,y);send('cursor',{cursor:hoverFace==='home'?'nwse-resize':hoverFace?'pointer':'grab'});}
     }
     if(kind==='up'){
         dragging=false;touchAnchor=null;
         const face=pick(x,y);
-        if(down&&Math.hypot(x-down.x,y-down.y)<=DRAG_THRESHOLD&&face===down.face&&face&&face!=='home'&&!press){send('press',{face});press={face,started:performance.now()};if(face==='theme')labelMaps(state.theme==='clair-obscur'?'demain-soir-bleu':'clair-obscur').catch(()=>{});}
+        if(down&&!down.cancelled&&Math.hypot(x-down.x,y-down.y)<=DRAG_THRESHOLD&&face===down.face&&face&&face!=='home'&&!press){send('press',{face});press={face,started:performance.now()};if(face==='theme')labelMaps(state.theme==='clair-obscur'?'demain-soir-bleu':'clair-obscur').catch(()=>{});}
+        if(isTouch)hoverFace=null;
         down=null;send('cursor',{cursor:'grab'});
     }
     requestFrame();

@@ -1,4 +1,4 @@
-import { useRef, useState, useCallback } from 'react';
+import { useRef, useState, useCallback, useEffect } from 'react';
 import * as THREE from 'three';
 import CubeFaceText from './CubeFaceText';
 import { DRAG_THRESHOLD } from '../../constants/cubeConfig';
@@ -23,6 +23,7 @@ export default function CubeFace({
 }) {
     const [hovered, setHovered] = useState(false);
     const pointerDownPos = useRef({ x: 0, y: 0 });
+    const touchHold = useRef(null);
     const isHome = name === 'home';
 
     // Lock highlight while this face is the active one during zoom in / zoom out
@@ -32,6 +33,8 @@ export default function CubeFace({
         e.stopPropagation();
         if (isHome) return;
         pointerDownPos.current = { x: e.clientX, y: e.clientY };
+        touchHold.current = e.pointerType === 'touch' ? { cancelled: false } : null;
+        setHovered(true);
         if (faceDownPosRef && faceDownPosRef.current) {
             faceDownPosRef.current.x = e.clientX;
             faceDownPosRef.current.y = e.clientY;
@@ -44,6 +47,7 @@ export default function CubeFace({
         e.stopPropagation();
         if (isHome) return;
         if (isZoomed) return;
+        if (touchHold.current?.cancelled) return;
         if (suppressFaceClickRef?.current) {
             suppressFaceClickRef.current = false;
             return;
@@ -66,6 +70,30 @@ export default function CubeFace({
         setHovered(false);
         document.body.style.cursor = 'grab';
     }, []);
+
+    useEffect(() => {
+        if (!hovered) return;
+        const endHold = (event) => {
+            if (!touchHold.current) return;
+            const moved = event.type === 'pointermove' && Math.hypot(
+                event.clientX - pointerDownPos.current.x,
+                event.clientY - pointerDownPos.current.y
+            ) > DRAG_THRESHOLD;
+            const cancelled = event.type === 'pointercancel' || (event.type === 'touchstart' && event.touches.length > 1);
+            if (moved || cancelled) touchHold.current.cancelled = true;
+            if (moved || cancelled || event.type === 'pointerup') setHovered(false);
+        };
+        const preventHoldMenu = (event) => {
+            if (touchHold.current && !touchHold.current.cancelled) event.preventDefault();
+        };
+        for (const type of ['pointermove', 'pointerup', 'pointercancel', 'touchstart']) document.addEventListener(type, endHold, { passive: true });
+        const canvas = document.querySelector('.cube-entrance canvas');
+        canvas?.addEventListener('contextmenu', preventHoldMenu);
+        return () => {
+            for (const type of ['pointermove', 'pointerup', 'pointercancel', 'touchstart']) document.removeEventListener(type, endHold);
+            canvas?.removeEventListener('contextmenu', preventHoldMenu);
+        };
+    }, [hovered]);
 
     return (
         <group position={position} rotation={rotation}>

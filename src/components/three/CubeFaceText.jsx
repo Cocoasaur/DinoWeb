@@ -101,6 +101,7 @@ const UnderlineEffect = forwardRef(function UnderlineEffect({ textWidth, fontSiz
             ref.current = {
                 update(p) {
                     if (!lineRef.current) return;
+                    lineRef.current.visible = p > 0;
                     const total = geometry.attributes.position.count;
                     lineRef.current.geometry.setDrawRange(0, Math.max(2, Math.floor(total * p)));
                     lineRef.current.material.opacity = Math.min(p * 1.2, 0.85);
@@ -116,7 +117,7 @@ const UnderlineEffect = forwardRef(function UnderlineEffect({ textWidth, fontSiz
 
     return (
         <group>
-            <line ref={lineRef} geometry={geometry}>
+            <line ref={lineRef} geometry={geometry} visible={false}>
                 <lineBasicMaterial color={color} transparent opacity={0} depthWrite={false} />
             </line>
             <mesh ref={dotRef} position={[lineStartX, lineY, 0.025]} visible={false}>
@@ -166,23 +167,36 @@ export default function CubeFaceText({
 
     const { idleTex, hoverTex, textWidth, textHeight } = getFaceTextures(text, theme, labelScale, fontSize);
 
+    // These flags update the frame callback rather than a mesh prop. Explicitly
+    // wake a settled demand canvas so release/cancel also animates the line out.
+    useEffect(() => {
+        invalidate();
+    }, [hovered, forceHighlight, reducedMotion, reduceEffects, invalidate]);
 
     useFrame((_, delta) => {
-        if (reduceEffects) return;
+        // Demand rendering can be idle for seconds. Cap its first elapsed step
+        // so a new hold begins progressively instead of jumping to full fill.
+        const step = Math.min(delta, .1);
         const target = hovered || forceHighlight ? 1 : 0;
-        const targetScale = reducedMotion ? 1 : target ? 1.1 : 1;
+        const targetScale = reducedMotion || reduceEffects ? 1 : target ? 1.1 : 1;
         const diff = target - progressRef.current;
         const scaleDiff = targetScale - scaleRef.current;
         if (Math.abs(diff) < 0.001 && Math.abs(scaleDiff) < 0.001 && progressRef.current === target && scaleRef.current === targetScale) return;
 
         const p = reducedMotion || Math.abs(diff) < 0.001
-            ? target : progressRef.current + diff * (1 - Math.exp(-8 * delta));
+            ? target : progressRef.current + diff * (1 - Math.exp(-8 * step));
         const scale = Math.abs(scaleDiff) < 0.001
-            ? targetScale : scaleRef.current + scaleDiff * (1 - Math.exp(-6 * delta));
+            ? targetScale : scaleRef.current + scaleDiff * (1 - Math.exp(-6 * step));
         progressRef.current = p;
         scaleRef.current = scale;
-        if (idleMatRef.current) idleMatRef.current.opacity = 1 - p;
-        if (hoverMatRef.current) hoverMatRef.current.opacity = p;
+        if (idleMatRef.current) {
+            idleMatRef.current.opacity = 1 - p;
+            idleMatRef.current.visible = p < 1;
+        }
+        if (hoverMatRef.current) {
+            hoverMatRef.current.opacity = p;
+            hoverMatRef.current.visible = p > 0;
+        }
         groupRef.current?.scale.set(scale, scale, 1);
         ticksRef.current?.update(p, 1 + p * (colors.ticksHoverScale - 1));
         underlineRef.current?.update(p);
@@ -192,13 +206,6 @@ export default function CubeFaceText({
     const planeW = textWidth * 1.05;
     const planeH = textHeight * 1.05;
 
-    if (reduceEffects) return (
-        <mesh position={[0, 0, 0.010]}>
-            <planeGeometry args={[planeW, planeH]} />
-            <meshBasicMaterial map={hovered || forceHighlight ? hoverTex : idleTex} transparent depthWrite={false} side={THREE.FrontSide} />
-        </mesh>
-    );
-
     return (
         <group ref={groupRef}>
             <mesh position={[0, 0, 0.010]}>
@@ -207,9 +214,9 @@ export default function CubeFaceText({
             </mesh>
             <mesh position={[0, 0, 0.012]}>
                 <planeGeometry args={[planeW, planeH]} />
-                <meshBasicMaterial ref={hoverMatRef} map={hoverTex} transparent opacity={0} depthWrite={false} side={THREE.FrontSide} />
+                <meshBasicMaterial ref={hoverMatRef} map={hoverTex} transparent opacity={0} visible={false} depthWrite={false} side={THREE.FrontSide} />
             </mesh>
-            <FaceCornerTicks ref={ticksRef} idleColor={colors.ticksIdle} hoverColor={colors.ticksHover} />
+            {!reduceEffects && <FaceCornerTicks ref={ticksRef} idleColor={colors.ticksIdle} hoverColor={colors.ticksHover} />}
             <UnderlineEffect ref={underlineRef} textWidth={textWidth} fontSize={fontSize} color={colors.accent} />
         </group>
     );
