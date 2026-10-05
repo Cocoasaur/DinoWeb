@@ -1,38 +1,43 @@
-import { useEffect } from 'react';
+import { useLayoutEffect } from 'react';
 
-// `dvh` is the primary sizing mechanism. Firefox Android can, however, keep
-// it smaller than the currently visible page while its browser chrome changes.
-// Feed the visible viewport's bottom edge into the stage only in browsers that
-// expose VisualViewport; CSS retains the `dvh` fallback everywhere else.
+// Firefox Android can report a stale, smaller VisualViewport while browser
+// chrome expands/collapses. Never shrink the stage below the window in that
+// case. Pinch zoom must not resize/reframe the underlying portfolio.
 export function usePortfolioViewportSize() {
-    useEffect(() => {
+    useLayoutEffect(() => {
         const viewport = window.visualViewport;
-        if (!viewport) return undefined;
 
         let frameId = 0;
+        const measure = () => {
+            if (viewport && Math.abs(viewport.scale - 1) > 0.01) return;
+            const editing = document.activeElement?.matches('input, textarea, [contenteditable="true"]');
+            // Round outwards so a fractional CSS pixel can never expose a
+            // hairline gap below the stage on high-density displays.
+            const visibleBlockSize = Math.ceil(editing && viewport
+                ? viewport.height
+                : Math.max(window.innerHeight, viewport?.height || 0));
+            document.documentElement.style.setProperty(
+                '--portfolio-viewport-height',
+                `${visibleBlockSize}px`,
+            );
+        };
         const updateSize = () => {
             cancelAnimationFrame(frameId);
-            frameId = requestAnimationFrame(() => {
-                // Round outwards so a fractional CSS pixel can never expose a
-                // hairline gap below the stage on high-density displays.
-                const visibleBlockSize = Math.ceil(viewport.height + viewport.offsetTop);
-                document.documentElement.style.setProperty(
-                    '--portfolio-viewport-height',
-                    `${visibleBlockSize}px`,
-                );
-            });
+            frameId = requestAnimationFrame(measure);
         };
 
-        updateSize();
-        viewport.addEventListener('resize', updateSize);
-        viewport.addEventListener('scroll', updateSize);
+        measure();
+        viewport?.addEventListener('resize', updateSize);
+        viewport?.addEventListener('scroll', updateSize);
         window.addEventListener('resize', updateSize);
+        window.addEventListener('orientationchange', updateSize);
 
         return () => {
             cancelAnimationFrame(frameId);
-            viewport.removeEventListener('resize', updateSize);
-            viewport.removeEventListener('scroll', updateSize);
+            viewport?.removeEventListener('resize', updateSize);
+            viewport?.removeEventListener('scroll', updateSize);
             window.removeEventListener('resize', updateSize);
+            window.removeEventListener('orientationchange', updateSize);
             document.documentElement.style.removeProperty('--portfolio-viewport-height');
         };
     }, []);

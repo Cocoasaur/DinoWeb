@@ -154,21 +154,28 @@ export function useHomeViewportLayout() {
 
     useEffect(() => {
         let frameId;
+        const viewport = document.querySelector('.portfolio-viewport');
 
         const updateLayout = () => {
             cancelAnimationFrame(frameId);
             frameId = requestAnimationFrame(() => {
-                const next = getHomeViewportLayout(window.innerWidth, window.innerHeight);
+                const next = getHomeViewportLayout(
+                    viewport?.clientWidth || window.innerWidth,
+                    viewport?.clientHeight || window.innerHeight,
+                );
                 setLayout(prev => sameLayout(prev, next) ? prev : next);
             });
         };
 
         updateLayout();
+        const observer = new ResizeObserver(updateLayout);
+        if (viewport) observer.observe(viewport);
         window.addEventListener('resize', updateLayout, { passive: true });
         window.addEventListener('orientationchange', updateLayout, { passive: true });
 
         return () => {
             cancelAnimationFrame(frameId);
+            observer.disconnect();
             window.removeEventListener('resize', updateLayout);
             window.removeEventListener('orientationchange', updateLayout);
         };
