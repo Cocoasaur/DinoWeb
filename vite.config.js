@@ -44,6 +44,10 @@ export default defineConfig({
         ],
       },
       workbox: {
+        importScripts: ['legacy-upgrade.js'],
+        // A waiting update takes control only after visitor acceptance (or the
+        // legacy migration). This triggers registerSW's reload callback.
+        clientsClaim: true,
         // Registration runs after the first paint. Download the full portfolio
         // then, without evaluating WebGL/PDF code or delaying the homepage.
         globPatterns: ['**/*.{html,webmanifest,js,mjs,css,woff2,svg,webp,pdf}'],
