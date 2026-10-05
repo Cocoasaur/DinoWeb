@@ -18,7 +18,7 @@ function getRenderProfile() {
     const isMobile = window.matchMedia(
         '(max-width: 767px), (hover: none) and (pointer: coarse)'
     ).matches;
-    const maxDpr = tier === 'low' ? 1 : isMobile ? 1.25 : 1.75;
+    const maxDpr = tier === 'low' ? 1 : tier === 'medium' || isMobile ? 1.25 : 1.75;
 
     return {
         tier,
