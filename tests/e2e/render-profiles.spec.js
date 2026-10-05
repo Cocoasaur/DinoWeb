@@ -1,18 +1,20 @@
 import { expect, test } from '@playwright/test'
 
 const profiles = [
-  { name: 'desktop without a memory API', cores: 8, memory: undefined, floor: true },
-  { name: 'low-end desktop without a memory API', cores: 2, memory: undefined, floor: false },
-  { name: 'desktop with 2 GB memory', cores: 8, memory: 2, floor: false },
-  { name: 'desktop with 4 GB memory', cores: 8, memory: 4, floor: false },
-  { name: 'mobile without a memory API', cores: 8, memory: undefined, mobile: true, floor: false },
-  { name: 'desktop with reduced motion', cores: 8, memory: 8, reduced: true, floor: false },
+  { name: 'desktop without a memory API', cores: 8, memory: undefined, parallax: true },
+  { name: 'low-end desktop without a memory API', cores: 2, memory: undefined, parallax: true },
+  { name: 'desktop with 2 GB memory', cores: 8, memory: 2, parallax: true },
+  { name: 'desktop with 4 GB memory', cores: 8, memory: 4, parallax: true },
+  { name: 'mobile without a memory API', cores: 8, memory: undefined, mobile: true, parallax: false },
+  { name: 'tablet portrait', cores: 8, memory: 8, mobile: true, viewport: { width: 820, height: 1180 }, parallax: false },
+  { name: 'tablet landscape', cores: 8, memory: 4, mobile: true, viewport: { width: 1180, height: 820 }, parallax: false },
+  { name: 'desktop with reduced motion', cores: 8, memory: 8, reduced: true, parallax: false },
 ]
 
 for (const profile of profiles) {
   test.describe(profile.name, () => {
     test.use({
-      viewport: profile.mobile ? { width: 430, height: 800 } : { width: 1440, height: 900 },
+      viewport: profile.viewport || (profile.mobile ? { width: 430, height: 800 } : { width: 1440, height: 900 }),
       isMobile: Boolean(profile.mobile),
       hasTouch: Boolean(profile.mobile),
       reducedMotion: profile.reduced ? 'reduce' : 'no-preference',
@@ -27,9 +29,21 @@ for (const profile of profiles) {
       await expect(page.locator('.boot-screen')).toHaveCount(0, { timeout: 30000 })
       await expect(page.locator('.home-stage-backdrop__shadow')).toBeVisible()
       const floor = page.locator('.home-stage-backdrop .home-stage-backdrop__floor')
-      await expect(floor).toHaveCount(profile.floor ? 1 : 0)
-      if (profile.floor) {
-        const backdrop = page.locator('.home-stage-backdrop')
+      await expect(floor).toBeVisible()
+      const motion = () => page.evaluate(() => ({
+        floor: getComputedStyle(document.querySelector('.home-stage-backdrop__floor'), '::before').transform,
+        background: getComputedStyle(document.querySelector('.void-grid-drift')).transform,
+      }))
+      const before = await motion()
+      await page.waitForTimeout(400)
+      const after = await motion()
+      if (profile.reduced) expect(after).toEqual(before)
+      else {
+        expect(after.floor).not.toBe(before.floor)
+        expect(after.background).not.toBe(before.background)
+      }
+      if (profile.parallax) {
+        const backdrop = page.locator('.portfolio-viewport')
         await page.mouse.move(1300, 750)
         await expect.poll(() => backdrop.evaluate(element =>
           parseFloat(element.style.getPropertyValue('--floor-camera-x'))
