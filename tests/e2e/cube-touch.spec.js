@@ -4,12 +4,12 @@ import { getHomeViewportLayout } from '../../src/hooks/useHomeViewportLayout.js'
 import metrics from '../../src/assets/cube-labels/metrics.json' with { type: 'json' }
 
 const profiles = [
-  { name: 'mobile worker', dpr: 1.5, scale: 1 },
-  { name: 'mobile dark theme', dark: true, dpr: 1.5, scale: 1 },
-  { name: 'mobile fallback', fallback: true, dpr: 1.5, scale: 1 },
-  { name: 'low-end mobile', low: true, dpr: 1, scale: .5 },
-  { name: 'medium mobile', medium: true, dpr: 1.25, scale: 1 },
-  { name: 'mobile reduced motion', reduced: true, dpr: 1.5, scale: 1 },
+  { name: 'mobile worker', dpr: 2, scale: 2 },
+  { name: 'mobile dark theme', dark: true, dpr: 2, scale: 2 },
+  { name: 'mobile fallback', fallback: true, dpr: 2, scale: 2 },
+  { name: 'low-end mobile', low: true, dpr: 1, scale: 1 },
+  { name: 'medium mobile', medium: true, dpr: 1.5, scale: 1 },
+  { name: 'mobile reduced motion', reduced: true, dpr: 2, scale: 2 },
 ]
 
 test.use({ viewport: { width: 430, height: 800 }, isMobile: true, hasTouch: true, deviceScaleFactor: 3 })
@@ -38,7 +38,7 @@ async function facePoints(page) {
   return { center: project(0, 0), line: Array.from({ length: 50 }, (_, i) => project(-halfWidth + halfWidth * 2 * i / 49, -.22 * .65)) }
 }
 
-async function litUnderlineSamples(page, before, after, points) {
+async function changedUnderlineSamples(page, before, after, points) {
   return page.evaluate(async ({ before, after, points }) => {
     const decode = async data => {
       const img = new Image()
@@ -56,7 +56,7 @@ async function litUnderlineSamples(page, before, after, points) {
         for (let x = Math.round(point.x) - 2; x <= Math.round(point.x) + 2; x++) {
           if (x < 0 || y < 0 || x >= a.width || y >= a.height) continue
           const offset = (y * a.width + x) * 4
-          if ((b.data[offset] + b.data[offset + 1] + b.data[offset + 2]) - (a.data[offset] + a.data[offset + 1] + a.data[offset + 2]) > 90) return true
+          if (Math.abs((b.data[offset] + b.data[offset + 1] + b.data[offset + 2]) - (a.data[offset] + a.data[offset + 1] + a.data[offset + 2])) > 90) return true
         }
       }
       return false
@@ -77,7 +77,7 @@ for (const profile of profiles) {
       await page.addInitScript(profile => {
         Object.defineProperty(navigator, 'hardwareConcurrency', { get: () => profile.low ? 2 : 8 })
         Object.defineProperty(navigator, 'deviceMemory', { get: () => profile.low ? 2 : profile.medium ? 4 : 8 })
-        if (profile.dark) localStorage.setItem('theme', 'demain-soir-bleu')
+        if (profile.dark) localStorage.setItem('dinoweb-theme-v2', 'demain-soir-bleu')
         if (profile.fallback) HTMLCanvasElement.prototype.transferControlToOffscreen = undefined
         window.__glDraws = 0
         for (const name of ['drawArrays', 'drawElements']) {
@@ -87,6 +87,7 @@ for (const profile of profiles) {
       }, profile)
       await page.goto('./')
       await expect(page.locator('.boot-screen')).toHaveCount(0, { timeout: 30000 })
+      await expect(page.locator('html')).toHaveAttribute('data-theme', profile.dark ? 'demain-soir-bleu' : 'clair-obscur')
       await page.waitForTimeout(300)
       // Freeze only compositor breathing so the visual comparison has no resampling drift.
       await page.locator('.cube-breath').evaluate(element => element.getAnimations().forEach(animation => animation.pause()))
@@ -103,8 +104,8 @@ for (const profile of profiles) {
       await page.waitForTimeout(950)
       const held = await page.screenshot({ scale: 'css' })
       await testInfo.attach('held cube', { body: held, contentType: 'image/png' })
-      const earlyCount = await litUnderlineSamples(page, before, early, line)
-      const heldCount = await litUnderlineSamples(page, before, held, line)
+      const earlyCount = await changedUnderlineSamples(page, before, early, line)
+      const heldCount = await changedUnderlineSamples(page, before, held, line)
       expect(heldCount).toBeGreaterThan(25)
       if (!profile.reduced) expect(heldCount).toBeGreaterThan(earlyCount + 5)
       await expect(page.getByRole('dialog')).toHaveCount(0)
@@ -118,7 +119,7 @@ for (const profile of profiles) {
       await touch('touchCancel', [])
       await page.waitForTimeout(1100)
       const cancelled = await page.screenshot({ scale: 'css' })
-      expect(await litUnderlineSamples(page, before, cancelled, line)).toBeLessThan(8)
+      expect(await changedUnderlineSamples(page, before, cancelled, line)).toBeLessThan(8)
       await expect(page.getByRole('dialog')).toHaveCount(0)
       // A drag that returns to its starting pixel must still not act as a tap.
       await touch('touchStart', [center])

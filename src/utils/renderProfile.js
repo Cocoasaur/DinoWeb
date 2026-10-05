@@ -8,12 +8,11 @@ export function getRenderProfile() {
         ? 'low'
         : (memory !== null && memory <= 4) || cores <= 4 || connection?.effectiveType === '3g' ? 'medium' : 'high';
     const isMobile = window.matchMedia('(max-width: 767px), (hover: none) and (pointer: coarse)').matches;
-    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const maxDpr = tier === 'low' ? 1 : tier === 'medium' ? 1.25 : isMobile ? 1.5 : 1.75;
+    const maxDpr = tier === 'low' ? 1 : tier === 'medium' ? 1.5 : 2;
     return {
         tier,
         isMobile,
         dpr: [1, Math.min(window.devicePixelRatio || 1, maxDpr)],
-        labelScale: tier === 'low' ? .5 : tier === 'medium' || isMobile || reducedMotion ? 1 : 2,
+        labelScale: tier === 'high' ? 2 : 1,
     };
 }
