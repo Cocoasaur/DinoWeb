@@ -161,7 +161,7 @@ export default function App() {
   const [stagePainted, setStagePainted] = useState(false);
 
   return (
-    <RenderProfileContext.Provider value={{ reduceEffects, labelScale }}>
+    <RenderProfileContext.Provider value={{ reduceEffects, labelScale, tier }}>
     <div
       className={`portfolio-viewport${stagePainted && !reduceEffects ? ' stage-active' : ''}`}
       style={{ backgroundColor: 'var(--void-bg)', transition: reducedMotion ? 'none' : 'background-color 0.5s ease' }}

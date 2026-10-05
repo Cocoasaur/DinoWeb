@@ -1,8 +1,9 @@
 import { useRenderProfile } from '../../context/RenderProfileContext';
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Document, Page, pdfjs } from 'react-pdf';
 import resumePdf from '../../assets/resume/John_Arquesola_Resume.pdf';
 import cvPdf from '../../assets/resume/John_Arquesola_Curriculum_Vitae.pdf';
+import { getPdfRasterRatio } from '../../utils/pdfRenderBudget';
 
 pdfjs.GlobalWorkerOptions.workerSrc = new URL(
     'pdfjs-dist/build/pdf.worker.min.mjs',
@@ -41,6 +42,31 @@ function ZoomButton({ ariaLabel, onClick, disabled, children, className }) {
     );
 }
 
+function PreviewPage({ pageNumber, width, aspect, rasterRatio }) {
+    const ref = useRef(null);
+    const [visible, setVisible] = useState(false);
+    const [renderedSize, setRenderedSize] = useState('');
+    const sizeKey = `${width}:${rasterRatio}`;
+    useEffect(() => {
+        const observer = new IntersectionObserver(([entry]) => {
+            setVisible(entry.isIntersecting);
+            if (!entry.isIntersecting) setRenderedSize('');
+        }, {
+            root: ref.current.closest('.about-cv-scroll'), rootMargin: '160px 0px',
+        });
+        observer.observe(ref.current);
+        return () => observer.disconnect();
+    }, []);
+    return (
+        <div ref={ref} className="about-cv-page-wrap" data-page-number={pageNumber}
+            aria-busy={visible && renderedSize !== sizeKey} style={{ width, minHeight: width * aspect }}>
+            {visible && <Page pageNumber={pageNumber} width={width} devicePixelRatio={rasterRatio}
+                className="about-cv-page" renderTextLayer={false} renderAnnotationLayer={false}
+                onRenderSuccess={() => setRenderedSize(sizeKey)} />}
+        </div>
+    );
+}
+
 function MinusIcon() {
     return (
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -69,17 +95,40 @@ function DownloadIcon() {
 }
 
 export default function CvViewer() {
-    const { reduceEffects } = useRenderProfile();
+    const { tier = 'high' } = useRenderProfile();
+    const stackRef = useRef(null);
     const [activeDocumentId, setActiveDocumentId] = useState(DOCUMENTS[0].id);
     const [numPages, setNumPages] = useState(null);
     const [scale, setScale] = useState(1);
     const [loadError, setLoadError] = useState(false);
+    const [pageSize, setPageSize] = useState({ width: 612, height: 792 });
+    const [viewport, setViewport] = useState({ width: 612, pixelRatio: window.devicePixelRatio || 1 });
+    const documentIdRef = useRef(activeDocumentId);
+    useEffect(() => {
+        const stack = stackRef.current;
+        const measure = () => {
+            const style = getComputedStyle(stack);
+            const width = Math.max(1, stack.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight));
+            const pixelRatio = window.devicePixelRatio || 1;
+            setViewport(current => current.width === width && current.pixelRatio === pixelRatio ? current : { width, pixelRatio });
+        };
+        measure();
+        const observer = new ResizeObserver(measure);
+        observer.observe(stack);
+        window.addEventListener('resize', measure);
+        return () => { observer.disconnect(); window.removeEventListener('resize', measure); };
+    }, []);
+    const pageWidth = Math.min(pageSize.width, viewport.width) * scale;
+    const pageAspect = pageSize.height / pageSize.width;
+    const rasterRatio = getPdfRasterRatio(pageWidth, pageAspect, viewport.pixelRatio, tier);
 
     const activeDocument = DOCUMENTS.find(({ id }) => id === activeDocumentId) || DOCUMENTS[0];
 
     const zoomIn = () => setScale((s) => Math.min(MAX_SCALE, Math.round((s + SCALE_STEP) * 100) / 100));
     const zoomOut = () => setScale((s) => Math.max(MIN_SCALE, Math.round((s - SCALE_STEP) * 100) / 100));
     const selectDocument = (id) => {
+        if (id === activeDocumentId) return;
+        documentIdRef.current = id;
         setActiveDocumentId(id);
         setNumPages(null);
         setLoadError(false);
@@ -162,32 +211,35 @@ export default function CvViewer() {
                 aria-labelledby={`document-tab-${activeDocument.id}`}
                 aria-busy={numPages === null && !loadError}
             >
-                <div className="about-cv-page-stack">
+                <div ref={stackRef} className="about-cv-page-stack">
                     <Document
                         key={activeDocument.id}
                         file={activeDocument.url}
                         loading={<p className="about-cv-status" role="status">Loading {activeDocument.label}…</p>}
                         error={<p className="about-cv-status" role="alert">The document preview could not be loaded.</p>}
-                        onLoadSuccess={({ numPages: n }) => {
-                            setNumPages(n);
+                        onLoadSuccess={async (pdf) => {
+                            if (documentIdRef.current !== activeDocument.id) return;
+                            setNumPages(pdf.numPages);
                             setLoadError(false);
+                            try {
+                                const firstPage = await pdf.getPage(1);
+                                if (documentIdRef.current !== activeDocument.id) return;
+                                const size = firstPage.getViewport({ scale: 1 });
+                                setPageSize({ width: size.width, height: size.height });
+                            } catch {
+                                // Switching documents can destroy a pending PDF task.
+                                // Keep the default page proportions until the next load.
+                            }
                         }}
                         onLoadError={() => {
+                            if (documentIdRef.current !== activeDocument.id) return;
                             setNumPages(0);
                             setLoadError(true);
                         }}
                     >
                         {Array.from({ length: numPages || 0 }, (_, i) => (
-                            <div key={`page-${i + 1}`} className="about-cv-page-wrap">
-                                <Page
-                                    pageNumber={i + 1}
-                                    scale={scale}
-                                    devicePixelRatio={Math.min(window.devicePixelRatio || 1, reduceEffects ? 1 : 1.5)}
-                                    className="about-cv-page"
-                                    renderTextLayer={false}
-                                    renderAnnotationLayer={false}
-                                />
-                            </div>
+                            <PreviewPage key={`page-${i + 1}`} pageNumber={i + 1}
+                                width={pageWidth} aspect={pageAspect} rasterRatio={rasterRatio} />
                         ))}
                     </Document>
                 </div>

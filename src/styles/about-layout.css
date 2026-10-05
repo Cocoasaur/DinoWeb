@@ -256,6 +256,14 @@
     font-size: 13px;
 }
 
+.about-cv-page-stack > .react-pdf__Document {
+    display: flex;
+    flex-direction: column;
+    gap: inherit;
+    width: 100%;
+    min-width: 0;
+}
+
 .about-cv-page-wrap {
     width: max-content;
     margin: 0 auto;
