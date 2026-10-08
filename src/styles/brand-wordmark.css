@@ -1,0 +1,38 @@
+.brand-wordmark {
+    --brand-draw-duration: 500ms;
+    --brand-letter-delay: 60ms;
+}
+
+.brand-wordmark[data-brand-tier='low'],
+.brand-wordmark[data-brand-tier='medium'] {
+    --brand-draw-duration: 360ms;
+    --brand-letter-delay: 40ms;
+}
+
+.brand-wordmark .web-trace {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 0;
+}
+
+/* Trace only the three WEB contours once the loader begins fading. The
+   filled lettering/hatching never waits for an animation to become visible. */
+.stage-active .brand-wordmark .web-trace {
+    animation: brand-outline-draw var(--brand-draw-duration) ease-out
+        calc(var(--letter-index) * var(--brand-letter-delay)) both;
+}
+
+.stage-active[data-brand-intro-complete='true'] .brand-wordmark .web-trace {
+    animation: none;
+}
+
+@keyframes brand-outline-draw {
+    from { stroke-dashoffset: 1; }
+    to { stroke-dashoffset: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .stage-active .brand-wordmark .web-trace {
+        animation: none;
+        stroke-dashoffset: 0;
+    }
+}
