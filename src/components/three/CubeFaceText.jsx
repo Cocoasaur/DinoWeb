@@ -7,75 +7,12 @@ import { useRenderProfile } from '../../context/RenderProfileContext';
 import { useTheme } from '../../context/ThemeContext';
 import { getFaceTextures, prewarmCubeLabels } from '../../utils/cubeResources';
 
-const CORNERS = [
-    { pos: [-1.0, 1.0], hDir: 1, vDir: -1 },
-    { pos: [1.0, 1.0], hDir: -1, vDir: -1 },
-    { pos: [-1.0, -1.0], hDir: 1, vDir: 1 },
-    { pos: [1.0, -1.0], hDir: -1, vDir: 1 },
-];
-
-const T_SIZE = 0.10;
-const T_THICK = 0.008;
 const FONT_SIZE = 0.22;
 
 function rgbaToRgb(rgba) {
     const match = rgba.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
     return match ? `rgb(${match[1]}, ${match[2]}, ${match[3]})` : rgba;
 }
-
-function makeCornerGeometry() {
-    const positions = [];
-    const indices = [];
-    const rectangle = (x, y, width, height) => {
-        const first = positions.length / 3;
-        positions.push(
-            x - width / 2, y - height / 2, 0,
-            x + width / 2, y - height / 2, 0,
-            x + width / 2, y + height / 2, 0,
-            x - width / 2, y + height / 2, 0,
-        );
-        indices.push(first, first + 1, first + 2, first, first + 2, first + 3);
-    };
-    for (const { pos: [x, y], hDir, vDir } of CORNERS) {
-        rectangle(x + hDir * T_SIZE / 2, y, T_SIZE, T_THICK);
-        rectangle(x, y + vDir * T_SIZE / 2, T_THICK, T_SIZE);
-    }
-    const geometry = new THREE.BufferGeometry();
-    geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-    geometry.setIndex(indices);
-    return geometry;
-}
-
-const FaceCornerTicks = forwardRef(function FaceCornerTicks({ idleColor, hoverColor }, ref) {
-    const groupRef = useRef();
-    const idleMatRef = useRef();
-    const hoverMatRef = useRef();
-    // Eight bars share a geometry/material instead of issuing eight draw calls.
-    const geometry = useMemo(() => makeCornerGeometry(), []);
-
-    useEffect(() => {
-        if (ref && typeof ref === 'object') {
-            ref.current = {
-                update(p, scale) {
-                    if (idleMatRef.current) idleMatRef.current.opacity = (1 - p) * 0.85;
-                    if (hoverMatRef.current) hoverMatRef.current.opacity = p * 0.95;
-                    groupRef.current?.scale.set(scale, scale, 1);
-                }
-            };
-        }
-    }, [ref]);
-
-    return (
-        <group ref={groupRef}>
-            <mesh geometry={geometry} position={[0, 0, 0.005]}>
-                <meshBasicMaterial ref={idleMatRef} color={idleColor} transparent opacity={0.85} depthWrite={false} />
-            </mesh>
-            <mesh geometry={geometry} position={[0, 0, 0.006]}>
-                <meshBasicMaterial ref={hoverMatRef} color={hoverColor} transparent opacity={0} depthWrite={false} />
-            </mesh>
-        </group>
-    );
-});
 
 const UnderlineEffect = forwardRef(function UnderlineEffect({ textWidth, fontSize, color }, ref) {
     const lineRef = useRef();
@@ -140,7 +77,6 @@ export default function CubeFaceText({
     const groupRef = useRef();
     const idleMatRef = useRef();
     const hoverMatRef = useRef();
-    const ticksRef = useRef();
     const underlineRef = useRef();
     const progressRef = useRef(0);
     const scaleRef = useRef(1);
@@ -150,19 +86,13 @@ export default function CubeFaceText({
     const cssVars = useCSSVars([
         '--cube-text-accent',
         '--cube-text-hover',
-        '--cube-text-default',
-        '--cube-ticks-idle',
-        '--cube-ticks-hover',
-        '--cube-ticks-hover-scale'
+        '--cube-text-default'
     ]);
 
     const colors = useMemo(() => ({
         accent: rgbaToRgb(cssVars['--cube-text-accent'] || '#bbdaff'),
         hover: rgbaToRgb(cssVars['--cube-text-hover'] || '#ffffff'),
         default: rgbaToRgb(cssVars['--cube-text-default'] || '#1a2332'),
-        ticksIdle: rgbaToRgb(cssVars['--cube-ticks-idle'] || 'rgba(255,255,255,0.35)'),
-        ticksHover: rgbaToRgb(cssVars['--cube-ticks-hover'] || 'rgba(10,15,26,0.90)'),
-        ticksHoverScale: parseFloat(cssVars['--cube-ticks-hover-scale']) || 1.15,
     }), [cssVars]);
 
     const { idleTex, hoverTex, textWidth, textHeight } = getFaceTextures(text, theme, labelScale, fontSize);
@@ -198,7 +128,6 @@ export default function CubeFaceText({
             hoverMatRef.current.visible = p > 0;
         }
         groupRef.current?.scale.set(scale, scale, 1);
-        ticksRef.current?.update(p, 1 + p * (colors.ticksHoverScale - 1));
         underlineRef.current?.update(p);
         if (p !== target || scale !== targetScale) invalidate();
     });
@@ -216,7 +145,6 @@ export default function CubeFaceText({
                 <planeGeometry args={[planeW, planeH]} />
                 <meshBasicMaterial ref={hoverMatRef} map={hoverTex} transparent opacity={0} visible={false} depthWrite={false} side={THREE.FrontSide} />
             </mesh>
-            {!reduceEffects && <FaceCornerTicks ref={ticksRef} idleColor={colors.ticksIdle} hoverColor={colors.ticksHover} />}
             <UnderlineEffect ref={underlineRef} textWidth={textWidth} fontSize={fontSize} color={colors.accent} />
         </group>
     );

@@ -1,6 +1,7 @@
 import { useRef, useState, useCallback, useEffect } from 'react';
 import * as THREE from 'three';
 import CubeFaceText from './CubeFaceText';
+import CubeFaceCorners from './CubeFaceCorners';
 import { DRAG_THRESHOLD } from '../../constants/cubeConfig';
 import { getHomeTexture } from '../../utils/cubeResources';
 
@@ -31,10 +32,10 @@ export default function CubeFace({
 
     const handlePointerDown = useCallback((e) => {
         e.stopPropagation();
-        if (isHome) return;
         pointerDownPos.current = { x: e.clientX, y: e.clientY };
         touchHold.current = e.pointerType === 'touch' ? { cancelled: false } : null;
         setHovered(true);
+        if (isHome) return;
         if (faceDownPosRef && faceDownPosRef.current) {
             faceDownPosRef.current.x = e.clientX;
             faceDownPosRef.current.y = e.clientY;
@@ -120,6 +121,7 @@ export default function CubeFace({
                 </mesh>
             )}
 
+            <CubeFaceCorners hovered={hovered} forceHighlight={forceHighlight} />
             {isHome ? (
                 <HomeIcon />
             ) : (
