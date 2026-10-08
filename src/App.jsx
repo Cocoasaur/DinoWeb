@@ -145,11 +145,9 @@ export default function App() {
       const direction = isDark ? 'to-light' : 'to-dark';
       document.documentElement.setAttribute('data-theme-direction', direction);
 
-      // Freeze infinitely-animated elements (drift grid, logo trace) so they are
-      // captured in the old snapshot instead of live-flipping to the new theme.
+      // Named live layers keep the cube, breathing, grids and floor moving
+      // above the circular color reveal; no animation is stopped or restarted.
       document.documentElement.classList.add('theme-transitioning');
-      // Force a reflow so the snapshot captures the frozen state.
-      document.documentElement.offsetWidth;
 
       let vt;
       try {
@@ -179,7 +177,7 @@ export default function App() {
     document.addEventListener('visibilitychange', update);
     return () => document.removeEventListener('visibilitychange', update);
   }, []);
-  const homeMotionPaused = !pageVisible || !stagePainted || isZoomed || isZoomingOut || themeTransitionActive;
+  const homeMotionPaused = !pageVisible || !stagePainted || isZoomed || isZoomingOut;
   useHomeGridMotion(viewportRef, { paused: homeMotionPaused, reducedMotion, lowEnd: isLowEnd });
 
   return (

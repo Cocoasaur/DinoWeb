@@ -76,12 +76,21 @@
     }
 }
 
-/* Elements with INFINITE CSS animations are excluded from view-transition
-   snapshots (they render live and would flip to the new theme instantly).
-   App.jsx adds .theme-transitioning to <html> before the transition starts;
-   freezing those animations lets them be captured in the old theme. */
-.theme-transitioning .void-grid-drift {
-    animation: none !important;
+/* Keep moving layers live in both reveal directions. The old root snapshot
+   cannot freeze their motion or paint a second cube over the new canvas. */
+.home-grid-parallax { view-transition-name: home-grid-motion; }
+.cube-entrance { view-transition-name: home-cube-motion; }
+::view-transition-group(home-grid-motion),
+::view-transition-group(home-cube-motion) {
+    animation: none;
+    z-index: 3;
+}
+::view-transition-old(home-grid-motion),
+::view-transition-old(home-cube-motion) { display: none; }
+::view-transition-new(home-grid-motion),
+::view-transition-new(home-cube-motion) {
+    animation: none;
+    mix-blend-mode: normal;
 }
 
 /* ── Certification lightbox (About page) ── */

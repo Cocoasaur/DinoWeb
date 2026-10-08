@@ -66,4 +66,3 @@
     .home-stage-backdrop, .home-stage-backdrop__floor, .home-stage-backdrop__pool, .home-stage-backdrop__shadow { transition: none; }
     .void-grid-drift, .home-stage-backdrop__floor::before { animation: none !important; }
 }
-.theme-transitioning .home-stage-backdrop__floor::before { animation-play-state: paused; }

@@ -440,8 +440,7 @@ export default function InteractiveCube({
                 invalidate();
             } else if (canDrift) {
                 const now = performance.now();
-                if (!document.documentElement.classList.contains('theme-transitioning') &&
-                    now - idleFrameTimeRef.current >= IDLE_DRIFT_FRAME_MS) {
+                if (now - idleFrameTimeRef.current >= IDLE_DRIFT_FRAME_MS) {
                     idleFrameTimeRef.current = now;
                     invalidate();
                 }
