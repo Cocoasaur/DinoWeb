@@ -287,26 +287,31 @@
 
 /* ── Footer ── */
 .about-cv-footer {
-    display: flex;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
     align-items: center;
-    justify-content: space-between;
-    padding: 0 12px;
-    height: 36px;
+    gap: 12px;
+    padding: 6px 12px;
+    min-height: 36px;
     border-top: 1px solid var(--void-border);
     background-color: var(--void-surface-80);
 }
 
 .about-cv-filename {
+    min-width: 0;
+    overflow-wrap: anywhere;
     font-family: 'Space Grotesk', monospace;
     font-size: 10px;
     letter-spacing: 0.2em;
     text-transform: uppercase;
     color: var(--void-text-dim);
+    line-height: 1.5;
 }
 
 .about-cv-download {
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 6px;
     font-family: 'Space Grotesk', monospace;
     font-size: 10px;
@@ -316,7 +321,12 @@
     border: 1px solid var(--void-border);
     padding: 4px 10px;
     text-decoration: none;
+    white-space: nowrap;
     transition: border-color 0.2s, color 0.2s;
+}
+
+.about-cv-download svg {
+    flex-shrink: 0;
 }
 
 .about-cv-download:hover {
