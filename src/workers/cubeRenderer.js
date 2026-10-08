@@ -139,7 +139,7 @@ function receiveState(next) {
     if (state.isZoomingOut && !previous.isZoomingOut) motion={kind:'out',started:performance.now(),pose:pose(),notified:false};
     else if (state.isZoomed && (!previous.isZoomed || state.activeFace!==previous.activeFace)) {
         const start=pose();start.rx=shortestPath(start.rx,THREE.MathUtils.degToRad(state.targetRotation.x));start.ry=shortestPath(start.ry,THREE.MathUtils.degToRad(state.targetRotation.y));
-        motion={kind:'in',started:performance.now(),pose:start,notified:false};
+        motion={kind:'in',started:performance.now(),pose:start,notified:false,dissolveNotified:false};
     }
     // Early close can now overlap the approach. Hold its current camera pose
     // throughout the outgoing page dissolve, then return from that exact pose.
@@ -187,7 +187,7 @@ function renderFrame(now) {
     frameId=0;if(state.paused)return;
     const delta=previousTime?Math.min((now-previousTime)/1000,.1):1/60;previousTime=now;
     const smooth=(rate)=>state.reducedMotion?1:1-Math.exp(-rate*delta);
-    let animate=false,pressScale=1,completedIn=false,completedOut=false;
+    let animate=false,pressScale=1,startDissolve=false,completedIn=false,completedOut=false;
     if(press){
         const inMs=state.reducedMotion?50:80,outMs=state.reducedMotion?50:state.reduceEffects?160:250;
         const elapsed=now-press.started;
@@ -199,6 +199,7 @@ function renderFrame(now) {
         const t=transitionProgress(motion.started,now,duration),p=easeInOut(t),start=motion.pose;
         const target=motion.kind==='in'?{x:0,y:0,z:zoomedZ(),rx:THREE.MathUtils.degToRad(state.targetRotation.x),ry:THREE.MathUtils.degToRad(state.targetRotation.y)}:{x:state.layout.restingX,y:state.layout.restingY,z:DEFAULT_CAMERA_DISTANCE*(1+state.zoomZ/1000),rx:rotation.x,ry:rotation.y};
         camera.position.z=THREE.MathUtils.lerp(start.z,target.z,p);cube.position.x=THREE.MathUtils.lerp(start.x,target.x,p);cube.position.y=THREE.MathUtils.lerp(start.y,target.y,p);cube.rotation.x=THREE.MathUtils.lerp(start.rx,target.rx,p);cube.rotation.y=THREE.MathUtils.lerp(start.ry,target.ry,p);
+        if(motion.kind==='in'&&now-motion.started>=state.transition.fadeStartMs&&!motion.dissolveNotified){motion.dissolveNotified=true;startDissolve=true;}
         if(motion.kind==='in'&&t>=1&&!motion.notified){motion.notified=true;completedIn=true;}
         if(t<1)animate=true;else {if(motion.kind==='out')completedOut=true;motion=null;}
     }else if(!state.isZoomed&&!state.isZoomingOut){
@@ -231,7 +232,8 @@ function renderFrame(now) {
     updateLighting();renderer.render(scene,camera);draws+=renderer.info.render.calls;
     cube.updateWorldMatrix(true,false);origin.setFromMatrixPosition(cube.matrixWorld).project(camera);
     send('frame',{x:THREE.MathUtils.radToDeg(cube.rotation.x),y:THREE.MathUtils.radToDeg(cube.rotation.y),draws,origin:{x:(origin.x+1)*width/2,y:(1-origin.y)*height/2}});
-    // Publish the final pose before React pauses the covered renderer/display.
+    // Publish the current pose before either transition signal changes React state.
+    if(startDissolve)send('dissolve-start');
     if(completedIn)send('zoom-in-complete');
     if(completedOut)send('zoom-out-complete');
     if(!announced){announced=true;send('ready');}

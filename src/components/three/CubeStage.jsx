@@ -31,9 +31,10 @@ export default function CubeStage(props) {
     const { theme } = useTheme();
     const layout = useHomeViewportLayout();
     const colors = useCSSVars(['--cube-color', '--cube-edge-color', '--cube-edge-opacity', '--cube-text-accent', '--cube-ticks-idle', '--cube-ticks-hover', '--cube-ticks-hover-scale']);
-    const { reduceEffects, isZoomed, isZoomingOut, overlayPhase, canvasZIndex } = props;
+    const { reduceEffects, isZoomed, isZoomingOut, zoomInComplete, overlayPhase, canvasZIndex } = props;
     const transition = getCubeTransition(reduceEffects, reducedMotion);
-    const paused = !visible || ['fading-in', 'open', 'fading-out'].includes(overlayPhase);
+    const paused = !visible || overlayPhase === 'fading-out' ||
+        (zoomInComplete && ['fading-in', 'open'].includes(overlayPhase));
     useIdleBreathing(hostRef, visible && !fallback && !isZoomed && !isZoomingOut, reducedMotion);
 
     useEffect(() => { propsRef.current = props; });
@@ -108,6 +109,7 @@ export default function CubeStage(props) {
                 }
                 if (data.type === 'press') current.handleFacePressStart?.(data.face);
                 if (data.type === 'click') current.handleFaceClick(data.face);
+                if (data.type === 'dissolve-start') current.handleDissolveStart();
                 if (data.type === 'zoom-in-complete') current.handleZoomComplete();
                 if (data.type === 'zoom-out-complete') current.handleZoomOutComplete();
                 if (data.type === 'cursor') canvas.style.cursor = data.cursor;
@@ -141,7 +143,7 @@ export default function CubeStage(props) {
     if (fallback) return <Suspense fallback={null}><FallbackStage {...props} /></Suspense>;
     return (
         <div className="absolute inset-0 w-full h-full overflow-hidden cube-entrance" data-renderer="worker" data-render-paused={paused} style={{ zIndex: canvasZIndex }}>
-            <div className="w-full h-full" style={getCubeStageStyle(isZoomed, isZoomingOut, transition, overlayPhase)}>
+            <div className="w-full h-full" style={getCubeStageStyle(isZoomed, isZoomingOut, transition, overlayPhase, zoomInComplete)}>
                 <StageBackdrop hidden={isZoomed || isZoomingOut} paused={paused} reduceEffects={reduceEffects} zoomZ={props.zoomZ} />
                 <div ref={hostRef} className="w-full h-full cube-breath" />
             </div>

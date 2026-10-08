@@ -62,12 +62,12 @@ export default function App() {
   usePortfolioViewportSize();
 
   const {
-    isZoomed, isZoomingOut, showOverlay, activeFace, targetRotation,
+    isZoomed, isZoomingOut, zoomInComplete, showOverlay, activeFace, targetRotation,
     zoomZ, coordsRef, isDraggingRef, themeTransitionActive,
     overlayPhase,
     handleFaceClick, handleFacePressStart, handleCloseOverlay,
     handleZoomOutComplete, handleWheel, handlePinchZoom,
-    handleRotationChange, updateZoomCoord, handleZoomComplete,
+    handleRotationChange, updateZoomCoord, handleDissolveStart, handleZoomComplete,
     handleThemeTransitionComplete,
     handleOverlayCloseComplete, handleOverlayOpenComplete,
   } = useCubeInteraction();
@@ -194,6 +194,7 @@ export default function App() {
               reduceEffects={reduceEffects}
               isZoomed={isZoomed}
               isZoomingOut={isZoomingOut}
+              zoomInComplete={zoomInComplete}
               overlayPhase={overlayPhase}
               canvasZIndex={canvasZIndex}
               handleFaceClick={handleFaceClick}
@@ -205,6 +206,7 @@ export default function App() {
               isDraggingRef={isDraggingRef}
               handlePinchZoom={handlePinchZoom}
               handleZoomComplete={handleZoomComplete}
+              handleDissolveStart={handleDissolveStart}
               handleZoomOutComplete={handleZoomOutComplete}
               screenPosRef={screenPosRef}
               faceDownPosRef={faceDownPosRef}

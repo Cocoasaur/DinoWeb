@@ -121,6 +121,7 @@ export default function MainThreadCubeStage({
     reduceEffects,
     isZoomed,
     isZoomingOut,
+    zoomInComplete,
     overlayPhase,
     canvasZIndex,
     handleFaceClick,
@@ -132,6 +133,7 @@ export default function MainThreadCubeStage({
     isDraggingRef,
     handlePinchZoom,
     handleZoomComplete,
+    handleDissolveStart,
     handleZoomOutComplete,
     screenPosRef,
     faceDownPosRef,
@@ -150,14 +152,15 @@ export default function MainThreadCubeStage({
     const visible = useSyncExternalStore(subscribeVisibility, isPageVisible, () => true);
     const reducedMotion = useReducedMotion();
     const transition = getCubeTransition(reduceEffects, reducedMotion);
-    const paused = !visible || ['fading-in', 'open', 'fading-out'].includes(overlayPhase);
+    const paused = !visible || overlayPhase === 'fading-out' ||
+        (zoomInComplete && ['fading-in', 'open'].includes(overlayPhase));
     const breathRef = useRef(null);
     const { restingX, restingY } = useHomeViewportLayout();
     useIdleBreathing(breathRef, visible && !isZoomed && !isZoomingOut, reducedMotion);
     const projection = 1 / (10 * (1 + zoomZ / 1000) * Math.tan(Math.PI / 8));
     return (
         <div className="absolute inset-0 w-full h-full overflow-hidden cube-entrance" data-render-paused={paused} style={{ zIndex: canvasZIndex }}>
-        <div className="w-full h-full" style={getCubeStageStyle(isZoomed, isZoomingOut, transition, overlayPhase)}>
+        <div className="w-full h-full" style={getCubeStageStyle(isZoomed, isZoomingOut, transition, overlayPhase, zoomInComplete)}>
             <StageBackdrop hidden={isZoomed || isZoomingOut} paused={paused} reduceEffects={reduceEffects} zoomZ={zoomZ} />
             <div ref={breathRef} className="w-full h-full cube-breath" style={{ transformOrigin: `calc(50% + var(--portfolio-viewport-height, 100dvh) * ${restingX * projection}) calc(50% - var(--portfolio-viewport-height, 100dvh) * ${restingY * projection})` }}>
             <Canvas
@@ -192,6 +195,7 @@ export default function MainThreadCubeStage({
                         isDraggingRef={isDraggingRef}
                         onPinchZoom={handlePinchZoom}
                         onZoomComplete={handleZoomComplete}
+                        onDissolveStart={handleDissolveStart}
                         onZoomOutComplete={handleZoomOutComplete}
                         screenPosRef={screenPosRef}
                         faceDownPosRef={faceDownPosRef}

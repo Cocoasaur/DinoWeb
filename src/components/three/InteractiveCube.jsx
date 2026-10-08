@@ -53,7 +53,7 @@ function getZoomedCameraZ(camera, cubeScale, breakpoint) {
 export default function InteractiveCube({
     onFaceClick, onFacePressStart, targetRotation, isZoomed, isZoomingOut,
     zoomZ, onRotationChange, isDraggingRef, onPinchZoom,
-    onZoomComplete, onZoomOutComplete,
+    onDissolveStart, onZoomComplete, onZoomOutComplete,
     activeFace,
     reduceEffects = false,
     holdCamera = false,
@@ -77,6 +77,7 @@ export default function InteractiveCube({
     const suppressFaceClickTimerRef = useRef(0);
     const zoomPoseRef = useRef(null);
     const hasNotifiedRef = useRef(false);
+    const hasDissolvedRef = useRef(false);
     const zoomOutPoseRef = useRef(null);
     const hasNotifiedOutRef = useRef(false);
     const idleDriftRef = useRef({ active: false, x: 0, y: 0, reRollIn: 0 });
@@ -129,6 +130,7 @@ export default function InteractiveCube({
             ry: shortestPath(group.rotation.y, targetRad.y),
         };
         hasNotifiedRef.current = false;
+        hasDissolvedRef.current = false;
         invalidate();
     }, [isZoomed, targetRad, camera, invalidate]);
 
@@ -350,6 +352,7 @@ export default function InteractiveCube({
         const dt = Math.min(delta, 0.1);
         const smoothing = (rate) => reducedMotion ? 1 : 1 - Math.exp(-rate * delta);
         let completedIn = false;
+        let startDissolve = false;
         let completedOut = false;
 
         let pressScale = 1;
@@ -392,7 +395,8 @@ export default function InteractiveCube({
             }
         } else if (isZoomed && targetRad && zoomPoseRef.current && !holdCamera) {
             const pose = zoomPoseRef.current;
-            const t = transitionProgress(pose.startedAt, performance.now(), transition.zoomInMs);
+            const now = performance.now();
+            const t = transitionProgress(pose.startedAt, now, transition.zoomInMs);
             const p = easeInOut(t);
             camera.position.z = THREE.MathUtils.lerp(pose.z, getZoomedCameraZ(camera, cubeScale, breakpoint), p);
             groupRef.current.position.x = THREE.MathUtils.lerp(pose.x, CUBE_CENTER_X, p);
@@ -400,8 +404,11 @@ export default function InteractiveCube({
             groupRef.current.rotation.x = THREE.MathUtils.lerp(pose.rx, targetRad.x, p);
             groupRef.current.rotation.y = THREE.MathUtils.lerp(pose.ry, targetRad.y, p);
             if (t < 1) invalidate();
-            // Publish the completed face pose before the page dissolve starts
-            // and the renderer pauses on this frame.
+            if (now - pose.startedAt >= transition.fadeStartMs && !hasDissolvedRef.current) {
+                hasDissolvedRef.current = true;
+                startDissolve = true;
+            }
+            // Report the actual endpoint separately from the earlier dissolve.
             if (t >= 1 && !hasNotifiedRef.current) {
                 hasNotifiedRef.current = true;
                 completedIn = true;
@@ -505,6 +512,7 @@ export default function InteractiveCube({
             THREE.MathUtils.radToDeg(groupRef.current.rotation.x),
             THREE.MathUtils.radToDeg(groupRef.current.rotation.y)
         );
+        if (startDissolve) onDissolveStart?.();
         if (completedIn) onZoomComplete?.();
         if (completedOut) handleZoomOutDone();
     });

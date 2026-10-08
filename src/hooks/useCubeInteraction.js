@@ -5,6 +5,7 @@ import { FACE_ROTATIONS, ZOOM_MIN, ZOOM_MAX, DEFAULT_ROTATION } from '../constan
 export function useCubeInteraction() {
     const [isZoomed, setIsZoomed] = useState(false);
     const [isZoomingOut, setIsZoomingOut] = useState(false);
+    const [zoomInComplete, setZoomInComplete] = useState(false);
     const [showOverlay, setShowOverlay] = useState(false);
     const [activeFace, setActiveFace] = useState(null);
     const [targetRotation, setTargetRotation] = useState(null);
@@ -37,8 +38,9 @@ export function useCubeInteraction() {
         setActiveFace(faceName);
         setIsZoomed(true);
         setIsZoomingOut(false);
+        setZoomInComplete(false);
         // Mount the real page while the camera approaches, so cold imports do
-        // not add a second pause after zoom-in. Keep it transparent until arrival.
+        // not add a second pause. Keep it transparent until the dissolve signal.
         setShowOverlay(true);
         phaseRef.current = 'preparing';
         setOverlayPhase('preparing');
@@ -64,13 +66,19 @@ export function useCubeInteraction() {
         }
     }, []);
 
-    const handleZoomComplete = useCallback(() => {
+    const handleDissolveStart = useCallback(() => {
         if (phaseRef.current !== 'preparing') return;
-        // Both renderers emit this after publishing the final camera pose.
-        // Start dissolving immediately at the face; no post-zoom delay timer.
         phaseRef.current = 'fading-in';
         setOverlayPhase('fading-in');
     }, []);
+
+    const handleZoomComplete = useCallback(() => {
+        if (!['preparing', 'fading-in', 'open'].includes(phaseRef.current)) return;
+        // The dissolve can already be running, but the camera and progressive
+        // blur must reach their endpoint before the covered renderer sleeps.
+        setZoomInComplete(true);
+        handleDissolveStart();
+    }, [handleDissolveStart]);
 
     const handleOverlayOpenComplete = useCallback(() => {
         if (phaseRef.current !== 'fading-in') return;
@@ -96,6 +104,7 @@ export function useCubeInteraction() {
     const handleZoomOutComplete = useCallback(() => {
         setIsZoomingOut(false);
         setIsZoomed(false);
+        setZoomInComplete(false);
         setTargetRotation(null);
         setActiveFace(null);
         phaseRef.current = 'hidden';
@@ -152,12 +161,12 @@ export function useCubeInteraction() {
     }, []);
 
     return {
-        isZoomed, isZoomingOut, showOverlay, activeFace, targetRotation,
+        isZoomed, isZoomingOut, zoomInComplete, showOverlay, activeFace, targetRotation,
         zoomZ, coordsRef, isDraggingRef, themeTransitionActive,
         overlayPhase,
         handleFaceClick, handleFacePressStart, handleCloseOverlay,
         handleZoomOutComplete, handleWheel, handlePinchZoom,
-        handleRotationChange, updateZoomCoord, handleZoomComplete,
+        handleRotationChange, updateZoomCoord, handleDissolveStart, handleZoomComplete,
         handleThemeTransitionComplete,
         handleOverlayCloseComplete, handleOverlayOpenComplete,
     };

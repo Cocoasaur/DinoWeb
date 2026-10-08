@@ -13,16 +13,21 @@ export function getCubeTransition(reduceEffects, reducedMotion) {
     const zoomInMs = reducedMotion ? 0 : reduceEffects ? 1200 : 1450;
     return {
         zoomInMs,
+        // Start the page dissolve in milliseconds left in the camera approach.
+        fadeStartMs: Math.max(0, zoomInMs - 200),
         blurInMs: zoomInMs,
         zoomOutMs: reducedMotion ? 0 : reduceEffects ? 1300 : 1550,
         fadeMs: reducedMotion ? 0 : reduceEffects ? 750 : 900,
-        blurPx: reducedMotion ? 0 : reduceEffects ? 12 : 24,
+        // Default is 12px and 24px for reduced motion and normal motion, respectively.
+        blurPx: reducedMotion ? 0 : reduceEffects ? 16 : 32,
     };
 }
 
-export function getCubeStageStyle(isZoomed, isZoomingOut, transition, overlayPhase) {
+export function getCubeStageStyle(isZoomed, isZoomingOut, transition, overlayPhase, zoomInComplete) {
     const covered = isZoomed && !isZoomingOut;
-    const held = covered && ['fading-in', 'open', 'fading-out'].includes(overlayPhase);
+    // An early close holds the current camera pose, but lets the existing blur
+    // finish progressively instead of snapping an unfinished blur to its maximum.
+    const held = covered && zoomInComplete && ['fading-in', 'open', 'fading-out'].includes(overlayPhase);
     const duration = isZoomingOut ? transition.zoomOutMs : transition.blurInMs;
     return {
         transform: covered ? 'scale(1.04)' : 'none',
