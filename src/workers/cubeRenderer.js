@@ -2,10 +2,11 @@ import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { FACE_CONFIG, DEFAULT_ROTATION, DEFAULT_CAMERA_DISTANCE, DRAG_THRESHOLD } from '../constants/cubeConfig';
 import { transitionProgress, easeInOut } from '../utils/cubeTransition';
+import { createCornerMarkerGeometry, getCornerMarkerPalette, updateCornerMarker } from '../utils/cubeCornerMarkers';
 import { CUBE_SHININESS, CUBE_SPECULAR, shadeCubeVertex } from '../utils/cubeLighting';
 
 let renderer, scene, camera, cube, body, geometry, assets, homeIcon;
-let builtReduceEffects = false;
+let builtReduceEffects = false, cornerPalette;
 let state, width = 1, height = 1, frameId = 0, previousTime = 0, draws = 0;
 let initialized = false, announced = false, hoverFace = null, motion = null, press = null;
 let rotation = { x: THREE.MathUtils.degToRad(DEFAULT_ROTATION.x), y: THREE.MathUtils.degToRad(DEFAULT_ROTATION.y) };
@@ -55,21 +56,6 @@ async function labelMaps(theme) {
     }));
 }
 
-function cornerGeometry() {
-    const positions = [], indices = [];
-    const rectangle = (x, y, w, h) => {
-        const start = positions.length / 3;
-        positions.push(x-w/2,y-h/2,0, x+w/2,y-h/2,0, x+w/2,y+h/2,0, x-w/2,y+h/2,0);
-        indices.push(start,start+1,start+2,start,start+2,start+3);
-    };
-    for (const [x,y,h,v] of [[-1,1,1,-1],[1,1,-1,-1],[-1,-1,1,1],[1,-1,-1,1]]) {
-        rectangle(x+h*.05,y,.1,.008); rectangle(x,y+v*.05,.008,.1);
-    }
-    const result = new THREE.BufferGeometry();
-    result.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3)); result.setIndex(indices);
-    return result;
-}
-
 function buildScene(icon, maps) {
     faces.clear(); hitMeshes.length = 0;
     builtReduceEffects = state.reduceEffects;
@@ -93,12 +79,15 @@ function buildScene(icon, maps) {
         const edge = new THREE.Mesh(geometry,new THREE.MeshBasicMaterial({ color: state.colors['--cube-edge-color'], transparent:true, opacity:parseFloat(state.colors['--cube-edge-opacity'])||.35, side:THREE.BackSide }));
         edge.name = 'edge'; edge.scale.setScalar(1.001); cube.add(edge);
     }
-    const corners = cornerGeometry();
+    cornerPalette = getCornerMarkerPalette(state.colors);
+    const corners = createCornerMarkerGeometry();
     for (const config of FACE_CONFIG) {
         const group = new THREE.Group(); group.position.fromArray(config.position); group.rotation.fromArray(config.rotation); cube.add(group);
         const hit = new THREE.Mesh(new THREE.PlaneGeometry(2,2), new THREE.MeshBasicMaterial({ visible:false }));
         hit.userData.face = config.name; group.add(hit); hitMeshes.push(hit);
         const face = { group, p:0, scale:1 };
+        face.ticks = new THREE.Mesh(corners, new THREE.MeshBasicMaterial({ color:cornerPalette.idle, transparent:true, opacity:.85, depthWrite:false, toneMapped:false }));
+        face.ticks.name = 'cube-face-corners'; face.ticks.position.z = .006; group.add(face.ticks);
         if (!config.text) {
             const home = new THREE.Mesh(new THREE.PlaneGeometry(1.6,1.6),new THREE.MeshBasicMaterial({ map:icon,transparent:true,opacity:.9,depthWrite:false }));
             home.position.z = .01; group.add(home);
@@ -109,11 +98,6 @@ function buildScene(icon, maps) {
             face.text = new THREE.Group(); group.add(face.text);
             face.idle = new THREE.Mesh(textGeometry,new THREE.MeshBasicMaterial({ map:map.idle,transparent:true,depthWrite:false })); face.idle.position.z=.01; face.text.add(face.idle);
             face.hover = new THREE.Mesh(textGeometry,new THREE.MeshBasicMaterial({ map:map.hover,transparent:true,opacity:0,depthWrite:false })); face.hover.position.z=.012; face.hover.visible=false; face.text.add(face.hover);
-            if (!state.reduceEffects) {
-                face.ticks = new THREE.Group(); face.text.add(face.ticks);
-                face.tickIdle = new THREE.Mesh(corners,new THREE.MeshBasicMaterial({ color:rgbaToRgb(state.colors['--cube-ticks-idle']),transparent:true,opacity:.85,depthWrite:false })); face.tickIdle.position.z=.005;face.ticks.add(face.tickIdle);
-                face.tickHover = new THREE.Mesh(corners,new THREE.MeshBasicMaterial({ color:rgbaToRgb(state.colors['--cube-ticks-hover']),transparent:true,opacity:0,depthWrite:false }));face.tickHover.position.z=.006;face.tickHover.visible=false;face.ticks.add(face.tickHover);
-            }
             const points=Array.from({length:25},(_,i)=>new THREE.Vector3(-textWidth/2+textWidth*i/24,-.22*.65,.02));
             const lineGeometry=new THREE.BufferGeometry().setFromPoints(points);lineGeometry.setDrawRange(0,0);
             face.line = new THREE.Line(lineGeometry,new THREE.LineBasicMaterial({color:rgbaToRgb(state.colors['--cube-text-accent']),transparent:true,opacity:0,depthWrite:false}));face.line.visible=false;face.text.add(face.line);
@@ -149,6 +133,7 @@ function zoomedZ() {
 }
 function receiveState(next) {
     const previous=state;state=next;
+    cornerPalette = getCornerMarkerPalette(state.colors);
     if (!initialized) return;
     renderer.setPixelRatio(state.dpr);renderer.setSize(width,height,false);
     if (state.isZoomingOut && !previous.isZoomingOut) motion={kind:'out',started:performance.now(),pose:pose(),notified:false};
@@ -192,7 +177,6 @@ function receiveState(next) {
     const edge=cube.getObjectByName('edge');
     if(edge){edge.material.color.set(state.colors['--cube-edge-color']);edge.material.opacity=parseFloat(state.colors['--cube-edge-opacity'])||.35;}
     for(const face of faces.values()){
-        if(face.ticks){face.tickIdle.material.color.set(rgbaToRgb(state.colors['--cube-ticks-idle']));face.tickHover.material.color.set(rgbaToRgb(state.colors['--cube-ticks-hover']));}
         if(face.line){face.line.material.color.set(rgbaToRgb(state.colors['--cube-text-accent']));face.dot.material.color.set(rgbaToRgb(state.colors['--cube-text-accent']));}
     }
     if(state.paused){if(frameId)self.cancelAnimationFrame(frameId);frameId=0;previousTime=0;}
@@ -230,18 +214,15 @@ function renderFrame(now) {
         for(const[key,target]of[['x',px],['y',py]]){const diff=target-camera.position[key];if(Math.abs(diff)>.0004){camera.position[key]+=diff*smooth(3.5);animate=true;}else camera.position[key]=target;}
     }
     cube.scale.setScalar(state.layout.cubeScale*pressScale);
-    for(const[name,face]of faces){if(!face.text)continue;
+    for(const[name,face]of faces){
         const target=name===hoverFace||name===state.activeFace&&(state.isZoomed||state.isZoomingOut)?1:0;
         const next=state.reducedMotion?target:face.p+(target-face.p)*smooth(8);
         face.p=Math.abs(target-next)<.001?target:next;
         const scaleTarget=state.reduceEffects||state.reducedMotion?1:1+target*.1;
         const scaleNext=face.scale+(scaleTarget-face.scale)*smooth(6);face.scale=Math.abs(scaleTarget-scaleNext)<.001?scaleTarget:scaleNext;
-        face.text.scale.set(face.scale,face.scale,1);face.idle.material.opacity=1-face.p;face.hover.material.opacity=face.p;face.idle.visible=face.p<1;face.hover.visible=face.p>0;
-        if(face.ticks){
-            const tickScale=1+face.p*((parseFloat(state.colors['--cube-ticks-hover-scale'])||1.05)-1);
-            face.ticks.scale.set(tickScale,tickScale,1);face.tickIdle.material.opacity=(1-face.p)*.85;face.tickHover.material.opacity=face.p*.95;face.tickHover.visible=face.p>0;
-        }
-        if(face.line){
+        updateCornerMarker(face.ticks, face.p, cornerPalette, state.reducedMotion);
+        if(face.text){
+            face.text.scale.set(face.scale,face.scale,1);face.idle.material.opacity=1-face.p;face.hover.material.opacity=face.p;face.idle.visible=face.p<1;face.hover.visible=face.p>0;
             face.line.visible=face.p>0;face.line.geometry.setDrawRange(0,Math.max(2,Math.floor(25*face.p)));face.line.material.opacity=Math.min(face.p*1.2,.85);
             face.dot.visible=face.p>.02&&face.p<.98;face.dot.position.set(-face.textWidth/2+face.textWidth*face.p,-.22*.65,.025);
         }
