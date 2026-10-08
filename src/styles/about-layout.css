@@ -556,6 +556,16 @@
     }
 }
 
+@media (max-width: 1023px), (hover: none) and (pointer: coarse) {
+    .about-cv-footer {
+        padding: 10px 12px;
+    }
+
+    .about-cv-download {
+        min-height: 44px;
+    }
+}
+
 @media (max-width: 1023px) {
     .portfolio-overlay-close {
         position: sticky !important;
