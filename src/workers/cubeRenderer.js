@@ -135,7 +135,9 @@ function receiveState(next) {
     const previous=state;state=next;
     cornerPalette = getCornerMarkerPalette(state.colors);
     if (!initialized) return;
-    renderer.setPixelRatio(state.dpr);renderer.setSize(width,height,false);
+    // Ordinary React updates must not resize or clear the drawing buffer.
+    // Actual viewport dimensions arrive through the resize message below.
+    if (previous.dpr !== state.dpr) renderer.setPixelRatio(state.dpr);
     if (state.isZoomingOut && !previous.isZoomingOut) motion={kind:'out',started:performance.now(),pose:pose(),notified:false};
     else if (state.isZoomed && (!previous.isZoomed || state.activeFace!==previous.activeFace)) {
         const start=pose();start.rx=shortestPath(start.rx,THREE.MathUtils.degToRad(state.targetRotation.x));start.ry=shortestPath(start.ry,THREE.MathUtils.degToRad(state.targetRotation.y));

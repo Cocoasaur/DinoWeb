@@ -55,7 +55,14 @@ export default function CubeStage(props) {
         let observer;
         let readyFrame = 0;
         const canvas = document.createElement('canvas');
-        canvas.style.cssText = 'width:100%;height:100%;display:block;touch-action:none;cursor:grab';
+        // Reserve the correct aspect from the first paint, before the worker
+        // replaces the default 300x150 bitmap. Otherwise auto height shifts.
+        canvas.width = Math.max(1, host.clientWidth);
+        canvas.height = Math.max(1, host.clientHeight);
+        // Keep the previous worker frame proportional while a viewport resize
+        // is in flight. Filling both axes stretches its old drawing buffer.
+        host.style.position = 'relative';
+        canvas.style.cssText = 'position:absolute;inset:0;margin:auto;width:100%;height:auto;display:block;touch-action:none;cursor:grab';
         canvas.setAttribute('aria-label', 'Interactive portfolio cube');
         const pointers = new Map();
         let pinchDistance = 0;
