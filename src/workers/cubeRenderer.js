@@ -14,6 +14,7 @@ let dragging = false, down = null, lastPointer = null, lastMove = 0;
 let pointer = { x: 0, y: 0 }, touchAnchor = null, isTouch = false;
 let pointerIdleTimer = 0;
 let themeVersion = 0;
+const labelCache = new Map();
 const faces = new Map(), hitMeshes = [], textures = new Map();
 const raycaster = new THREE.Raycaster(), ndc = new THREE.Vector2(), origin = new THREE.Vector3();
 const normal = new THREE.Vector3(), quaternion = new THREE.Quaternion();
@@ -44,16 +45,20 @@ async function imageTexture(url) {
     return textures.get(url);
 }
 
-async function labelMaps(theme) {
+function labelMaps(theme, scale = state.labelScale) {
+    const key = `${theme}:${scale}`;
+    if (labelCache.has(key)) return labelCache.get(key);
     const palette = theme === 'demain-soir-bleu' ? 'demain' : 'clair';
-    const scale = state.labelScale;
-    return Promise.all(FACE_CONFIG.filter((face) => face.text).map(async (face) => {
+    const pending = Promise.all(FACE_CONFIG.filter((face) => face.text).map(async (face) => {
         const atlas = await imageTexture(assets.labels[`../assets/cube-labels/${face.text.toLowerCase()}-${palette}-${scale}.webp`]);
         const idle = atlas.clone(), hover = atlas.clone();
         idle.repeat.y = .5; idle.offset.y = .5; idle.needsUpdate = true;
         hover.repeat.y = .5; hover.needsUpdate = true;
         return { name: face.name, idle, hover };
     }));
+    labelCache.set(key, pending);
+    pending.catch(() => labelCache.delete(key));
+    return pending;
 }
 
 function buildScene(icon, maps) {
@@ -155,21 +160,18 @@ function receiveState(next) {
                 buildScene(homeIcon, maps);
                 cube.position.set(oldPose.x, oldPose.y, 0);
                 cube.rotation.set(oldPose.rx, oldPose.ry, 0);
-                const geometries = new Set(), materials = new Set(), oldMaps = new Set();
+                const geometries = new Set(), materials = new Set();
                 oldScene.traverse((object) => {
                     if (object.geometry) geometries.add(object.geometry);
                     if (object.material) materials.add(object.material);
                 });
                 for (const material of materials) {
-                    if (material.map && material.map !== homeIcon) oldMaps.add(material.map);
                     material.dispose();
                 }
                 geometries.forEach((value) => value.dispose());
-                oldMaps.forEach((value) => value.dispose());
             } else {
                 for(const map of maps){
                     const face=faces.get(map.name);
-                    face.idle.material.map.dispose();face.hover.material.map.dispose();
                     face.idle.material.map=map.idle;face.hover.material.map=map.hover;
                 }
             }
