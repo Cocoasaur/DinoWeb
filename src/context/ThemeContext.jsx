@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 
 const ThemeContext = createContext(null);
 
@@ -24,9 +24,14 @@ export function ThemeProvider({ children }) {
         document.documentElement.setAttribute('data-theme', theme);
     }, [theme]);
 
-    const toggle = () => setTheme(prev =>
-        prev === THEME_DEMAIN ? THEME_CLAIR : THEME_DEMAIN
-    );
+    const toggle = useCallback(() => {
+        const next = theme === THEME_DEMAIN ? THEME_CLAIR : THEME_DEMAIN;
+        // Read CSS palettes and update React in the same batch. Sending the
+        // new theme with old CSS colors briefly mismatches cube labels/body.
+        document.documentElement.setAttribute('data-theme', next);
+        window.dispatchEvent(new Event('themechange'));
+        setTheme(next);
+    }, [theme]);
 
     // isDark preserves backward compatibility for components that check theme brightness
     const isDark = theme === THEME_DEMAIN;
