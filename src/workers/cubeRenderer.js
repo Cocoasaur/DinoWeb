@@ -13,7 +13,8 @@ let rotation = { x: THREE.MathUtils.degToRad(DEFAULT_ROTATION.x), y: THREE.MathU
 let dragging = false, down = null, lastPointer = null, lastMove = 0;
 let pointer = { x: 0, y: 0 }, touchAnchor = null, isTouch = false;
 let pointerIdleTimer = 0;
-let themeVersion = 0;
+let themeVersion = 0, paletteColors;
+let appliedTheme, appliedLabelScale;
 const labelCache = new Map();
 const faces = new Map(), hitMeshes = [], textures = new Map();
 const raycaster = new THREE.Raycaster(), ndc = new THREE.Vector2(), origin = new THREE.Vector3();
@@ -78,13 +79,13 @@ function buildScene(icon, maps) {
     scene.add(cube);
     geometry = new RoundedBoxGeometry(2,2,2,state.reduceEffects ? 2 : 3,.06);
     if (state.reduceEffects) geometry.setAttribute('color',new THREE.Float32BufferAttribute(new Float32Array(geometry.attributes.position.count*3),3));
-    body = new THREE.Mesh(geometry, state.reduceEffects ? new THREE.MeshBasicMaterial({ vertexColors: true }) : new THREE.MeshPhongMaterial({ color: state.colors['--cube-color'], shininess:CUBE_SHININESS, specular:CUBE_SPECULAR }));
+    body = new THREE.Mesh(geometry, state.reduceEffects ? new THREE.MeshBasicMaterial({ vertexColors: true }) : new THREE.MeshPhongMaterial({ color: paletteColors['--cube-color'], shininess:CUBE_SHININESS, specular:CUBE_SPECULAR }));
     cube.add(body);
     if (!state.reduceEffects) {
-        const edge = new THREE.Mesh(geometry,new THREE.MeshBasicMaterial({ color: state.colors['--cube-edge-color'], transparent:true, opacity:parseFloat(state.colors['--cube-edge-opacity'])||.35, side:THREE.BackSide }));
+        const edge = new THREE.Mesh(geometry,new THREE.MeshBasicMaterial({ color: paletteColors['--cube-edge-color'], transparent:true, opacity:parseFloat(paletteColors['--cube-edge-opacity'])||.35, side:THREE.BackSide }));
         edge.name = 'edge'; edge.scale.setScalar(1.001); cube.add(edge);
     }
-    cornerPalette = getCornerMarkerPalette(state.colors);
+    cornerPalette = getCornerMarkerPalette(paletteColors);
     const corners = createCornerMarkerGeometry();
     for (const config of FACE_CONFIG) {
         const group = new THREE.Group(); group.position.fromArray(config.position); group.rotation.fromArray(config.rotation); cube.add(group);
@@ -105,8 +106,8 @@ function buildScene(icon, maps) {
             face.hover = new THREE.Mesh(textGeometry,new THREE.MeshBasicMaterial({ map:map.hover,transparent:true,opacity:0,depthWrite:false })); face.hover.position.z=.012; face.hover.visible=false; face.text.add(face.hover);
             const points=Array.from({length:25},(_,i)=>new THREE.Vector3(-textWidth/2+textWidth*i/24,-.22*.65,.02));
             const lineGeometry=new THREE.BufferGeometry().setFromPoints(points);lineGeometry.setDrawRange(0,0);
-            face.line = new THREE.Line(lineGeometry,new THREE.LineBasicMaterial({color:rgbaToRgb(state.colors['--cube-text-accent']),transparent:true,opacity:0,depthWrite:false}));face.line.visible=false;face.text.add(face.line);
-            face.dot=new THREE.Mesh(new THREE.CircleGeometry(.018,8),new THREE.MeshBasicMaterial({color:rgbaToRgb(state.colors['--cube-text-accent']),transparent:true,opacity:.9,depthWrite:false}));face.dot.visible=false;face.text.add(face.dot);face.textWidth=textWidth;
+            face.line = new THREE.Line(lineGeometry,new THREE.LineBasicMaterial({color:rgbaToRgb(paletteColors['--cube-text-accent']),transparent:true,opacity:0,depthWrite:false}));face.line.visible=false;face.text.add(face.line);
+            face.dot=new THREE.Mesh(new THREE.CircleGeometry(.018,8),new THREE.MeshBasicMaterial({color:rgbaToRgb(paletteColors['--cube-text-accent']),transparent:true,opacity:.9,depthWrite:false}));face.dot.visible=false;face.text.add(face.dot);face.textWidth=textWidth;
         }
         faces.set(config.name,face);
     }
@@ -114,7 +115,7 @@ function buildScene(icon, maps) {
 }
 
 function updateLighting() {
-    const color = state.colors['--cube-color'] || '#4a6b9a';
+    const color = paletteColors['--cube-color'] || '#4a6b9a';
     if (!builtReduceEffects) { body.material.color.set(color); return; }
     if (lightingPose.x===cube.rotation.x && lightingPose.y===cube.rotation.y && lightingPose.color===color) return;
     const base=new THREE.Color(color); cube.getWorldQuaternion(quaternion);
@@ -138,7 +139,6 @@ function zoomedZ() {
 }
 function receiveState(next) {
     const previous=state;state=next;
-    cornerPalette = getCornerMarkerPalette(state.colors);
     if (!initialized) return;
     // Ordinary React updates must not resize or clear the drawing buffer.
     // Actual viewport dimensions arrive through the resize message below.
@@ -153,8 +153,14 @@ function receiveState(next) {
     if (state.overlayPhase === 'fading-out' && motion?.kind === 'in') motion = null;
     if (previous.theme!==state.theme || previous.reduceEffects!==state.reduceEffects || previous.labelScale!==state.labelScale) {
         const version=++themeVersion;
-        labelMaps(state.theme).then((maps)=>{
+        const nextTheme = state.theme, nextScale = state.labelScale;
+        labelMaps(nextTheme, nextScale).then((maps)=>{
             if(version!==themeVersion)return;
+            // Body, corners, underline and label atlases change in one worker
+            // task, so no frame combines colors from two different themes.
+            appliedTheme = nextTheme; appliedLabelScale = nextScale;
+            paletteColors = state.colors;
+            cornerPalette = getCornerMarkerPalette(paletteColors);
             if (builtReduceEffects !== state.reduceEffects) {
                 const oldScene = scene, oldPose = pose();
                 buildScene(homeIcon, maps);
@@ -175,16 +181,25 @@ function receiveState(next) {
                     face.idle.material.map=map.idle;face.hover.material.map=map.hover;
                 }
             }
+            updatePaletteMaterials();
             requestFrame();
         }).catch((error)=>send('error',{message:error.message}));
     }
-    const edge=cube.getObjectByName('edge');
-    if(edge){edge.material.color.set(state.colors['--cube-edge-color']);edge.material.opacity=parseFloat(state.colors['--cube-edge-opacity'])||.35;}
-    for(const face of faces.values()){
-        if(face.line){face.line.material.color.set(rgbaToRgb(state.colors['--cube-text-accent']));face.dot.material.color.set(rgbaToRgb(state.colors['--cube-text-accent']));}
+    if (appliedTheme === state.theme && appliedLabelScale === state.labelScale) {
+        paletteColors = state.colors;
+        updatePaletteMaterials();
     }
     if(state.paused){if(frameId)self.cancelAnimationFrame(frameId);frameId=0;previousTime=0;}
     else requestFrame();
+}
+
+function updatePaletteMaterials() {
+    cornerPalette = getCornerMarkerPalette(paletteColors);
+    const edge=cube.getObjectByName('edge');
+    if(edge){edge.material.color.set(paletteColors['--cube-edge-color']);edge.material.opacity=parseFloat(paletteColors['--cube-edge-opacity'])||.35;}
+    for(const face of faces.values()){
+        if(face.line){face.line.material.color.set(rgbaToRgb(paletteColors['--cube-text-accent']));face.dot.material.color.set(rgbaToRgb(paletteColors['--cube-text-accent']));}
+    }
 }
 
 function renderFrame(now) {
@@ -286,6 +301,8 @@ async function init(message){
         preparedTheme = state.theme; preparedProfile = state.labelScale;
         [homeIcon, maps] = await Promise.all([iconPromise, labelMaps(preparedTheme)]);
     } while (preparedTheme !== state.theme || preparedProfile !== state.labelScale);
+    appliedTheme = preparedTheme; appliedLabelScale = preparedProfile;
+    paletteColors = state.colors;
     buildScene(homeIcon,maps);await renderer.compileAsync(scene,camera);
     initialized=true;requestFrame();
 }
