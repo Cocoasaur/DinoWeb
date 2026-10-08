@@ -772,8 +772,9 @@
     }
 
     .about-cv-footer {
-        height: 32px;
-        padding: 0 10px;
+        grid-template-columns: minmax(0, 1fr);
+        gap: 8px;
+        padding: 10px;
     }
 
     .about-cv-filename {
