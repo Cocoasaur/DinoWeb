@@ -93,8 +93,18 @@ export default function App() {
       handleThemeTransitionComplete();
     };
 
-    const toggleFallback = () => {
+    const prepareTheme = async () => {
+      // The fallback scene suspends for uncached labels. Prepare them before
+      // changing its palette so a cold theme switch cannot hide the cube.
+      if (!document.querySelector('.cube-entrance[data-renderer="worker"]')) {
+        const { prewarmCubeLabels } = await import('./utils/cubeResources');
+        await prewarmCubeLabels();
+      }
+    };
+
+    const toggleFallback = async () => {
       try {
+        await prepareTheme();
         toggle();
       } catch {
         // Theme state is unchanged — nothing else to restore.
@@ -113,8 +123,10 @@ export default function App() {
     // one mid-press-animation / mid-main-thread-churn. The guard is taken
     // inside the callback so a dep change in between (e.g. wheel zoom)
     // cancels this rAF and reschedules cleanly instead of wedging.
-    const rafId = requestAnimationFrame(() => {
-      if (transitionInProgressRef.current) return;
+    let cancelled = false;
+    const rafId = requestAnimationFrame(async () => {
+      try { await prepareTheme(); } catch { if (!cancelled) finish(); return; }
+      if (cancelled || transitionInProgressRef.current) return;
       transitionInProgressRef.current = true;
 
       const origin = faceDownPosRef.current.valid
@@ -151,7 +163,7 @@ export default function App() {
       vt.finished.then(finish, finish).catch(() => {});
     });
 
-    return () => cancelAnimationFrame(rafId);
+    return () => { cancelled = true; cancelAnimationFrame(rafId); };
   }, [themeTransitionActive, isDark, toggle, handleThemeTransitionComplete, reducedMotion, zoomZ]);
 
   const isLowEnd = tier === 'low';
