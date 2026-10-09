@@ -2,9 +2,8 @@ import { useRef, useMemo, useEffect, forwardRef } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import { useReducedMotion } from '../../hooks/useReducedMotion';
-import { useCSSVars } from '../../hooks/useCSSVars';
 import { useRenderProfile } from '../../context/RenderProfileContext';
-import { useTheme } from '../../context/ThemeContext';
+import { useCubePalette } from '../../hooks/useCubePalette';
 import { getFaceTextures, prewarmCubeLabels } from '../../utils/cubeResources';
 
 const FONT_SIZE = 0.22;
@@ -54,10 +53,10 @@ const UnderlineEffect = forwardRef(function UnderlineEffect({ textWidth, fontSiz
 
     return (
         <group>
-            <line ref={lineRef} geometry={geometry} visible={false}>
+            <line ref={lineRef} userData={{ cubeColorKey: '--cube-text-accent' }} geometry={geometry} visible={false}>
                 <lineBasicMaterial color={color} transparent opacity={0} depthWrite={false} />
             </line>
-            <mesh ref={dotRef} position={[lineStartX, lineY, 0.025]} visible={false}>
+            <mesh ref={dotRef} userData={{ cubeColorKey: '--cube-text-accent' }} position={[lineStartX, lineY, 0.025]} visible={false}>
                 <circleGeometry args={[0.018, 8]} />
                 <meshBasicMaterial color={color} transparent opacity={0.9} depthWrite={false} />
             </mesh>
@@ -72,7 +71,7 @@ export default function CubeFaceText({
     reduceEffects = false,
     fontSize = FONT_SIZE,
 }) {
-    const { theme } = useTheme();
+    const { theme, colors: cssVars } = useCubePalette();
     const { labelScale = reduceEffects ? 1 : 2 } = useRenderProfile();
     const groupRef = useRef();
     const idleMatRef = useRef();
@@ -82,12 +81,6 @@ export default function CubeFaceText({
     const scaleRef = useRef(1);
     const reducedMotion = useReducedMotion();
     const { invalidate } = useThree();
-
-    const cssVars = useCSSVars([
-        '--cube-text-accent',
-        '--cube-text-hover',
-        '--cube-text-default'
-    ]);
 
     const colors = useMemo(() => ({
         accent: rgbaToRgb(cssVars['--cube-text-accent'] || '#bbdaff'),
@@ -137,11 +130,11 @@ export default function CubeFaceText({
 
     return (
         <group ref={groupRef}>
-            <mesh position={[0, 0, 0.010]}>
+            <mesh userData={{ cubeText: text, cubeLabelState: 'idle' }} position={[0, 0, 0.010]}>
                 <planeGeometry args={[planeW, planeH]} />
                 <meshBasicMaterial ref={idleMatRef} map={idleTex} transparent opacity={1} depthWrite={false} side={THREE.FrontSide} />
             </mesh>
-            <mesh position={[0, 0, 0.012]}>
+            <mesh userData={{ cubeText: text, cubeLabelState: 'hover' }} position={[0, 0, 0.012]}>
                 <planeGeometry args={[planeW, planeH]} />
                 <meshBasicMaterial ref={hoverMatRef} map={hoverTex} transparent opacity={0} visible={false} depthWrite={false} side={THREE.FrontSide} />
             </mesh>
