@@ -1,7 +1,11 @@
 import { Suspense, useEffect, useRef, useSyncExternalStore, useState } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
+import { useCubePalette } from '../../hooks/useCubePalette';
 import Scene from './Scene';
-import { prepareCubeResources } from '../../utils/cubeResources';
+import { createCubeWipeUniforms, bindCubeWipeMaterial, updateCubeWipeUniforms, cubeWipeRegion, updateCubeNextLighting } from '../../utils/cubeWipeMaterial';
+import { getCornerMarkerPalette } from '../../utils/cubeCornerMarkers';
+import { useRenderProfile } from '../../context/RenderProfileContext';
+import { prepareCubeResources, prewarmCubeLabels, getFaceTextures } from '../../utils/cubeResources';
 import { FACE_CONFIG } from '../../constants/cubeConfig';
 
 import { Vector4 } from 'three';
@@ -17,11 +21,66 @@ const subscribeVisibility = (notify) => {
 };
 const isPageVisible = () => document.visibilityState !== 'hidden';
 
+function updateFallbackTargets(objects, next, labelScale) {
+    const corners = getCornerMarkerPalette(next.colors);
+    for (const object of objects) {
+        const material = object.material, target = material.userData.cubeWipe;
+        const { cubeColorKey, cubeText, cubeLabelState, cubeCorner, cubeHoverProgress } = object.userData;
+        target.opacity.value = material.opacity;
+        if (cubeColorKey) {
+            const value = next.colors[cubeColorKey];
+            if (material.vertexColors) updateCubeNextLighting(object, value);
+            else target.color.value.set(value.replace(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,[^)]+)?\)/, 'rgb($1, $2, $3)'));
+            if (cubeColorKey === '--cube-edge-color') target.opacity.value = parseFloat(next.colors['--cube-edge-opacity']);
+        }
+        if (cubeCorner) target.color.value.copy(corners.idle).lerp(corners.hover, cubeHoverProgress || 0);
+        if (cubeText) {
+            const maps = getFaceTextures(cubeText, next.theme, labelScale, .22);
+            target.map.value = cubeLabelState === 'idle' ? maps.idleTex : maps.hoverTex;
+            target.hasMap.value = 1;
+        }
+    }
+}
+
 function SceneRenderer({ onReady, complete }) {
     const { gl, scene, camera, invalidate } = useThree();
     const preparedRef = useRef(false);
     const notifiedRef = useRef(false);
     const frameRef = useRef(0);
+    const palette = useCubePalette();
+    const { labelScale } = useRenderProfile();
+    const wipeUniformsRef = useRef(null);
+    if (wipeUniformsRef.current === null) { wipeUniformsRef.current = createCubeWipeUniforms(); }
+    const wipeRef = useRef(null);
+    const regionRef = useRef(null);
+    const targetsRef = useRef([]);
+    const readyPaletteRef = useRef(null);
+
+    useEffect(() => {
+        wipeRef.current = null;
+        readyPaletteRef.current = null;
+        wipeUniformsRef.current.cubeWipeActive.value = 0;
+        if (!palette.next) { invalidate(); return; }
+        let cancelled = false;
+        prewarmCubeLabels().then(() => {
+            if (cancelled) return;
+            readyPaletteRef.current = palette.next;
+            invalidate();
+        });
+        return () => { cancelled = true; };
+    }, [palette, invalidate]);
+
+    useEffect(() => {
+        const update = ({ detail }) => {
+            wipeRef.current = detail;
+            const body = scene.getObjectByName('cube-body');
+            if (!body || !readyPaletteRef.current) return;
+            const region = cubeWipeRegion(body, camera, detail);
+            if (region === 'split' || region !== regionRef.current) invalidate();
+        };
+        window.addEventListener('cube-wipe-frame', update);
+        return () => window.removeEventListener('cube-wipe-frame', update);
+    }, [scene, camera, invalidate]);
 
     useEffect(() => {
         if (!complete) return;
@@ -31,10 +90,15 @@ function SceneRenderer({ onReady, complete }) {
             : new Promise((resolve) => setTimeout(resolve, 0));
         const prepare = async () => {
             const objects = [];
+            targetsRef.current = [];
             const textures = new Set();
             scene.traverse((object) => {
                 if (!object.material) return;
                 objects.push(object);
+                if (object.userData.cubeColorKey || object.userData.cubeText || object.userData.cubeCorner) {
+                    bindCubeWipeMaterial(object.material, wipeUniformsRef.current, object.geometry);
+                    targetsRef.current.push(object);
+                }
                 const materials = Array.isArray(object.material) ? object.material : [object.material];
                 for (const material of materials) {
                     for (const value of Object.values(material)) {
@@ -105,6 +169,15 @@ function SceneRenderer({ onReady, complete }) {
     // shaders finish. Subsequent frames still follow Canvas's demand/never mode.
     useFrame(() => {
         if (!preparedRef.current) return;
+        const next = readyPaletteRef.current;
+        const wipe = wipeRef.current;
+        if (next && wipe) {
+            updateCubeWipeUniforms(wipeUniformsRef.current, wipe, gl);
+            wipeUniformsRef.current.cubeWipeActive.value = 1;
+            const body = scene.getObjectByName('cube-body');
+            regionRef.current = cubeWipeRegion(body, camera, wipe);
+            updateFallbackTargets(targetsRef.current, next, labelScale);
+        }
         gl.render(scene, camera);
         if (notifiedRef.current) return;
         notifiedRef.current = true;
@@ -139,6 +212,7 @@ export default function MainThreadCubeStage({
     faceDownPosRef,
     onReady,
 }) {
+    const { theme } = useCubePalette();
     const [faceCount, setFaceCount] = useState(0);
     useEffect(() => {
         if (faceCount === FACE_CONFIG.length) return;
@@ -159,7 +233,7 @@ export default function MainThreadCubeStage({
     useIdleBreathing(breathRef, visible && !isZoomed && !isZoomingOut, reducedMotion);
     const projection = 1 / (10 * (1 + zoomZ / 1000) * Math.tan(Math.PI / 8));
     return (
-        <div className="absolute inset-0 w-full h-full overflow-hidden cube-entrance" data-render-paused={paused} style={{ zIndex: canvasZIndex }}>
+        <div className="absolute inset-0 w-full h-full overflow-hidden cube-entrance" data-cube-theme={theme} data-render-paused={paused} style={{ zIndex: canvasZIndex }}>
         <div className="w-full h-full" style={getCubeStageStyle(isZoomed, isZoomingOut, transition, overlayPhase, zoomInComplete)}>
             <StageBackdrop hidden={isZoomed || isZoomingOut} paused={paused} reduceEffects={reduceEffects} zoomZ={zoomZ} />
             <div ref={breathRef} className="w-full h-full cube-breath" style={{ transformOrigin: `calc(50% + var(--portfolio-viewport-height, 100dvh) * ${restingX * projection}) calc(50% - var(--portfolio-viewport-height, 100dvh) * ${restingY * projection})` }}>
