@@ -1,6 +1,5 @@
 import { Suspense, lazy, useEffect, useRef, useState, useSyncExternalStore } from 'react';
-import { useTheme } from '../../context/ThemeContext';
-import { useCSSVars } from '../../hooks/useCSSVars';
+import { useCubePalette } from '../../hooks/useCubePalette';
 import { useReducedMotion } from '../../hooks/useReducedMotion';
 import { useHomeViewportLayout } from '../../hooks/useHomeViewportLayout';
 import { getCubeTransition, getCubeStageStyle } from '../../utils/cubeTransition';
@@ -28,9 +27,8 @@ export default function CubeStage(props) {
     const stateRef = useRef(null);
     const visible = useSyncExternalStore(subscribeVisibility, isPageVisible, () => true);
     const reducedMotion = useReducedMotion();
-    const { theme } = useTheme();
+    const { theme, colors, next } = useCubePalette();
     const layout = useHomeViewportLayout();
-    const colors = useCSSVars(['--cube-color', '--cube-edge-color', '--cube-edge-opacity', '--cube-text-accent', '--cube-ticks-idle', '--cube-ticks-hover', '--cube-ticks-hover-scale']);
     const { reduceEffects, isZoomed, isZoomingOut, zoomInComplete, overlayPhase, canvasZIndex } = props;
     const transition = getCubeTransition(reduceEffects, reducedMotion);
     const paused = !visible || overlayPhase === 'fading-out' ||
@@ -39,13 +37,13 @@ export default function CubeStage(props) {
 
     useEffect(() => { propsRef.current = props; });
     useEffect(() => {
-        const state = { theme, colors, layout, reduceEffects, labelScale: props.labelScale, reducedMotion, paused,
+        const state = { theme, colors, nextPalette: next, layout, reduceEffects, labelScale: props.labelScale, reducedMotion, paused,
             isZoomed, isZoomingOut, overlayPhase, activeFace: props.activeFace, targetRotation: props.targetRotation,
             zoomZ: props.zoomZ, dpr: Math.min(window.devicePixelRatio || 1, props.dpr[1]),
             transition: getCubeTransition(reduceEffects, reducedMotion) };
         stateRef.current = state;
         workerRef.current?.postMessage({ type: 'state', state });
-    }, [theme, colors, layout, reduceEffects, reducedMotion, paused, isZoomed, isZoomingOut, overlayPhase,
+    }, [theme, colors, next, layout, reduceEffects, reducedMotion, paused, isZoomed, isZoomingOut, overlayPhase,
         props.activeFace, props.targetRotation, props.zoomZ, props.dpr, props.labelScale]);
 
     useEffect(() => {
@@ -64,6 +62,8 @@ export default function CubeStage(props) {
         host.style.position = 'relative';
         canvas.style.cssText = 'position:absolute;inset:0;margin:auto;width:100%;height:auto;display:block;touch-action:none;cursor:grab';
         canvas.setAttribute('aria-label', 'Interactive portfolio cube');
+        const wipe = event => worker?.postMessage({ type: 'wipe', frame: event.detail });
+        window.addEventListener('cube-wipe-frame', wipe);
         const pointers = new Map();
         let pinchDistance = 0;
         const sendPointer = (kind, event) => {
@@ -138,6 +138,7 @@ export default function CubeStage(props) {
             canvas.addEventListener('pointerleave', () => worker.postMessage({ type: 'pointer', kind: 'leave' }));
         } catch { queueMicrotask(() => setFallback(true)); }
         return () => {
+            window.removeEventListener('cube-wipe-frame', wipe);
             cancelAnimationFrame(readyFrame);
             observer?.disconnect();
             worker?.terminate();
@@ -149,7 +150,7 @@ export default function CubeStage(props) {
 
     if (fallback) return <Suspense fallback={null}><FallbackStage {...props} /></Suspense>;
     return (
-        <div className="absolute inset-0 w-full h-full overflow-hidden cube-entrance" data-renderer="worker" data-render-paused={paused} style={{ zIndex: canvasZIndex }}>
+        <div className="absolute inset-0 w-full h-full overflow-hidden cube-entrance" data-renderer="worker" data-cube-theme={theme} data-render-paused={paused} style={{ zIndex: canvasZIndex }}>
             <div className="w-full h-full" style={getCubeStageStyle(isZoomed, isZoomingOut, transition, overlayPhase, zoomInComplete)}>
                 <StageBackdrop hidden={isZoomed || isZoomingOut} paused={paused} reduceEffects={reduceEffects} zoomZ={props.zoomZ} />
                 <div ref={hostRef} className="w-full h-full cube-breath" />
