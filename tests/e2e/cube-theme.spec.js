@@ -8,7 +8,11 @@ const profiles = [
   { name: 'phone worker', width: 430, height: 800, touch: true },
   { name: 'tablet worker', width: 820, height: 1180, touch: true },
   { name: 'low-end phone', width: 430, height: 800, touch: true, low: true },
+  { name: 'throttled low-end phone', width: 430, height: 800, touch: true, low: true, throttle: true },
+  { name: 'throttled low-end fallback', width: 430, height: 800, touch: true, low: true, throttle: true, fallback: true },
   { name: 'phone fallback', width: 430, height: 800, touch: true, fallback: true },
+  { name: 'desktop fallback', width: 1440, height: 900, fallback: true },
+  { name: 'no view transitions', width: 430, height: 800, touch: true, noWipe: true },
   { name: 'reduced motion phone', width: 430, height: 800, touch: true, reduced: true },
 ]
 
@@ -38,12 +42,17 @@ for (const profile of profiles) {
       test.setTimeout(60000)
       const errors = []
       page.on('pageerror', e => errors.push(e.message))
+      if (profile.throttle) {
+        const session = await page.context().newCDPSession(page)
+        await session.send('Emulation.setCPUThrottlingRate', { rate: 6 })
+      }
       await page.addInitScript(profile => {
         if (window.top !== window || location.protocol !== 'http:') return
         Object.defineProperty(navigator, 'hardwareConcurrency', { get: () => profile.low ? 2 : 8 })
         Object.defineProperty(navigator, 'deviceMemory', { get: () => profile.low ? 2 : 8 })
         Object.defineProperty(navigator, 'connection', { get: () => ({ effectiveType: '4g', saveData: false }) })
         if (profile.fallback) HTMLCanvasElement.prototype.transferControlToOffscreen = undefined
+        if (profile.noWipe) document.startViewTransition = undefined
         window.__themeFrames = []
         window.__themeCaptures = []
         const native = document.startViewTransition?.bind(document)
@@ -73,8 +82,17 @@ for (const profile of profiles) {
         const canvas = document.querySelector('.cube-entrance canvas')
         const sample = () => {
           const viewport = document.querySelector('.portfolio-viewport')
+          const root = document.documentElement
+          const direction = root.dataset.themeDirection
+          const pseudo = direction === 'to-dark' ? '::view-transition-new(root)' : '::view-transition-old(root)'
+          const circle = direction && getComputedStyle(root, pseudo).clipPath.match(/^circle\(([\d.]+)% at ([\d.]+)px ([\d.]+)px\)/)
+          const center = getComputedStyle(document.querySelector('.cube-breath')).transformOrigin.split(' ').map(Number.parseFloat)
+          const wipeOffset = circle ? Number(circle[1]) / 100 * Math.hypot(root.clientWidth, root.clientHeight) / Math.SQRT2
+            - Math.hypot(center[0] - Number(circle[2]), center[1] - Number(circle[3])) : null
           window.__themeFrames.push({
             time: performance.now(), theme: document.documentElement.dataset.theme,
+            cubeTheme: document.querySelector('.cube-entrance').dataset.cubeTheme,
+            direction, wipeOffset,
             transitioning: document.documentElement.classList.contains('theme-transitioning'),
             paused: viewport.dataset.homeMotionPaused,
             sameCanvas: canvas === document.querySelector('.cube-entrance canvas'),
@@ -98,6 +116,7 @@ for (const profile of profiles) {
           await page.screenshot({ path: testInfo.outputPath(`${theme}-reveal.png`), scale: 'css' })
         }
         await expect(page.locator('html')).not.toHaveClass(/theme-transitioning/, { timeout: 10000 })
+        await expect(page.locator('.cube-entrance')).toHaveAttribute('data-cube-theme', theme)
         await page.waitForTimeout(200)
       }
       const frames = await page.evaluate(() => { cancelAnimationFrame(window.__themeFrame); return window.__themeFrames })
@@ -111,16 +130,37 @@ for (const profile of profiles) {
           expect(new Set(motion.map(a => a.id)).size).toBe(1)
           expect(motion.every(a => a.state === 'running')).toBe(true)
           expect(motion.every((a, i) => i === 0 || a.time >= motion[i - 1].time)).toBe(true)
-          expect(motion.at(-1).time - motion[0].time).toBeGreaterThan(6000)
+          if (!profile.noWipe) expect(motion.at(-1).time - motion[0].time).toBeGreaterThan(6000)
         }
       }
       const captures = await page.evaluate(() => window.__themeCaptures)
-      if (!profile.reduced) {
+      if (!profile.reduced && !profile.noWipe) {
         expect(captures).toHaveLength(3)
         expect(captures.every(c => !c.error && c.cubeOld === 'none' && c.gridOld === 'none' && c.cubeNew === 'none')).toBe(true)
         expect(frames.some(f => f.transitioning)).toBe(true)
+        for (const direction of ['to-dark', 'to-light']) {
+          const reveal = frames.filter(f => f.direction === direction && f.wipeOffset !== null)
+          // The source palette stays stable during the pixel mask; only the
+          // finished transition commits it. Sample both sides of the center.
+          const before = reveal.filter(f => direction === 'to-dark' ? f.wipeOffset < -8 : f.wipeOffset > 8)
+          const after = reveal.filter(f => direction === 'to-dark' ? f.wipeOffset > 40 : f.wipeOffset < -40)
+          expect(before.length).toBeGreaterThan(0)
+          expect(before.every(f => f.cubeTheme !== f.theme)).toBe(true)
+          expect(after.length).toBeGreaterThan(0)
+          expect(reveal.every(f => f.cubeTheme !== f.theme)).toBe(true)
+        }
+      } else {
+        expect(captures).toHaveLength(0)
       }
       await expect(page.getByRole('dialog')).toHaveCount(0)
+      if (profile.touch && !profile.fallback) {
+        // Palette synchronization must not leave mobile/low-end rendering busy
+        // after the highlight settles; breathing remains a compositor animation.
+        await page.waitForTimeout(1600)
+        const draws = await page.locator('.cube-breath').getAttribute('data-scene-draws')
+        await page.waitForTimeout(400)
+        expect(await page.locator('.cube-breath').getAttribute('data-scene-draws')).toBe(draws)
+      }
       expect(errors).toEqual([])
       await testInfo.attach('continuous theme motion', { body: JSON.stringify({ frames, captures }), contentType: 'application/json' })
     })
