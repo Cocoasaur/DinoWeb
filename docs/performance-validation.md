@@ -283,3 +283,44 @@ that same project folder.
   best practices and SEO on desktop and mobile, without run warnings or runtime
   errors. Their initial paint/readiness scope is the same as the earlier audits;
   the navigation timeline is measured separately by the sequence checks above.
+
+## Theme wipe palette synchronization — October 8, 2026
+
+Validated in the `32d0` worktree against its production preview at
+`http://127.0.0.1:4175/DinoWeb/`.
+
+- The live cube follows the actual circular boundary per pixel, in both expanding
+  and shrinking directions. Body, labels, edges and corner markers select the
+  old or new palette in their existing draw calls, in both renderer paths.
+  The circle comes from the browser's computed clip path, including its easing
+  and clock. Sampling runs only during the transition; there are no React frame
+  updates, additional scene passes or new idle render loops. Settled low-end
+  rendering wakes only when the boundary crosses the projected cube bounds.
+- Six screenshot regressions compare four real body pixels while the browser's
+  circle is paused between them. Each direction must show two old and two new
+  pixels. Profiles cover desktop/phone worker and fallback rendering, low-end
+  phone and 6× CPU-throttled low-end fallback.
+- Theme regressions check continuous breathing/grid/floor animation identity,
+  canvas identity, cold label loading, reduced motion, missing view transitions,
+  and settled mobile worker draw counts. Device-budget and navigation regressions
+  also exercise the existing rendering and transition behavior.
+- Production build passes. Changed renderer/hooks/timing files pass ESLint;
+  `ThemeContext.jsx` retains its existing `useTheme` Fast Refresh lint finding,
+  confirmed against the original source.
+
+Fresh local Lighthouse performance audits of this build:
+
+| Profile | Performance | FCP | LCP | Blocking time | CLS |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Desktop | 100 | 0.3 s | 0.5 s | 0 ms | 0.00014 |
+| Mobile | 100 | 1.1 s | 1.4 s | 0 ms | 0.00084 |
+
+Both runs have no audit warnings. All 31 browser regressions pass (six pixel
+checks plus 25 motion, navigation and device-budget checks). These audits preserve
+the startup/loader measurement scope described above; interaction regressions
+verify the actual wipe separately, including CPU-throttled low-end profiles.
+Reports, regression results and split-palette screenshots are saved in
+`/home/jl/.codex/visualizations/2026/10/08/01a11b9d-fab2-7fc3-8f18-04f178854d21/`
+as `cube-spatial-desktop.report.html`, `cube-spatial-mobile.report.html`, their
+JSON counterparts, `cube-spatial-regressions.json`,
+`cube-spatial-pixel-checks.json`, and `cube-spatial-*.png`.
