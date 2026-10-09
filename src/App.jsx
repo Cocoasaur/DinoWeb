@@ -18,6 +18,7 @@ import { useReducedMotion } from './hooks/useReducedMotion';
 import { useHomeGridMotion } from './hooks/useHomeGridMotion';
 import { usePortfolioViewportSize } from './hooks/usePortfolioViewportSize';
 import { getHomeViewportLayout } from './hooks/useHomeViewportLayout';
+import { revealCubeWithWipe } from './utils/themeWipe';
 import './styles/home-layout.css';
 import { RenderProfileContext } from './context/RenderProfileContext';
 
@@ -53,7 +54,7 @@ function getCubeScreenOrigin(zoomZ) {
 }
 
 export default function App() {
-  const { toggle, isDark } = useTheme();
+  const { toggle, isDark, revealCubeTheme } = useTheme();
   const transitionInProgressRef = useRef(false);
   const screenPosRef = useRef({ x: 0, y: 0, valid: false });
   const faceDownPosRef = useRef({ x: 0, y: 0, valid: false });
@@ -86,7 +87,11 @@ export default function App() {
   useEffect(() => {
     if (!themeTransitionActive || transitionInProgressRef.current) return;
 
+    let cancelCubeReveal = () => {};
     const finish = () => {
+      cancelCubeReveal();
+      // Also commit when the browser skips/interrupts the animation.
+      revealCubeTheme();
       document.documentElement.classList.remove('theme-transitioning');
       document.documentElement.removeAttribute('data-theme-direction');
       transitionInProgressRef.current = false;
@@ -152,17 +157,18 @@ export default function App() {
       let vt;
       try {
         vt = document.startViewTransition(() => {
-          flushSync(() => { toggle(); });
+          flushSync(() => { toggle({ deferCube: true }); });
         });
       } catch {
         toggleFallback();
         return;
       }
+      cancelCubeReveal = revealCubeWithWipe(vt, origin);
       vt.finished.then(finish, finish).catch(() => {});
     });
 
     return () => { cancelled = true; cancelAnimationFrame(rafId); };
-  }, [themeTransitionActive, isDark, toggle, handleThemeTransitionComplete, reducedMotion, zoomZ]);
+  }, [themeTransitionActive, isDark, toggle, revealCubeTheme, handleThemeTransitionComplete, reducedMotion, zoomZ]);
 
   const isLowEnd = tier === 'low';
   const reduceEffects = tier !== 'high' || isMobile || reducedMotion;
