@@ -1,0 +1,1 @@
+import{m as e}from"./cubeTransition-BONcZE_z.js";function t(){return e().cubePalette}export{t};
