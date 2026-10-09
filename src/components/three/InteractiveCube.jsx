@@ -4,7 +4,7 @@ import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.j
 import * as THREE from 'three';
 import CubeFace from './CubeFace';
 import { FACE_CONFIG, DEFAULT_ROTATION, DEFAULT_CAMERA_DISTANCE, CUBE_CENTER_X } from '../../constants/cubeConfig';
-import { useCSSVars } from '../../hooks/useCSSVars';
+import { useCubePalette } from '../../hooks/useCubePalette';
 import { useReducedMotion } from '../../hooks/useReducedMotion';
 import { getCubeTransition, transitionProgress, easeInOut } from '../../utils/cubeTransition';
 import { CUBE_SHININESS, CUBE_SPECULAR, shadeCubeVertex } from '../../utils/cubeLighting';
@@ -87,11 +87,7 @@ export default function InteractiveCube({
     const reducedMotion = useReducedMotion();
     const transition = getCubeTransition(reduceEffects, reducedMotion);
 
-    const cssVars = useCSSVars([
-        '--cube-color',
-        '--cube-edge-color',
-        '--cube-edge-opacity'
-    ]);
+    const { colors: cssVars } = useCubePalette();
 
     const cubeColor = cssVars['--cube-color'] || '#4a6b9a';
     const edgeColor = cssVars['--cube-edge-color'] || '#ffffff';
@@ -526,10 +522,10 @@ export default function InteractiveCube({
                 0,
             ]}
         >
-            <mesh ref={bodyRef} geometry={boxGeometry}>
+            <mesh ref={bodyRef} name="cube-body" userData={{ cubeColorKey: '--cube-color' }} geometry={boxGeometry}>
                 {boxMaterial}
             </mesh>
-            {!reduceEffects && <mesh geometry={boxGeometry} scale={1.001}>
+            {!reduceEffects && <mesh name="edge" userData={{ cubeColorKey: '--cube-edge-color' }} geometry={boxGeometry} scale={1.001}>
                 {edgeMaterial}
             </mesh>}
             {FACE_CONFIG.slice(0, faceCount).map((face) => (
