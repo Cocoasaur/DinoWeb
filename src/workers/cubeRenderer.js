@@ -3,6 +3,7 @@ import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.j
 import { FACE_CONFIG, DEFAULT_ROTATION, DEFAULT_CAMERA_DISTANCE, DRAG_THRESHOLD } from '../constants/cubeConfig';
 import { transitionProgress, easeInOut } from '../utils/cubeTransition';
 import { createCornerMarkerGeometry, getCornerMarkerPalette, updateCornerMarker } from '../utils/cubeCornerMarkers';
+import { createCubeWipeUniforms, bindCubeWipeMaterial, updateCubeWipeUniforms, cubeWipeRegion, updateCubeNextLighting } from '../utils/cubeWipeMaterial';
 import { CUBE_SHININESS, CUBE_SPECULAR, shadeCubeVertex } from '../utils/cubeLighting';
 
 let renderer, scene, camera, cube, body, geometry, assets, homeIcon;
@@ -15,6 +16,8 @@ let pointer = { x: 0, y: 0 }, touchAnchor = null, isTouch = false;
 let pointerIdleTimer = 0;
 let themeVersion = 0, paletteColors;
 let appliedTheme, appliedLabelScale;
+const wipeUniforms = createCubeWipeUniforms();
+let wipeFrame, wipeRegion, nextMaps, nextVersion = 0;
 const labelCache = new Map();
 const faces = new Map(), hitMeshes = [], textures = new Map();
 const raycaster = new THREE.Raycaster(), ndc = new THREE.Vector2(), origin = new THREE.Vector3();
@@ -111,6 +114,14 @@ function buildScene(icon, maps) {
         }
         faces.set(config.name,face);
     }
+    bindCubeWipeMaterial(body.material, wipeUniforms, geometry);
+    const edge = cube.getObjectByName('edge');
+    if (edge) bindCubeWipeMaterial(edge.material, wipeUniforms);
+    for (const face of faces.values()) {
+        for (const object of [face.ticks, face.idle, face.hover, face.line, face.dot]) {
+            if (object) bindCubeWipeMaterial(object.material, wipeUniforms);
+        }
+    }
     updateLighting();
 }
 
@@ -140,6 +151,15 @@ function zoomedZ() {
 function receiveState(next) {
     const previous=state;state=next;
     if (!initialized) return;
+    if (previous.nextPalette?.theme !== state.nextPalette?.theme || previous.labelScale !== state.labelScale) {
+        const version = ++nextVersion;
+        nextMaps = null; wipeFrame = null;
+        wipeUniforms.cubeWipeActive.value = 0;
+        if (state.nextPalette) labelMaps(state.nextPalette.theme).then(maps => {
+            if (version !== nextVersion) return;
+            nextMaps = maps; wipeRegion = null; requestFrame();
+        }).catch(error => send('error', { message: error.message }));
+    }
     // Ordinary React updates must not resize or clear the drawing buffer.
     // Actual viewport dimensions arrive through the resize message below.
     if (previous.dpr !== state.dpr) renderer.setPixelRatio(state.dpr);
@@ -159,6 +179,7 @@ function receiveState(next) {
             // Body, corners, underline and label atlases change in one worker
             // task, so no frame combines colors from two different themes.
             appliedTheme = nextTheme; appliedLabelScale = nextScale;
+            wipeUniforms.cubeWipeActive.value = 0;
             paletteColors = state.colors;
             cornerPalette = getCornerMarkerPalette(paletteColors);
             if (builtReduceEffects !== state.reduceEffects) {
@@ -248,7 +269,39 @@ function renderFrame(now) {
         }
         if(face.p!==target||face.scale!==scaleTarget)animate=true;
     }
-    updateLighting();renderer.render(scene,camera);draws+=renderer.info.render.calls;
+    updateLighting();
+    if (state.nextPalette && nextMaps && wipeFrame) {
+        const colors = state.nextPalette.colors;
+        updateCubeWipeUniforms(wipeUniforms, wipeFrame, renderer);
+        wipeUniforms.cubeWipeActive.value = 1;
+        wipeRegion = cubeWipeRegion(body, camera, wipeFrame);
+        const bodyTarget = body.material.userData.cubeWipe;
+        if (builtReduceEffects) updateCubeNextLighting(body, colors['--cube-color']);
+        else bodyTarget.color.value.set(colors['--cube-color']);
+        bodyTarget.opacity.value = body.material.opacity;
+        const edge = cube.getObjectByName('edge');
+        if (edge) {
+            edge.material.userData.cubeWipe.color.value.set(colors['--cube-edge-color']);
+            edge.material.userData.cubeWipe.opacity.value = parseFloat(colors['--cube-edge-opacity']);
+        }
+        const palette = getCornerMarkerPalette(colors);
+        for (const [name, face] of faces) {
+            const target = face.ticks.material.userData.cubeWipe;
+            target.color.value.copy(palette.idle).lerp(palette.hover, face.p);
+            target.opacity.value = face.ticks.material.opacity;
+            const maps = nextMaps.find(map => map.name === name);
+            if (maps) for (const [kind, object] of [['idle', face.idle], ['hover', face.hover]]) {
+                const label = object.material.userData.cubeWipe;
+                label.map.value = maps[kind]; label.hasMap.value = 1;
+                label.opacity.value = object.material.opacity;
+            }
+            for (const object of [face.line, face.dot]) if (object) {
+                object.material.userData.cubeWipe.color.value.set(rgbaToRgb(colors['--cube-text-accent']));
+                object.material.userData.cubeWipe.opacity.value = object.material.opacity;
+            }
+        }
+    }
+    renderer.render(scene,camera);draws+=renderer.info.render.calls;
     cube.updateWorldMatrix(true,false);origin.setFromMatrixPosition(cube.matrixWorld).project(camera);
     send('frame',{x:THREE.MathUtils.radToDeg(cube.rotation.x),y:THREE.MathUtils.radToDeg(cube.rotation.y),draws,origin:{x:(origin.x+1)*width/2,y:(1-origin.y)*height/2}});
     // Publish the current pose before either transition signal changes React state.
@@ -310,6 +363,13 @@ self.onmessage=({data})=>{
     if(data.type==='init')init(data).catch((error)=>send('error',{message:error.message}));
     else if(data.type==='state')receiveState(data.state);
     else if(data.type==='pointer')receivePointer(data);
+    else if(data.type==='wipe') {
+        wipeFrame = data.frame;
+        if (initialized && state.nextPalette && nextMaps) {
+            const region = cubeWipeRegion(body, camera, wipeFrame);
+            if (region === 'split' || region !== wipeRegion) requestFrame();
+        }
+    }
     else if(data.type==='resize'){
         width=Math.max(1,data.width);height=Math.max(1,data.height);
         if(renderer)renderer.setSize(width,height,false);
