@@ -195,12 +195,16 @@ export default function App() {
       style={{ backgroundColor: 'var(--void-bg)', transition: reducedMotion ? 'none' : 'background-color 0.5s ease' }}
     >
       <div className="portfolio-viewport__stage">
-        <div className="home-grid-parallax" aria-hidden="true">
-          <div className="absolute inset-0 void-grid" />
-          <div className="absolute inset-0 opacity-50 void-grid-drift" />
+        <div className="home-grid-wipe" aria-hidden="true">
+          <div className="home-grid-parallax">
+            <div className="home-grid-palette">
+              <div className="absolute inset-0 void-grid" />
+              <div className="absolute inset-0 opacity-50 void-grid-drift" />
+            </div>
+          </div>
         </div>
 
-        <Sidebar />
+        <div className="home-sidebar-wipe"><Sidebar /></div>
 
           <Suspense fallback={null}>
             <LazyCubeStage
@@ -230,15 +234,17 @@ export default function App() {
             />
           </Suspense>
 
-        <CornerMarkers />
-        <ThemeLabel />
-        {!isMobile && !reducedMotion && <Scrubber />}
-        <CoordinateDisplay coordsRef={coordsRef} paused={overlayPhase === 'open'} />
-        <Footer />
-        <MobileBranding />
-        {!isZoomed && (
-          <RotatePrompt />
-        )}
+        <div className="home-chrome">
+          <CornerMarkers />
+          <ThemeLabel />
+          {!isMobile && !reducedMotion && <Scrubber />}
+          <CoordinateDisplay coordsRef={coordsRef} paused={overlayPhase === 'open'} />
+          <Footer />
+          <MobileBranding />
+          {!isZoomed && (
+            <RotatePrompt />
+          )}
+        </div>
       </div>
 
       <BootScreen ready={stagePainted} />
