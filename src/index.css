@@ -17,6 +17,8 @@
   /* ── Grid ── */
   --void-grid: rgba(0, 0, 0, 0.10);
   --void-grid-drift: rgba(0, 0, 0, 0.14);
+  --floor-pool: radial-gradient(ellipse, rgba(0,0,0,.09), transparent 68%);
+  --floor-shadow: radial-gradient(ellipse, rgba(0,0,0,.16), rgba(0,0,0,.08) 22%, rgba(0,0,0,.025) 48%, transparent 72%);
   --void-overlay-grid: rgba(93, 93, 93, 0.186);
 
   /* ── Text ── */
@@ -78,6 +80,8 @@
   /* ── Grid ── */
   --void-grid: rgba(187, 218, 255, 0.04);
   --void-grid-drift: rgba(187, 218, 255, 0.07);
+  --floor-pool: radial-gradient(ellipse, rgba(255,255,255,.07), transparent 68%);
+  --floor-shadow: radial-gradient(ellipse, rgba(255,255,255,.14), rgba(255,255,255,.07) 22%, rgba(255,255,255,.02) 48%, transparent 72%);
   --void-overlay-grid: rgba(135, 206, 235, 0.08);
 
   /* ── Text ── */
