@@ -1,148 +1,79 @@
 import { useEffect, useState } from 'react';
-import { CUBE_OFFSET_X } from '../constants/cubeConfig';
+import { DEFAULT_CAMERA_DISTANCE } from '../constants/cubeConfig';
 
-const PHONE_BASE_WIDTH = 430;
-const PHONE_BASE_HEIGHT = 932;
 const TABLET_MIN = 768;
 const DESKTOP_MIN = 1024;
-const DESKTOP_FULL = 1440;
+const FOV_FACTOR = 1 / (2 * Math.tan(Math.PI / 8));
+const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
 
-function clamp(value, min, max) {
-    return Math.min(Math.max(value, min), max);
+// Include marker clearance and breathing around the resting -20°/-45° pose.
+// This is camera projection math only; layout never imports the Three runtime.
+const cubeCorners = [];
+const rx = -20 * Math.PI / 180, ry = -45 * Math.PI / 180;
+for (const x of [-1.06, 1.06]) for (const y of [-1.06, 1.06]) for (const z of [-1.06, 1.06]) {
+    const px = x * Math.cos(ry) + z * Math.sin(ry);
+    const pz = -x * Math.sin(ry) + z * Math.cos(ry);
+    cubeCorners.push([px, y * Math.cos(rx) - pz * Math.sin(rx), y * Math.sin(rx) + pz * Math.cos(rx)]);
+}
+
+export function getHomeComposition(width, height) {
+    const stacked = height >= width;
+    const inset = width < 400 ? 28 : width < TABLET_MIN ? 32 : width < DESKTOP_MIN ? 48 : 60;
+    const gap = clamp(width * .024, 18, 36);
+    const nominalBrand = width <= TABLET_MIN
+        ? .93 + (width - 430) * .42 / 338
+        : width / TABLET_MIN * 1.35;
+    // Match the full staggered composition in home-layout.css. Its SVGs use
+    // cropped glyph bounds so the group, rather than each word, is centered.
+    const brandScale = Math.max(.1, Math.min(nominalBrand, (width - 2 * inset) / 374, height * .25 / 174, 2.4));
+    const brandVisibleTop = Math.min(height * .145, inset + 76);
+    const brandTop = brandVisibleTop;
+    const sidebarWidth = Math.max(80, Math.min(
+        width * (.34 + .10 * clamp((width - TABLET_MIN) / 672, 0, 1)),
+        720, (height - 2 * inset - 40) * 3,
+    ));
+    return {
+        stacked, inset, brandScale, brandTop, sidebarWidth,
+        sidebarFontSize: clamp(sidebarWidth / 36, 9, 18),
+        markerInset: width < TABLET_MIN ? 14 : width < DESKTOP_MIN ? 32 : 40,
+        metaFontSize: width < 360 ? 8.5 : width < 400 ? 9 : width < TABLET_MIN ? 10 : 11,
+        band: stacked
+            ? { left: inset, right: width - inset, top: brandVisibleTop + 174 * brandScale + gap,
+                bottom: height - inset - 84 }
+            : { left: inset + sidebarWidth + gap, right: width - inset,
+                top: inset + 20, bottom: height - inset - 20 },
+    };
 }
 
 function sameLayout(a, b) {
-    return (
-        a.breakpoint === b.breakpoint &&
-        a.restingX === b.restingX &&
-        a.restingY === b.restingY &&
-        a.cubeScale === b.cubeScale
-    );
+    return a.breakpoint === b.breakpoint && a.restingX === b.restingX &&
+        a.restingY === b.restingY && a.cubeScale === b.cubeScale;
 }
 
 export function getHomeViewportLayout(width, height) {
-    const isLandscape = width > height;
-
-    // ═══════════════════════════════════════════════════════
-    // LANDSCAPE MOBILE → Only match small landscape phones (568-767px)
-    // NOT laptops/desktops. Must stay BELOW tablet threshold.
-    // ═══════════════════════════════════════════════════════
-    if (isLandscape && width >= 568 && width < TABLET_MIN) {
-        const progress = clamp((width - 568) / (TABLET_MIN - 568), 0, 1);
-        const heightScale = clamp(height / 760, 0.80, 1);
-        return {
-            breakpoint: 'phone',
-            restingX: 0,
-            restingY: 0,
-            cubeScale: clamp(0.55 + progress * 0.15, 0.55, 0.70) * heightScale,
-        };
+    const { stacked, band } = getHomeComposition(width, height);
+    const focal = height * FOV_FACTOR;
+    const restingX = ((band.left + band.right) / 2 - width / 2) * DEFAULT_CAMERA_DISTANCE / focal;
+    // Vertical FOV is independent of the viewport's aspect ratio.
+    const restingY = (height / 2 - (band.top + band.bottom) / 2) * DEFAULT_CAMERA_DISTANCE / focal;
+    const nominalScale = stacked
+        ? width < TABLET_MIN ? .62 * clamp(Math.min(width / 430, height / 932), .84, 1)
+            : width < DESKTOP_MIN ? .62 : .72
+        : 1;
+    const fits = scale => cubeCorners.every(([x, y, z]) => {
+        const depth = DEFAULT_CAMERA_DISTANCE - z * scale;
+        const px = width / 2 + focal * (restingX + x * scale) / depth;
+        const py = height / 2 - focal * (restingY + y * scale) / depth;
+        return px >= band.left && px <= band.right && py >= band.top && py <= band.bottom;
+    });
+    let low = 0, high = nominalScale;
+    // Fit once per viewport change, never in the animation/render loop.
+    for (let i = 0; i < 16; i++) {
+        const mid = (low + high) / 2;
+        if (fits(mid)) low = mid; else high = mid;
     }
-
-    if (width < TABLET_MIN) {
-        const widthScale = clamp(width / PHONE_BASE_WIDTH, 0.84, 1);
-        const heightScale = clamp(height / PHONE_BASE_HEIGHT, 0.84, 1.03);
-        const fitScale = Math.min(widthScale, heightScale);
-
-        return {
-            breakpoint: 'phone',
-            restingX: 0,
-            restingY: -0.55 * heightScale,
-            cubeScale: clamp(0.62 * fitScale, 0.52, 0.62),
-        };
-    }
-
-    if (width < DESKTOP_MIN) {
-        const isPortraitTablet = height > width;
-
-        if (isPortraitTablet) {
-            // Portrait tablet: top branding lockup + centered cube below
-            const brandScale = width >= 900 ? 1.6 : 1.35;
-            const bandTop = 330 * brandScale * 0.72 + 30;
-            const bandBottom = height - 120;
-            const bandHeight = Math.max(bandBottom - bandTop, 0);
-
-            const ndcPerUnit = 0.48284 / (width / height);
-            const halfViewWidth = 1 / ndcPerUnit;
-            const widthFit = halfViewWidth * 0.60;
-            const bandFit = bandHeight / (ndcPerUnit * height);
-            const cubeScale = clamp(Math.min(widthFit, bandFit), 0.42, 0.62);
-
-            const centerY = (bandTop + bandBottom) / 2;
-            const restingY = (1 - (2 * centerY) / height) / ndcPerUnit;
-
-            return {
-                breakpoint: 'tablet',
-                restingX: 0,
-                restingY,
-                cubeScale,
-            };
-        }
-
-        // Landscape tablet: sidebar on left, cube offset to right
-        const progress = clamp((width - TABLET_MIN) / (DESKTOP_MIN - TABLET_MIN), 0, 1);
-        const heightScale = clamp(height / 760, 0.80, 1);
-
-        return {
-            breakpoint: 'tablet',
-            restingX: 0.8 + progress * 0.62,
-            restingY: 0,
-            cubeScale: (0.48 + progress * 0.12) * heightScale,
-        };
-    }
-
-    // ── Portrait desktop / laptop (fine-pointer, width ≥ 768, height > width) ──
-    // Rotated monitors (incl. display-scaled CSS widths < 1024) get a phone-style
-    // layout: branding lockup on top, cube centered in the band below it.
-    // Touch devices (hover: none — iPads etc.) skip this and keep the tablet branch.
-    // BRAND_SCALE must match --mobile-branding-scale in home-layout.css
-    // (see the `(orientation: portrait) and (hover: hover) and (pointer: fine)` blocks).
-    const isFinePointer = typeof window === 'undefined' || !window.matchMedia
-        ? true
-        : window.matchMedia('(hover: hover) and (pointer: fine)').matches;
-
-    if (width >= TABLET_MIN && height > width && isFinePointer) {
-        const brandScale = width >= 1280 ? 2.4 : width >= 1080 ? 2.2 : width >= 900 ? 1.9 : 1.6;
-        const bandTop = 330 * brandScale + 60;   // lockup height + gap below it
-        const bandBottom = height - 150;         // clear of the rotate prompt
-        const bandHeight = Math.max(bandBottom - bandTop, 0);
-
-        // Camera math (fov 45°, camera z 5): 1 world unit = 0.48284/aspect NDC.
-        const ndcPerUnit = 0.48284 / (width / height);
-        const halfViewWidth = 1 / ndcPerUnit;
-        const widthFit = halfViewWidth * 0.62;                 // phone-like width share
-        const bandFit = bandHeight / (ndcPerUnit * height);    // fits the band vertically
-        const cubeScale = clamp(Math.min(widthFit, bandFit), 0.40, 0.72);
-
-        const centerY = (bandTop + bandBottom) / 2;
-        const restingY = (1 - (2 * centerY) / height) / ndcPerUnit;
-
-        return {
-            breakpoint: 'desktop',
-            restingX: 0,
-            restingY,
-            cubeScale,
-        };
-    }
-
-    // ── Desktop: heightScale is needed for both branches ──
-    const heightScale = clamp(height / 760, 0.86, 1);
-
-    if (width < DESKTOP_FULL) {
-        const progress = clamp((width - DESKTOP_MIN) / (DESKTOP_FULL - DESKTOP_MIN), 0, 1);
-        return {
-            breakpoint: 'desktop',
-            restingX: 1.42 + progress * (CUBE_OFFSET_X - 1.42),
-            restingY: 0,
-            cubeScale: (0.60 + progress * 0.40) * heightScale,
-        };
-    }
-
-    return {
-        breakpoint: 'desktop',
-        restingX: CUBE_OFFSET_X,
-        restingY: 0,
-        cubeScale: 1.0 * heightScale,
-    };
+    return { breakpoint: width < TABLET_MIN ? 'phone' : width < DESKTOP_MIN ? 'tablet' : 'desktop',
+        restingX, restingY, cubeScale: low };
 }
 
 export function useHomeViewportLayout() {
