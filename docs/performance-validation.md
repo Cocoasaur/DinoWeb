@@ -794,3 +794,84 @@ and desktop/mobile HTML and JSON Lighthouse reports. The recording uses
 Both the main checkout and Codex worktree have matching fix sources and rebuilt
 production assets. Existing service-worker updates retain their visitor-approved
 Update/reload behavior, so an already-open cached page must load the new build.
+
+## Hardware-rendered grid wipe fix — October 11, 2026
+
+This verification supersedes the earlier wallpaper mask candidates above.
+The complete first-party application, UI, worker/fallback rendering, hooks,
+utilities, styles, pages, startup/build configuration and regression code were
+reviewed. The baseline inventory contains 113 files; the new surface and its
+lifecycle tests were also reviewed. Inventory and detailed audits are in
+`theme-codebase-audit-2026-10-10/` under the artifact directory above.
+
+The supplied straight horizontal palette cutoff was reproduced with actual
+AMD Radeon 780M/Mesa hardware compositing and rasterization. Software-rendered
+checks had missed it. Full-viewport hardware captures also rejected the native
+circle/promotion and bounded-path candidates. The failing composition combined
+an animated wallpaper clip with separately transformed, gradient-masked grid
+children. The exact Chromium/driver internal defect is not established; the
+captured rectangular cutoff and large palette reversals establish the failure
+of that rendering composition independently of theme state or stale caching.
+
+During a wipe, the wallpaper now uses one temporary opaque 2D paint surface.
+Both palettes and the exact shared circular boundary are painted together.
+Original grid nodes and CSS animation clocks remain connected and running;
+their measured tile position, parallax, drift, opacity and fade geometry supply
+the surface. Cleanup restores the original wallpaper, removes temporary layers
+and explicitly clears the canvas backing store. Floor, cube, text and cursor
+tracking retain their existing shared-circle behavior.
+
+The background now paints even when a renderer handoff briefly removes the cube
+canvas. Resize, reduced-motion changes and hidden tabs finish and release an
+active wipe; App unmount cancels the owned wipe. Normal theme-state rerenders
+keep it running. Preparation is covered by the existing exception cleanup.
+Separate preexisting asynchronous snap/profile-change edge cases are described
+in the implementation audit; they were not demonstrated causes of the recorded
+simple-click cutoff.
+
+The backing store is limited to CSS pixels and allocated only during the
+two-second transition: about 1.38 MB for a 430×800 phone and 13.3 MB at 2536×1310,
+independent of DPR. There is no extra WebGL context/pass, idle rendering loop,
+or startup canvas allocation. The GPU captures verify hardware compositing and
+rasterization; this machine reports software 2D canvas painting. Existing device
+budgets, responsive branding, desktop scrubber, cube motion and local changes
+are retained.
+
+Final verification on the production build:
+
+- 39 complete, unpaused two-second hardware-rendered wipes pass across the
+  recorded desktop, its DPR 2 variant, worker/fallback desktops and a DPR 3
+  fallback phone with simulated 2 cores/2 GB and 6× CPU throttling. All captures
+  include the full viewport and cube. The 9,608 frames include 792 mixed-palette
+  frames; maximum reversal is 0.073 percentage points and maximum fitted-circle
+  mismatch is 0.088%, within JPEG/edge sampling noise. No rectangular palette
+  dropout is detected.
+- All 55 focused regression checks pass. They cover 840 background/ground/
+  branding pixel comparisons, 72 edge/corner radii, 23,053,183 dense background
+  palette checks with zero mismatches, and 1,548 line-presence bands. Original
+  animation identity/continuity, cube resources, responsive layouts, cursor UI,
+  idle/device budgets, temporary canvas detachment, resize/reduced-motion
+  recovery and DPR-bounded backing release pass.
+- The additional hidden-tab interruption and subsequent theme flip pass.
+- Production build, focused ESLint (including App and all new/changed wipe
+  modules/tests/configuration) and whitespace checks pass.
+
+Fresh local Lighthouse 13.4.1 startup performance audits:
+
+| Profile | Performance | FCP | LCP | Blocking time | CLS |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Desktop | 100 | 0.39 s | 0.54 s | 0 ms | 0.00019 |
+| Mobile | 100 | 0.76 s | 0.98 s | 0 ms | 0.00033 |
+
+Both audits have no warnings. These are local startup measurements, not a
+guarantee for every physical device or network; interactive playback and
+simulated low-end budgets are verified separately above.
+
+Evidence is in `grid-surface-2026-10-11/`: `surface-implementation-audit.md`,
+`gpu-playback-summary.json`, renderer/capture JSON and JPEGs in `gpu-smoke/` and
+`gpu-repeated/`, `regressions.json`, `regression-measurements.json`,
+`hidden-interruption.json`, and desktop/mobile Lighthouse HTML and JSON reports.
+A dedicated temporary production preview on port 4186 was used for these checks;
+the user's preview servers were not changed. Main-checkout integration verifies
+the captured original file hashes before copying the fix, preserves existing
+commits/local changes, and rebuilds matching production assets.
