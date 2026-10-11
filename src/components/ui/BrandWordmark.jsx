@@ -25,8 +25,10 @@ function prepare(svg, variant) {
 
 const marks = {
     desktop: { width: 720, height: 160, svg: desktopClair },
-    dino: { width: 240, height: 104, svg: dinoClair },
-    web: { width: 248, height: 92, svg: webClair },
+    // Crop the mobile assets to their painted glyph bounds with 2px padding.
+    // Their original viewBoxes contain uneven trailing whitespace.
+    dino: { width: 240, height: 83.27, viewBox: '2.232 12.312 204.56 70.976', svg: dinoClair },
+    web: { width: 240, height: 85.48, viewBox: '.76 9.6 192.048 68.4', svg: webClair },
 };
 for (const [variant, mark] of Object.entries(marks)) {
     // Keep both this prop object and its SVG nodes stable across React updates.
@@ -49,7 +51,7 @@ export default function BrandWordmark({ variant, className, ...accessibility }) 
     const mark = marks[variant];
     return (
         <svg className={`brand-wordmark ${className || ''}`} data-brand-tier={tier} onAnimationEnd={finishIntro} width={mark.width} height={mark.height}
-            viewBox={`0 0 ${mark.width} ${mark.height}`} focusable="false" {...accessibility}
+            viewBox={mark.viewBox || `0 0 ${mark.width} ${mark.height}`} focusable="false" {...accessibility}
             dangerouslySetInnerHTML={mark.markup} />
     );
 }
