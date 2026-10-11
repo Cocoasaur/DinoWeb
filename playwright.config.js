@@ -14,7 +14,12 @@ export default defineConfig({
   reporter: process.env.CI ? 'github' : 'list',
   use: {
     baseURL: process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:4173/DinoWeb/',
-    launchOptions: executablePath ? { executablePath } : undefined,
+    launchOptions: {
+      ...(executablePath ? { executablePath } : {}),
+      // Headless Linux otherwise uses SwiftShader even on a GPU-equipped host.
+      // The playback suite asserts actual hardware compositing/rasterization.
+      ...(process.env.PLAYWRIGHT_REQUIRE_HARDWARE_GPU === '1' ? { args: ['--enable-gpu'] } : {}),
+    },
     trace: 'on-first-retry',
   },
   projects: [
