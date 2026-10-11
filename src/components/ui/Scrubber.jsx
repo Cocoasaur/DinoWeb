@@ -16,8 +16,9 @@ export default function Scrubber() {
 
     return (
         <div
+            aria-hidden="true"
             className="absolute right-10 hidden md:block z-40 scrubber-entrance"
-            style={{ height: '208px', top: 'calc(50% - 104px)' }}
+            style={{ width: '8px', height: '208px', top: 'calc(50% - 104px)' }}
         >
             <div
                 className="absolute left-1/2 -translate-x-1/2 w-px h-full"
