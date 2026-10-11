@@ -365,3 +365,82 @@ Reports, the combined passing-check summary and corrected screenshots are saved
 under the artifact directory above in `responsive-2026-10-10/` as
 `desktop.report.html`, `mobile.report.html`, their JSON counterparts,
 `summary.json`, `final-alignment-and-wipe.json` and `aligned-*.png`.
+
+## Centered mobile/tablet text — October 10, 2026
+
+DINO, WEB, JL’S DEV DEN and the version caption now each share the viewport’s
+centerline in the portrait composition. The mobile SVG viewBoxes crop uneven
+trailing whitespace with padding around their existing painted glyphs; the
+original paths, theme colors and one-time outline animation remain intact.
+Captions sit below the two words, and the shared viewport composition reserves
+the full 232-unit branding height before fitting the cube. Landscape branding
+and the symmetrical header/footer insets retain the previous responsive fixes.
+
+The alignment regression now checks actual SVG glyph and text-range centers,
+individual line separation, cube/cue clearance and existing header/footer
+alignment. It covers 22 viewport sizes on four renderer/device profiles (88
+cases), including the reported 375×667 phone and 768×1024 tablet, rapid orientation
+changes, worker/fallback rendering and a 6× CPU-throttled two-core/2 GB fallback.
+All four profiles pass, with a maximum painted center offset below 0.02 px.
+
+This change adds no frame loop, observer, shader, scene pass or dependency.
+Existing viewport-event measurement and fitting handle the taller text block.
+Build and changed-file ESLint checks pass.
+
+All 44 distinct browser checks pass: four alignment profiles plus 40 existing
+resize, theme-motion, circular-wipe pixel, device-budget and startup-outline
+regressions. Those checks include reduced motion, cold theme labels and
+worker/fallback renderers. Both worktree and main-checkout production builds pass.
+
+Fresh local Lighthouse performance audits of the final production build:
+
+| Profile | Performance | FCP | LCP | Blocking time | CLS |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Desktop | 100 | 0.3 s | 0.5 s | 0 ms | 0.00016 |
+| Mobile | 100 | 0.8 s | 1.0 s | 0 ms | 0.00072 |
+
+Both audits have no warnings. Their startup/loader measurement scope remains
+the same as the earlier audits; the browser regressions test cube interactions
+separately. Reports, the 88-case alignment measurements, 40 regression results
+and phone/tablet screenshots are saved under the artifact directory above in
+`centered-branding-2026-10-10/` as `desktop.report.html`, `mobile.report.html`,
+their JSON counterparts, `alignment.json`, `regressions.json`, `summary.json`
+and `aligned-375x667.png` / `aligned-768x1024.png`.
+
+## Staggered branding group hotfix — October 10, 2026
+
+This supersedes the individually centered words/captions described above. The
+reference arrangement is restored: DINO on the upper left, the three-line version
+caption on its right, JL’S DEV DEN on the lower left and WEB on the lower right.
+The complete 374×174 composition is horizontally centered as one group. The
+existing cropped SVG viewBoxes keep uneven asset whitespace from shifting the
+painted group; the original glyphs, theme colors and outline animation remain.
+
+The shared viewport composition fits the entire group to the available width
+and height, and reserves its height before fitting the cube. Existing portrait/
+landscape behavior, header/footer alignment, circular wipe and device budgets
+remain in place. This hotfix adds no frame loop, observer or rendering pass.
+Regression assertions now check combined painted bounds and the reference’s
+relative word/caption placement, rather than centering each word individually.
+
+All 13 hotfix browser checks pass: four alignment profiles covering 88 viewport
+cases, six circular-wipe pixel checks in both directions, and three startup/
+interaction outline checks for tablet, phone fallback and reduced motion. The
+alignment matrix includes the reported phone/tablet sizes and a 6× CPU-throttled
+low-end fallback. The maximum painted-group center offset is below 0.01 px.
+Both production builds, changed-file ESLint and diff-whitespace checks pass.
+
+Fresh local Lighthouse performance audits of the final hotfix build:
+
+| Profile | Performance | FCP | LCP | Blocking time | CLS |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Desktop | 100 | 0.3 s | 0.5 s | 0 ms | 0.00017 |
+| Mobile | 100 | 1.1 s | 1.4 s | 0 ms | 0.00030 |
+
+Neither audit has warnings. These retain the startup/loader measurement scope
+described above; separate browser checks cover the actual cube wipe and input.
+Reports, corrected phone/tablet screenshots and combined-group alignment
+measurements are saved under the artifact directory above in
+`grouped-branding-2026-10-10/` as `alignment-and-wipe.json`, `wordmark.json`,
+`summary.json`, `desktop.report.html`, `mobile.report.html`, their JSON
+counterparts, and `aligned-375x667.png` / `aligned-768x1024.png`.
