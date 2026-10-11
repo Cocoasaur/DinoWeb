@@ -444,3 +444,37 @@ measurements are saved under the artifact directory above in
 `grouped-branding-2026-10-10/` as `alignment-and-wipe.json`, `wordmark.json`,
 `summary.json`, `desktop.report.html`, `mobile.report.html`, their JSON
 counterparts, and `aligned-375x667.png` / `aligned-768x1024.png`.
+
+## Desktop cursor bar visibility — October 10, 2026
+
+Reproduced the reported missing-bar state at 1440×900: the high-tier desktop
+profile mounted the bar inside the viewport, while the medium-tier profile
+removed it from the DOM through App’s shared `reduceEffects` guard. The
+decorative mouse control now depends on desktop input and motion preference,
+independently of the cube’s expensive rendering effects. Desktop medium/low
+quality and slow-connection profiles retain the bar without raising their scene
+quality or DPR. Existing touch, reduced-motion and tablet-width hiding remains.
+
+The bar now has explicit 8 px bounds. Its center keeps the same shared right
+inset, and the existing passive mouse listener continues to track cursor Y
+without React updates or an idle render loop.
+
+All 18 browser checks pass: six cursor-control profiles, four alignment profiles
+covering 88 viewport cases and eight existing device-budget/effect checks. Real
+mouse input checks rendered marker Y positions and bounds at the upper/lower
+viewport, including a 6× CPU-throttled low-end desktop. Width changes preserve
+tablet hiding and desktop restoration; touch and reduced-motion rules remain.
+Both builds, changed-file ESLint and diff-whitespace checks pass.
+
+Fresh local Lighthouse performance audits:
+
+| Profile | Performance | FCP | LCP | Blocking time | CLS |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Desktop | 100 | 0.3 s | 0.5 s | 0 ms | 0.00018 |
+| Mobile | 100 | 1.1 s | 1.4 s | 0 ms | 0.00030 |
+
+Both audits have no warnings and retain the startup measurement scope above.
+Reports, regression results and the corrected medium-desktop screenshot are
+saved under the artifact directory above in `desktop-scrubber-2026-10-10/` as
+`desktop.report.html`, `mobile.report.html`, their JSON counterparts,
+`regressions.json`, `summary.json` and `desktop-cursor-bar.png`.
