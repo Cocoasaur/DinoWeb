@@ -539,3 +539,258 @@ the artifact directory above in `grid-wipe-2026-10-10/`: `desktop.report.html`,
 `live-motion.json`, `regressions-initial.json`, `cube-pixels-final.json` and
 `summary.json`. The summary combines final passing results for all 38 distinct
 checks and retains the initial desktop fixture failures for traceability.
+
+
+## Grid wipe compositing hotfix — October 10, 2026
+
+The follow-up recording exposed a failure during normal playback that the
+previous small-viewport, paused-circle fixtures missed: background/floor grids
+vanished, the palette snapped and branding briefly disappeared. The previous
+complementary path used a whole viewport width as its outside margin, and kept
+large circle masks even when the circle already covered the entire layer. At
+the reproduced 2536×1310 desktop size, its outer rectangle was 7608×6382 CSS
+pixels. This unnecessary geometry caused expensive offscreen compositing and
+missing/rectangular paint during the running wipe. Disabling palette crossfades
+alone did not resolve the large-screen failure.
+
+The complementary rectangle now has fixed 128 px grid overscan and no floor
+overscan. Fully covered/empty circle states use an unclipped layer and an empty
+inset, avoiding an oversized circle/path entirely. The temporary palette’s pause
+attribute is written only when it changes. Original grid/floor geometry, live
+drift clocks, cube shader, circular timing and all earlier local fixes remain.
+There is no new rendering pass, idle loop or increase in device quality/DPR.
+
+A new unpaused playback regression fails against the unchanged previous build
+with missing grid lines, and passes against this hotfix at the recorded desktop
+size. All 12 targeted checks pass, including worker/fallback renderers, large
+high-DPR desktops, a CPU-throttled low-end phone, interruption cleanup and seven
+spatial pixel profiles. All 560 grid pixels agree with their side of the circle
+within one RGB level. Eight running wallpaper captures have no palette
+mismatches and retain painted lines; branding visibility is checked separately.
+
+Recorded-desktop and throttled-phone playback use the unchanged production
+2-second animation. High-DPR desktop capture fixtures stretch only their test
+circle to 8 seconds so software screenshot capture cannot consume its entire
+lifetime; they keep CSS drift and the circle running. The high-DPR spatial
+fixture separately checks both sides at intermediate radii. Both production
+builds, changed-file ESLint and diff-whitespace checks pass, and source/build
+outputs match between the main checkout and Codex worktree.
+
+All 25 additional cube/theme and rendering-budget regressions pass, giving 37
+passing checks in total. This includes continuous motion, both cube palette
+reveal directions, reduced motion, unavailable view transitions and the existing
+desktop/mobile device budgets.
+
+Fresh local Lighthouse performance audits of the final hotfix build:
+
+| Profile | Performance | FCP | LCP | Blocking time | CLS |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Desktop | 100 | 0.3 s | 0.5 s | 0 ms | 0.00018 |
+| Mobile | 100 | 0.8 s | 1.0 s | 0 ms | 0.00098 |
+
+Neither audit has warnings. These measure startup as described above; playback,
+spatial palette masks and device-budget checks are verified separately. Reports
+and evidence are saved under the artifact directory above in
+`grid-glitch-2026-10-10/`: `desktop.report.html`, `mobile.report.html`, their JSON
+counterparts, `baseline-playback.json`, `fixed-playback-and-pixels.json`,
+`regressions.json`, `pixel-summary.json` and `summary.json`, plus screenshots of
+the recorded glitch and the corrected grid/cube palette split. The baseline
+failure is retained to show that the new running-wipe regression catches the
+previous implementation’s missing-grid state.
+
+## Complete circular-wipe playback hotfix — October 10, 2026
+
+The follow-up recording `recording_20261010T051439.mp4` exposed a later-phase
+failure that the previous early-frame and paused-radius checks missed. At 3.5 s,
+the sampled wallpaper's dark coverage drops by 39.58 percentage points while
+the cube continues revealing its new palette. The previous hotfix's passing
+checks therefore did not establish correct playback through the whole wipe.
+
+Two issues remained. The native root circle advanced on the compositor while
+JavaScript sampled its radius and separately repainted the live grid/floor and
+WebGL masks. Under rendering load, those frames diverged and stale fullscreen
+content could obscure or reverse the reveal. With all other source unchanged,
+restoring the previous independent clock fails the new complete-playback test:
+the sampled background changes completely back to its previous palette.
+
+`themeWipe.js` now advances the native circle's current time in the existing
+transition-only animation-frame callback using explicit seeks on a paused
+native circle, before reading its eased radius and
+updating the live masks. It retains the same two-second duration and native
+cubic-bezier easing. This controls only the reveal; original grid drift, floor
+motion, cube breathing and renderer resources keep their existing clocks.
+A visibility change skips and cleans up the wipe so a hidden tab cannot strand
+the controlled animation. Reduced-motion and unsupported-browser paths retain
+the existing immediate theme switch.
+
+The inverse path also had an XOR error: subtracting an unbounded circle from a
+bounded rectangle paints the circle outside that rectangle. Reducing only the
+outer rectangle had left those offscreen arcs in the mask. `boundedCircle.js`
+intersects the circle with the paint bounds using exact arcs and edges before
+constructing its inverse. Background overscan remains 128 px; floor bounds
+remain the viewport. Layout/matrix reads are collected before mask writes,
+avoiding repeated synchronous layout within a frame. No additional WebGL pass,
+idle loop, persistent duplicate backdrop or increase in DPR/device budgets was
+introduced. Earlier responsive, branding, cursor scrubber and theme changes
+remain intact.
+
+43 relevant regression checks pass across focused runs. They cover spatial
+cube palettes, 560 background/ground pixel samples, unchanged renderer budgets,
+continuous source motion, cold labels, reduced motion, unsupported view
+transitions and cleanup after interruption. The inverse geometry also agrees
+with the expected reveal at 324,000 sampled points: the previous formula leaks
+15,939 offscreen samples; the corrected formula has zero leaks or mismatches.
+
+The new complete-playback checks stream all three successive production-duration
+wipes at the recording's 2536×1310 desktop size, a common 1440×900 high-DPR
+worker/fallback desktop, and a 6× CPU-throttled 430×800 low-end fallback phone.
+All 12 wipes pass, with 660 captured frames and no background reversal beyond
+sampling/antialiasing noise (maximum 0.05 percentage points). The rotated cube
+face-click origin is exercised. A separate hidden-tab test confirms cleanup
+and the ability to switch themes again after resuming.
+
+A full 5072×2620 software screencast is too sparse to require an intermediate
+frame reliably in every two-second wipe. That size retains separate spatial
+pixel coverage. Legacy desktop single-strip fixtures use eight seconds to
+allow software screenshot capture; the new stream checks retain the actual
+two-second production duration. These capture accommodations do not change
+application timing or device quality.
+
+Fresh local Lighthouse performance audits of the final build:
+
+| Profile | Performance | FCP | LCP | Blocking time | CLS |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Desktop | 100 | 0.3 s | 0.5 s | 0 ms | 0.00018 |
+| Mobile | 100 | 1.1 s | 1.4 s | 0 ms | 0.00097 |
+
+Both audits have zero blocking time and no warnings. They measure local startup,
+including the existing loading UI, as documented above. Interactive playback,
+original clocks, palette geometry and device budgets are checked separately;
+these scores are not a promise for every device or network.
+
+Evidence is saved in `grid-wipe-final-2026-10-10/` under the artifact directory
+above: `native-clock-before.json`, `recording-palette-trace.json`,
+`inverse-mask-before-after.json`, `complete-playback.json`,
+`playback-summary.json`, `strip-captures.json`, `final-motion.json`,
+`final-live-clocks.json`, `check-summary.json`, and the desktop/mobile HTML and
+JSON Lighthouse reports. Earlier diagnostic capture failures are retained for
+traceability; `check-summary.json` selects the latest outcome for each test.
+The main checkout and Codex worktree contain matching fix sources and rebuilt
+production assets. All previous local changes outside this fix are preserved.
+
+## Live-layer theme wipe hotfix — October 10, 2026
+
+The recording `recording_20261010T080316.mp4` showed that controlling the native
+snapshot animation's time had not solved the actual desktop glitch. Browser
+snapshots still composited separately from the moving DOM layers and live WebGL
+canvas. A new background/text palette could appear before its circle, while
+stale snapshot content later obscured the reveal.
+
+Theme switching now uses a targetless Web Animation as a timing clock and does
+not capture native View Transition snapshots. One eased circle drives the
+existing cube shader and temporary DOM palette copies for the background grid,
+ground, branding and viewport chrome. The masks stay bounded to the viewport;
+the copies retain the live layers' animation clocks and camera transforms. SVG
+paint IDs are scoped to each copy so hatching follows its own palette. The
+theme label retains React's original text nodes across repeated switches.
+
+The copies, timing animation and frame callback are removed when the wipe ends
+or the tab is hidden. There is still one WebGL canvas and no extra renderer pass,
+idle frame loop or increase in device pixel ratio/device quality budgets. The
+previous responsive branding, desktop cursor scrubber, cube motion and fallback
+label preparation changes are retained.
+
+74 relevant checks pass across the focused runs. Coverage includes both reveal
+directions, 840 background/ground/branding pixel samples, original motion clocks,
+renderer budgets, responsive alignment, desktop cursor tracking, SVG paint IDs,
+label text-node identity, cold labels, reduced motion and interruption cleanup.
+Two earlier timing/input capture failures in the unchanged desktop page-transition
+and tablet wordmark tests passed on the final focused rerun; the diagnostic
+reports retain those earlier failures. The final rerun passes all 15 checks.
+
+The final complete-playback stream captures 805 frames across 12 successive
+two-second wipes: the recording's 2536×1310 desktop, 1440×900 high-DPR worker
+and fallback desktops, and a 6× CPU-throttled 430×800 low-end fallback phone.
+There is no background reversal beyond sampling/antialiasing noise (maximum
+0.071 percentage points). Native View Transition calls are disabled in these
+checks, and each switch verifies one canvas and removal of the temporary layers.
+
+Fresh local Lighthouse 13.4.1 performance audits of this build:
+
+| Profile | Performance | FCP | LCP | Blocking time | CLS |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Desktop | 100 | 0.33 s | 0.53 s | 0 ms | 0.00020 |
+| Mobile | 100 | 0.98 s | 1.37 s | 0 ms | 0.00036 |
+
+Both audits have no warnings. These are local startup measurements; the
+interactive wipe and low-end renderer budgets are checked separately. A local
+100 does not establish that every device or network will score identically.
+
+Evidence is saved in `live-theme-wipe-2026-10-10/` under the artifact directory
+above: `broad-checks.json`, `additional-checks.json`, `final-checks.json`,
+`check-summary.json`, `playback-summary.json`, per-profile frame captures and
+measurements, and desktop/mobile HTML and JSON Lighthouse reports. The main
+checkout and Codex worktree contain the same fix sources and production build.
+Previous commits and unrelated local changes are preserved.
+
+## Background grid edge-mask hotfix — October 10, 2026
+
+The recording `recording_20261010T084809.mp4` contains two brief light flashes
+during the expanding blue wipe: 33.3 ms at 2.583333 s and 50 ms at 2.733333 s.
+In the second flash, sampled blue coverage drops from 72.27% to zero, then
+returns to 98.88%. The DOM text and grid disappear while the WebGL cube remains
+visible. On the reverse wipe, nine vertical grid lines lose their lower segments
+below recording row 631 in six frames, totaling 100 ms. This rectangular dropout
+does not follow the circular boundary.
+
+The moving grid was using two changing, complementary full-viewport `path()`
+masks, with additional gradient masks and transformed tiled children. The
+recording is consistent with compositor mask/tile invalidation at viewport
+crossings. This is an inference from the recording and rendering structure;
+the user's hardware compositor has not been reproduced in the headless checks.
+
+The background now keeps an opaque, unclipped light grid underneath one dark
+grid clipped with a native CSS `circle()`. The dark circle grows or shrinks with
+the same radius used by the cube and existing transparent layers. A reverse
+wipe inserts its temporary light copy below the original dark grid. There is
+no changing inverse path on the wallpaper and no gap between complementary
+background masks. Viewport overflow bounds the established tile overscan.
+Original grid drift, parallax, floor motion, text nodes, cube resources and
+device budgets are retained; temporary copies still disappear after the wipe.
+
+The new regression rejects the previous implementation's clipped light base.
+With the fix, it samples all pixels around side/corner crossings in both
+directions while grid drift remains running: 72 radius samples, 23,054,152
+palette checks and 1,548 horizontal bands across a high-DPR desktop and a
+6× CPU-throttled fallback phone. There are zero palette mismatches and every
+band retains grid lines. Dense sampling also avoids an initial test-fixture
+aliasing error where a 2 px stride skipped 1 px lines.
+
+35 focused checks pass, including cube palettes, grid/floor motion, shared
+clocks, cleanup and device budgets. Twelve complete two-second wipes produce
+822 captured frames with no background reversal beyond sampling noise
+(maximum 0.071 percentage points). The large recorded desktop's background
+capture uses a transparent canvas fixture to avoid software GL compositing
+undersampling; canvas resources, click handling and grid clocks remain live.
+The other desktop worker/fallback and phone streams capture the whole scene.
+Earlier sparse captures that missed intermediate frames remain in the evidence.
+
+Fresh local Lighthouse 13.4.1 performance audits:
+
+| Profile | Performance | FCP | LCP | Blocking time | CLS |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Desktop | 100 | 0.33 s | 0.52 s | 0 ms | 0.00019 |
+| Mobile | 100 | 1.14 s | 1.37 s | 0 ms | 0.00033 |
+
+Both audits have no warnings. These measure local startup; interactive motion
+and low-end budgets are checked separately. Scores can vary across devices
+and audit conditions.
+
+Evidence is under `grid-edge-wipe-2026-10-10/`: the recording findings, frames
+and palette/grid traces; `baseline-coverage.json`; `motion-and-playback.json`;
+`final-regressions.json`; `check-summary.json`; edge measurements/screenshots;
+and desktop/mobile HTML and JSON Lighthouse reports. The recording uses
+`localhost:4173`, while these checks use the existing `127.0.0.1:4175` preview.
+Both the main checkout and Codex worktree have matching fix sources and rebuilt
+production assets. Existing service-worker updates retain their visitor-approved
+Update/reload behavior, so an already-open cached page must load the new build.
