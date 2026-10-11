@@ -55,16 +55,13 @@ for (const profile of profiles) {
         if (profile.noWipe) document.startViewTransition = undefined
         window.__themeFrames = []
         window.__themeCaptures = []
-        const native = document.startViewTransition?.bind(document)
-        if (native) document.startViewTransition = (...args) => {
-          const transition = native(...args)
-          transition.ready.then(() => window.__themeCaptures.push({
-            cubeOld: getComputedStyle(document.documentElement, '::view-transition-old(home-cube-motion)').display,
-            gridOld: getComputedStyle(document.documentElement, '::view-transition-old(home-grid-motion)').display,
-            cubeNew: getComputedStyle(document.documentElement, '::view-transition-new(home-cube-motion)').animationName,
-          })).catch(error => window.__themeCaptures.push({ error: error.message }))
-          return transition
-        }
+        window.addEventListener('cube-wipe-frame', e => { window.__liveCircle = e.detail })
+        window.addEventListener('theme-wipe-start', () => window.__themeCaptures.push({
+          copies: document.querySelectorAll('[data-wipe-palette="new"]').length,
+          canvases: document.querySelectorAll('.cube-entrance canvas').length,
+        }))
+        if (document.startViewTransition) document.startViewTransition = () => { throw new Error('unexpected native snapshot') }
+
       }, profile)
       await page.goto('./')
       await expect(page.locator('.boot-screen')).toHaveCount(0, { timeout: 30000 })
@@ -84,11 +81,9 @@ for (const profile of profiles) {
           const viewport = document.querySelector('.portfolio-viewport')
           const root = document.documentElement
           const direction = root.dataset.themeDirection
-          const pseudo = direction === 'to-dark' ? '::view-transition-new(root)' : '::view-transition-old(root)'
-          const circle = direction && getComputedStyle(root, pseudo).clipPath.match(/^circle\(([\d.]+)% at ([\d.]+)px ([\d.]+)px\)/)
+          const circle = direction && window.__liveCircle
           const center = getComputedStyle(document.querySelector('.cube-breath')).transformOrigin.split(' ').map(Number.parseFloat)
-          const wipeOffset = circle ? Number(circle[1]) / 100 * Math.hypot(root.clientWidth, root.clientHeight) / Math.SQRT2
-            - Math.hypot(center[0] - Number(circle[2]), center[1] - Number(circle[3])) : null
+          const wipeOffset = circle ? circle.radius - Math.hypot(center[0] - circle.origin.x, center[1] - circle.origin.y) : null
           window.__themeFrames.push({
             time: performance.now(), theme: document.documentElement.dataset.theme,
             cubeTheme: document.querySelector('.cube-entrance').dataset.cubeTheme,
@@ -136,7 +131,7 @@ for (const profile of profiles) {
       const captures = await page.evaluate(() => window.__themeCaptures)
       if (!profile.reduced && !profile.noWipe) {
         expect(captures).toHaveLength(3)
-        expect(captures.every(c => !c.error && c.cubeOld === 'none' && c.gridOld === 'none' && c.cubeNew === 'none')).toBe(true)
+        expect(captures.every(c => c.copies === 4 && c.canvases === 1)).toBe(true)
         expect(frames.some(f => f.transitioning)).toBe(true)
         for (const direction of ['to-dark', 'to-light']) {
           const reveal = frames.filter(f => f.direction === direction && f.wipeOffset !== null)

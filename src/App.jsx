@@ -19,6 +19,7 @@ import { useHomeGridMotion } from './hooks/useHomeGridMotion';
 import { usePortfolioViewportSize } from './hooks/usePortfolioViewportSize';
 import { getHomeViewportLayout } from './hooks/useHomeViewportLayout';
 import { revealCubeWithWipe } from './utils/themeWipe';
+import { prepareBackdropWipe } from './utils/backdropWipe';
 import './styles/home-layout.css';
 import { RenderProfileContext } from './context/RenderProfileContext';
 
@@ -124,8 +125,8 @@ export default function App() {
       return;
     }
 
-    // Defer one frame so the browser captures a settled frame instead of
-    // one mid-press-animation / mid-main-thread-churn. The guard is taken
+    // Defer one frame so press feedback settles before preparing palette
+    // copies. The guard is taken
     // inside the callback so a dep change in between (e.g. wheel zoom)
     // cancels this rAF and reschedules cleanly instead of wedging.
     let cancelled = false;
@@ -150,21 +151,19 @@ export default function App() {
       const direction = isDark ? 'to-light' : 'to-dark';
       document.documentElement.setAttribute('data-theme-direction', direction);
 
-      // Named live layers keep the cube, breathing, grids and floor moving
-      // above the circular color reveal; no animation is stopped or restarted.
+      // Keep the existing live motion; only palette copies are temporary.
       document.documentElement.classList.add('theme-transitioning');
 
-      let vt;
+      let backdrop;
       try {
-        vt = document.startViewTransition(() => {
-          flushSync(() => { toggle({ deferCube: true }); });
-        });
+        backdrop = prepareBackdropWipe();
+        flushSync(() => { toggle({ deferCube: true }); });
+        backdrop.captureNew();
+        cancelCubeReveal = revealCubeWithWipe(origin, backdrop, finish);
       } catch {
-        toggleFallback();
-        return;
+        backdrop?.cleanup();
+        finish();
       }
-      cancelCubeReveal = revealCubeWithWipe(vt, origin);
-      vt.finished.then(finish, finish).catch(() => {});
     });
 
     return () => { cancelled = true; cancelAnimationFrame(rafId); };

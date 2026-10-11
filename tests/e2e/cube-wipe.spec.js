@@ -22,7 +22,13 @@ async function points(page) {
   }))
   const layout = getHomeViewportLayout(info.width, info.height)
   const camera = new THREE.PerspectiveCamera(45, info.width / info.height, .1, 100)
-  camera.position.z = 5; camera.updateMatrixWorld()
+  camera.position.z = 5
+  const focal = info.height / (2 * Math.tan(Math.PI / 8))
+  // Worker breathing pivots publish the actual rendered center, including
+  // camera parallax. The fallback pivot is its settled layout center.
+  camera.position.x = layout.restingX - (info.center[0] - info.width / 2) * 5 / focal
+  camera.position.y = layout.restingY - (info.height / 2 - info.center[1]) * 5 / focal
+  camera.updateMatrixWorld()
   const rotation = new THREE.Euler(...info.rotation.map(n => n * Math.PI / 180), 0)
   const project = (name, x, y) => {
     const face = FACE_CONFIG.find(f => f.name === name)
@@ -31,7 +37,7 @@ async function points(page) {
       .add(new THREE.Vector3(layout.restingX, layout.restingY, 0)).project(camera)
     return { x: info.rect.x + (p.x + 1) / 2 * info.rect.width, y: info.rect.y + (1 - p.y) / 2 * info.rect.height }
   }
-  return { click: project('theme', .15, 0), body: [[-.55, .65], [.55, .65], [-.55, -.55], [.55, -.55]].map(([x,y]) => project('projects', x, y)) }
+  return { click: project('theme', .15, 0), body: [[-.25, .35], [.25, .35], [-.25, -.35], [.25, -.35]].map(([x,y]) => project('projects', x, y)) }
 }
 
 async function pixels(page, points) {
@@ -59,16 +65,12 @@ for (const profile of profiles) test.describe(profile.name, () => {
     await page.addInitScript(profile => {
       Object.defineProperty(navigator, 'hardwareConcurrency', { get: () => profile.low ? 2 : 8 })
       Object.defineProperty(navigator, 'deviceMemory', { get: () => profile.low ? 2 : 8 })
+      Object.defineProperty(navigator, 'connection', { get: () => ({ effectiveType: '4g', saveData: false }) })
       if (profile.fallback) HTMLCanvasElement.prototype.transferControlToOffscreen = undefined
-      const native = document.startViewTransition.bind(document)
-      document.startViewTransition = (...args) => {
-        const vt = native(...args); window.__wipeTransition = vt
-        vt.ready.then(() => {
-          const animation = document.getAnimations().find(a => a.animationName === 'theme-circle-expand' || a.animationName === 'theme-circle-shrink')
-          animation.pause(); animation.currentTime = 1; window.__wipeAnimation = animation
-        }).catch(() => {})
-        return vt
-      }
+      window.addEventListener('theme-wipe-start', e => {
+        const animation = e.detail.animation
+        animation.pause(); animation.currentTime = 1; window.__wipeAnimation = animation
+      })
     }, profile)
     await page.goto('./')
     await expect(page.locator('.boot-screen')).toHaveCount(0, { timeout: 30000 })
@@ -76,17 +78,27 @@ for (const profile of profiles) test.describe(profile.name, () => {
     if (profile.fallback) await expect(page.locator('.cube-entrance')).not.toHaveAttribute('data-renderer', 'worker')
     else await expect(page.locator('.cube-entrance')).toHaveAttribute('data-renderer', 'worker')
     for (const theme of ['demain-soir-bleu', 'clair-obscur']) {
-      const { click, body } = await points(page)
+      const { click } = await points(page)
       if (profile.mobile) await page.touchscreen.tap(click.x, click.y)
       else await page.mouse.click(click.x, click.y)
       await expect(page.locator('html')).toHaveAttribute('data-theme', theme)
       await page.waitForFunction(() => window.__wipeAnimation?.playState === 'paused')
-      await page.waitForTimeout(350)
+      // A desktop click also moves the parallax camera. Let its existing
+      // idle return settle before choosing fixed pixels for palette comparisons.
+      await page.waitForTimeout(profile.mobile ? 350 : 4000)
+      await page.locator('.cube-breath').evaluate(el => el.getAnimations().forEach(a => a.pause()))
+      const { body } = await points(page)
       const old = await pixels(page, body)
       await page.screenshot({ path: testInfo.outputPath(`${theme}-old.png`), scale: 'css' })
       await page.evaluate(() => { window.__wipeAnimation.currentTime = 1999 })
-      await page.waitForTimeout(200)
-      const next = await pixels(page, body)
+      // A native clip update and its asynchronous WebGL paint need not land
+      // in the same frame, especially with desktop software WebGL. Wait for
+      // the observable palette rather than treating 200 ms as a paint fence.
+      let next
+      await expect.poll(async () => {
+        next = await pixels(page, body)
+        return next.every((pixel, i) => Math.abs(pixel[0] - old[i][0]) > 65)
+      }, { timeout: 5000 }).toBe(true)
       await page.screenshot({ path: testInfo.outputPath(`${theme}-new.png`), scale: 'css' })
       const origin = await page.evaluate(() => ({
         x: parseFloat(document.documentElement.style.getPropertyValue('--theme-origin-x')),
@@ -97,27 +109,33 @@ for (const profile of profiles) test.describe(profile.name, () => {
       const radius = (sorted[1] + sorted[2]) / 2
       const actualRadius = await page.evaluate(({ radius, expand }) => {
         const root = document.documentElement
-        const pseudo = expand ? '::view-transition-new(root)' : '::view-transition-old(root)'
         let low = 1, high = 1999, current
         for (let i = 0; i < 20; i++) {
           const mid = (low + high) / 2; window.__wipeAnimation.currentTime = mid
-          current = Number(getComputedStyle(root, pseudo).clipPath.match(/^circle\(([\d.]+)%/)[1]) / 100 * Math.hypot(root.clientWidth,root.clientHeight) / Math.SQRT2
+          current = 1.5 * (expand ? window.__wipeAnimation.effect.getComputedTiming().progress : 1 - window.__wipeAnimation.effect.getComputedTiming().progress) * Math.hypot(root.clientWidth,root.clientHeight) / Math.SQRT2
           if ((current < radius) === expand) low = mid; else high = mid
         }
         return current
       }, { radius, expand: theme === 'demain-soir-bleu' })
-      await page.waitForTimeout(200)
-      const mixed = await pixels(page, body)
       const selections = distances.map(d => (d < actualRadius) === (theme === 'demain-soir-bleu'))
+      let mixed
+      await expect.poll(async () => {
+        mixed = await pixels(page, body)
+        return mixed.every((pixel, i) => pixel.every((value, c) =>
+          Math.abs(value - (selections[i] ? next[i] : old[i])[c]) < 25))
+      }, { timeout: 5000 }).toBe(true)
       await testInfo.attach(`${theme} pixel colors`, { body: JSON.stringify({ old, next, mixed, selections, radius: actualRadius, body }), contentType: 'application/json' })
       await page.screenshot({ path: testInfo.outputPath(`${theme}-split-palette.png`), scale: 'css' })
       expect(selections.filter(Boolean)).toHaveLength(2)
       for (let i = 0; i < body.length; i++) {
+        for (const sample of [old[i], next[i]]) {
+          expect(Math.max(...sample) - Math.min(...sample), 'sample stays on the neutral cube body').toBeLessThan(4)
+        }
         expect(Math.abs(old[i][0] - next[i][0]), 'body palettes must visibly differ').toBeGreaterThan(65)
         const expected = selections[i] ? next[i] : old[i]
         for (let c = 0; c < 3; c++) expect(Math.abs(mixed[i][c] - expected[c]), `pixel ${i}, channel ${c}`).toBeLessThan(25)
       }
-      await page.evaluate(() => { window.__wipeTransition.skipTransition(); window.__wipeAnimation = null })
+      await page.evaluate(() => { window.__wipeAnimation.finish(); window.__wipeAnimation = null })
       await expect(page.locator('html')).not.toHaveClass(/theme-transitioning/)
       await expect(page.locator('.cube-entrance')).toHaveAttribute('data-cube-theme', theme)
     }

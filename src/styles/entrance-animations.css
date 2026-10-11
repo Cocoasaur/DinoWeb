@@ -36,62 +36,11 @@
     --theme-transition-easing: cubic-bezier(0.76, 0, 0.24, 1);
 }
 
-[data-theme-direction='to-dark']::view-transition-old(root) {
-    animation: none;
-    z-index: 1;
-}
-
-[data-theme-direction='to-dark']::view-transition-new(root) {
-    animation: theme-circle-expand var(--theme-transition-duration) var(--theme-transition-easing) forwards;
-    z-index: 2;
-}
-
-[data-theme-direction='to-light']::view-transition-old(root) {
-    animation: theme-circle-shrink var(--theme-transition-duration) var(--theme-transition-easing) forwards;
-    z-index: 2;
-}
-
-[data-theme-direction='to-light']::view-transition-new(root) {
-    animation: none;
-    z-index: 1;
-}
-
-@keyframes theme-circle-expand {
-    from {
-        clip-path: circle(0% at var(--theme-origin-x, 50%) var(--theme-origin-y, 50%));
-    }
-
-    to {
-        clip-path: circle(150% at var(--theme-origin-x, 50%) var(--theme-origin-y, 50%));
-    }
-}
-
-@keyframes theme-circle-shrink {
-    from {
-        clip-path: circle(150% at var(--theme-origin-x, 50%) var(--theme-origin-y, 50%));
-    }
-
-    to {
-        clip-path: circle(0% at var(--theme-origin-x, 50%) var(--theme-origin-y, 50%));
-    }
-}
-
-/* Keep moving layers live in both reveal directions. The old root snapshot
-   cannot freeze their motion or paint a second cube over the new canvas. */
-.home-grid-parallax { view-transition-name: home-grid-motion; }
-.cube-entrance { view-transition-name: home-cube-motion; }
-::view-transition-group(home-grid-motion),
-::view-transition-group(home-cube-motion) {
-    animation: none;
-    z-index: 3;
-}
-::view-transition-old(home-grid-motion),
-::view-transition-old(home-cube-motion) { display: none; }
-::view-transition-new(home-grid-motion),
-::view-transition-new(home-cube-motion) {
-    animation: none;
-    mix-blend-mode: normal;
-}
+/* Live palette masks own the reveal. Color transitions must not interpolate
+   beneath them; existing camera transforms, drift and breathing stay live. */
+.theme-transitioning .portfolio-viewport { transition: none !important; }
+.theme-transitioning .home-chrome *,
+.theme-transitioning .home-sidebar-wipe * { transition-property: opacity, top !important; }
 
 /* ── Certification lightbox (About page) ── */
 .cert-lightbox {
