@@ -57,6 +57,7 @@ function getCubeScreenOrigin(zoomZ) {
 export default function App() {
   const { toggle, isDark, revealCubeTheme } = useTheme();
   const transitionInProgressRef = useRef(false);
+  const cancelActiveWipeRef = useRef(null);
   const screenPosRef = useRef({ x: 0, y: 0, valid: false });
   const faceDownPosRef = useRef({ x: 0, y: 0, valid: false });
   const { dpr, tier, isMobile, labelScale } = useAdaptiveDPR();
@@ -79,6 +80,12 @@ export default function App() {
 
   useEffect(() => { updateZoomCoord(zoomZ); }, [zoomZ, updateZoomCoord]);
 
+  useEffect(() => () => {
+    cancelActiveWipeRef.current?.();
+    document.documentElement.classList.remove('theme-transitioning');
+    document.documentElement.removeAttribute('data-theme-direction');
+  }, []);
+
   useEffect(() => {
     const onWheel = (e) => { if (!isZoomed) handleWheel(e); };
     document.addEventListener('wheel', onWheel, { passive: true });
@@ -91,6 +98,7 @@ export default function App() {
     let cancelCubeReveal = () => {};
     const finish = () => {
       cancelCubeReveal();
+      cancelActiveWipeRef.current = null;
       // Also commit when the browser skips/interrupts the animation.
       revealCubeTheme();
       document.documentElement.classList.remove('theme-transitioning');
@@ -160,6 +168,7 @@ export default function App() {
         flushSync(() => { toggle({ deferCube: true }); });
         backdrop.captureNew();
         cancelCubeReveal = revealCubeWithWipe(origin, backdrop, finish);
+        cancelActiveWipeRef.current = cancelCubeReveal;
       } catch {
         backdrop?.cleanup();
         finish();
