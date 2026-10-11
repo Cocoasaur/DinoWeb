@@ -324,3 +324,44 @@ Reports, regression results and split-palette screenshots are saved in
 as `cube-spatial-desktop.report.html`, `cube-spatial-mobile.report.html`, their
 JSON counterparts, `cube-spatial-regressions.json`,
 `cube-spatial-pixel-checks.json`, and `cube-spatial-*.png`.
+
+## Responsive home alignment — October 10, 2026
+
+The recording's near-square and portrait tablet layouts are covered by viewport
+checks at 661×695, 527×497 and 960×1440, alongside neighboring breakpoints.
+
+- Branding and cube placement now share one viewport composition. Visible SVG
+  bounds determine the portrait lockup's center and clearance. Landscape branding
+  fits its left column, while the cube fits the remaining space using its camera
+  projection. Vertical positioning uses the camera's vertical FOV independently
+  of aspect ratio, consistently for touch and fine-pointer devices.
+- Headers, footer and desktop controls use shared insets. Width and height fit the
+  composition continuously; conflicting orientation and brand-scale overrides
+  have been removed. Existing tablet/low-end control limits remain in place.
+- Composition and CSS variables update only on viewport events through the
+  existing coalesced size measurement. No render loop, scene pass, renderer or
+  shader was added. The previous cube wipe, breathing, grid/floor motion and
+  navigation implementation remain intact.
+- Pixel regressions use the worker's published rendered center to account for
+  desktop parallax and sample interior body pixels. They also assert neutral body
+  colors before checking the old/new palette split, rejecting background samples.
+
+All 41 distinct browser checks pass: the final six wipe checks and four alignment
+profiles, plus 31 existing resize, theme motion, navigation and device-budget
+checks. The alignment matrix covers 21 sizes on each of four profiles, including
+6× CPU-throttled low-end fallback rendering (84 viewport cases). Build and
+changed-file ESLint checks pass.
+
+Fresh local Lighthouse performance audits against the production preview:
+
+| Profile | Performance | FCP | LCP | Blocking time | CLS |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Desktop | 100 | 0.3 s | 0.5 s | 0 ms | 0.00017 |
+| Mobile | 100 | 0.8 s | 1.0 s | 0 ms | 0.00025 |
+
+Both runs have no audit warnings. Startup/loader measurement scope remains the
+same as the earlier audits; separate interaction checks cover the actual cube.
+Reports, the combined passing-check summary and corrected screenshots are saved
+under the artifact directory above in `responsive-2026-10-10/` as
+`desktop.report.html`, `mobile.report.html`, their JSON counterparts,
+`summary.json`, `final-alignment-and-wipe.json` and `aligned-*.png`.
