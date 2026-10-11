@@ -51,11 +51,13 @@
     animation-play-state: paused;
 }
 .home-stage-backdrop__pool {
+    background: var(--floor-pool);
     position: absolute; bottom: -7%; width: 55%; height: 30%;
     transform: translateX(-50%) translate3d(calc(var(--floor-shadow-x, 0px) * var(--floor-zoom-scale, 1)), calc(var(--floor-shadow-y, 0px) * var(--floor-zoom-scale, 1)), 0);
     transition: transform 850ms cubic-bezier(.18, .72, .32, 1);
 }
 .home-stage-backdrop__shadow {
+    background: var(--floor-shadow);
     position: absolute;
     max-width: 82vw;
     transform: translate(-50%, -50%) translate3d(calc(var(--floor-shadow-x, 0px) * var(--floor-zoom-scale, 1)), calc(var(--floor-shadow-y, 0px) * var(--floor-zoom-scale, 1)), 0);
