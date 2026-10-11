@@ -252,7 +252,6 @@
 
   to {
     transform: translate3d(var(--drift-step-x, 100px), var(--drift-step-y, 100px), 0);
-    will-change: transform;
   }
 }
 
