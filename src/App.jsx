@@ -232,7 +232,7 @@ export default function App() {
 
         <CornerMarkers />
         <ThemeLabel />
-        {!reduceEffects && <Scrubber />}
+        {!isMobile && !reducedMotion && <Scrubber />}
         <CoordinateDisplay coordsRef={coordsRef} paused={overlayPhase === 'open'} />
         <Footer />
         <MobileBranding />
