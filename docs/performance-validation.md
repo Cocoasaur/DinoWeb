@@ -478,3 +478,64 @@ Reports, regression results and the corrected medium-desktop screenshot are
 saved under the artifact directory above in `desktop-scrubber-2026-10-10/` as
 `desktop.report.html`, `mobile.report.html`, their JSON counterparts,
 `regressions.json`, `summary.json` and `desktop-cursor-bar.png`.
+
+
+## Background and ground palette wipe — October 10, 2026
+
+The live background and floor previously inherited the new CSS palette as soon
+as the native theme transition callback ran. Their named transition groups sit
+above the root snapshots, so the root circle could not hide that immediate swap.
+Both now retain their old palette ahead of the circle and reveal the new palette
+behind it, in both directions. Floor pool/shadow gradients use the same palette
+handoff without changing their existing colors or geometry.
+
+The grid reveal samples the browser’s actual circle through the cube’s existing
+short-lived transition loop. Temporary CSS palette copies use complementary
+circle/path clips, share the original CSS drift clocks, and follow the live
+floor’s camera transforms. Original nodes/animations remain in place. A static
+outer view-transition group lets the background’s inner parallax continue
+moving. Copies and held palette/clip styles are removed on completion or
+interruption. This adds no WebGL context/pass, React frame updates or idle loop;
+DPR, scene quality and reduced-motion/no-transition behavior remain unchanged.
+The earlier centered staggered branding, responsive composition and desktop
+cursor-bar fixes remain in both checkouts.
+
+All 38 distinct browser checks pass: six new background/ground pixel profiles,
+one live-clock/interruption check, eleven existing theme/motion checks, six cube
+wipe profiles, six desktop/touch-grid motion checks and eight rendering-budget
+checks. The new pixel fixtures sample 480 visible line pixels across both reveal
+directions, with maximum RGB-channel error of 1 out of 255. They cover worker and
+fallback renderers, phones, desktops and a 6× CPU-throttled low-end fallback.
+The live-motion check retains original animation objects, finds zero clock skew
+between old/new drift textures, and verifies matching projected floor matrices.
+
+The first broader run found two desktop cube-fixture failures: its fixed 200 ms
+wait captured before asynchronous WebGL paint, while the next screenshot already
+showed the correct palette. The fixture now waits for observable rendered colors
+while retaining its palette-difference and spatial-mask assertions. All six cube
+profiles then passed; production cube rendering code was not changed.
+
+Both production builds, changed-file ESLint and diff-whitespace checks pass.
+All changed/new source files match in the main checkout and Codex worktree.
+
+Fresh local Lighthouse performance audits of the final production build:
+
+| Profile | Performance | FCP | LCP | Blocking time | CLS |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Desktop | 100 | 0.3 s | 0.5 s | 0 ms | 0.00021 |
+| Mobile | 100 | 1.1 s | 1.4 s | 0 ms | 0.00100 |
+| Mobile repeat | 100 | 0.8 s | 1.0 s | 2 ms | 0.00094 |
+
+All three audits have no warnings. The pre-fix mobile baseline also scored 100,
+so the user’s reported 99 was not reproduced locally; these measurements do not
+establish its cause or guarantee identical results on other devices. Audits
+retain the startup/loader measurement scope above; separate browser tests cover
+the actual circular wipe, ongoing motion and settled rendering budgets.
+
+Reports, pixel measurements, live-clock results and screenshots are saved under
+the artifact directory above in `grid-wipe-2026-10-10/`: `desktop.report.html`,
+`mobile.report.html`, `mobile-repeat.report.html`, their JSON counterparts,
+`grid-wipe-baseline-mobile.report.html` / `.json`, `grid-pixels.json`,
+`live-motion.json`, `regressions-initial.json`, `cube-pixels-final.json` and
+`summary.json`. The summary combines final passing results for all 38 distinct
+checks and retains the initial desktop fixture failures for traceability.
