@@ -347,3 +347,48 @@ export function useAboutAnimations(pageRef, ready) {
         if (ready) controllersRef.current.forEach(controller => controller.sync());
     }, { scope: pageRef, dependencies: [ready] });
 }
+
+export function useAboutCertificateAnimations(galleryRef, category, page, pageSize) {
+    const { tier } = useRenderProfile();
+    useGSAP(() => {
+        const gallery = galleryRef.current;
+        const section = gallery.parentElement;
+        const scroller = gallery.closest('.portfolio-overlay-panel');
+        if (!scroller) return;
+        const media = gsap.matchMedia();
+        media.add({ ...MEDIA, tablet: '(min-width: 768px)', wide: '(min-width: 1280px)' }, ({ conditions }) => {
+            if (conditions.reducedMotion) return;
+            const fullMotion = conditions.desktop && tier !== 'low';
+            const columns = conditions.wide ? 4 : conditions.tablet ? 3 : 2;
+            const controllers = [];
+            gallery.querySelectorAll('.about-cert-cell').forEach((card, index) => {
+                const side = index % columns < columns / 2 ? -1 : 1;
+                controllers.push(repeatingReveal(card, scroller, {
+                    x: side * (fullMotion ? 22 : 6),
+                    y: fullMotion ? 76 : 36,
+                    scale: fullMotion ? 0.86 : 0.92,
+                    rotation: side * (fullMotion ? 5 : 2),
+                    rotationY: side * (fullMotion ? 14 : 0),
+                    transformPerspective: 900,
+                    delay: (index % columns) * 0.065,
+                }, {
+                    scrollStagger: (index % columns) * (fullMotion ? 22 : 10),
+                    exitVars: {
+                        x: -side * (fullMotion ? 28 : 8),
+                        y: fullMotion ? -48 : -28,
+                        rotation: -side * (fullMotion ? 5 : 2),
+                        rotationY: -side * (fullMotion ? 10 : 0),
+                        scale: 0.92,
+                    },
+                }));
+            });
+            section.querySelectorAll('.about-cert-pagination-btn').forEach((button, index) => {
+                controllers.push(repeatingReveal(button, scroller, {
+                    y: 22, scale: 0.8, delay: index * 0.04,
+                }, { scrollStagger: index * 8 }));
+            });
+            return preserveFocus(section, controllers);
+        }, gallery);
+        return () => media.revert();
+    }, { scope: galleryRef, dependencies: [category, page, pageSize, tier], revertOnUpdate: true });
+}
