@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
+import { useAboutDetailAnimations } from '../../hooks/useAboutAnimations';
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -205,6 +206,8 @@ export default function GitHubContributions({ username = 'Cocoasaur' }) {
     const [dataByYear, setDataByYear] = useState({});
     const [loadingYear, setLoadingYear] = useState(null);
     const [globalFailed, setGlobalFailed] = useState(false);
+    const viewerRef = useRef(null);
+    useAboutDetailAnimations(viewerRef, 'contributions', globalFailed);
     const [retryNonce, setRetryNonce] = useState(0);
     const dataRef = useRef({});
 
@@ -362,6 +365,7 @@ export default function GitHubContributions({ username = 'Cocoasaur' }) {
     if (globalFailed) {
         return (
             <div
+                ref={viewerRef}
                 className="about-contributions-cell border p-4"
                 style={{ borderColor: 'var(--void-border)', backgroundColor: 'var(--void-surface-80)' }}
             >
@@ -492,6 +496,7 @@ export default function GitHubContributions({ username = 'Cocoasaur' }) {
     return (
         <>
         <div
+            ref={viewerRef}
             className="about-contributions-cell border p-4 md:p-5"
             style={{ borderColor: 'var(--void-border)', backgroundColor: 'var(--void-surface-80)' }}
         >
@@ -559,7 +564,7 @@ export default function GitHubContributions({ username = 'Cocoasaur' }) {
                     )}
                 </div>
             </div>
-            {body}
+            <div className="about-contributions-body">{body}</div>
             </div>
 
             {/* Day tooltip — portaled to <body> so the scrollable calendar
