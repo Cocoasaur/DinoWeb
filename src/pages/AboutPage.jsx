@@ -1,10 +1,10 @@
-import { useState, useEffect, useRef, lazy, Suspense } from 'react';
+import { useState, useEffect, useRef, lazy, Suspense, Fragment } from 'react';
 import { createPortal } from 'react-dom';
 import DeferredSection from '../components/ui/DeferredSection';
 import TiltCard from '../components/ui/TiltCard';
 import OverlayNavIcon from '../components/ui/OverlayNavIcon';
 import GitHubContributions from '../components/ui/GitHubContributions';
-import { useTimelineSpy } from '../hooks/useTimelineSpy';
+import { useAboutAnimations, useAboutCertificateAnimations } from '../hooks/useAboutAnimations';
 import profileImage from '../assets/images/profile/me.webp';
 
 const CvViewer = lazy(() => import('../components/ui/CvViewer'));
@@ -17,8 +17,6 @@ import zuittCodingBootcamp from '../assets/certifications/ZUITT_Free_Coding_Boot
 import gdgBacolod from '../assets/certifications/GDG_Bacolod.webp';
 import googleForEducation from '../assets/certifications/Google_for_Education.webp';
 import ciscoIntroDS from '../assets/certifications/Cisco_Data_Science.webp';
-
-const DOT_GLOW_STAGGER_MS = 400;
 
 const S = {
     label: {
@@ -84,51 +82,40 @@ const CERTIFICATIONS = [
 
 const CERT_CATEGORIES = ['All', 'AI & Data', 'Programming', 'Excel', 'Tech Events'];
 
-function useStaggeredReveal(target, delayMs) {
-    const [lit, setLit] = useState(target);
-    const timerRef = useRef(0);
-
-    useEffect(() => {
-        clearTimeout(timerRef.current);
-
-        if (target < lit) {
-            setLit(target);
-            return;
-        }
-
-        if (target > lit) {
-            timerRef.current = setTimeout(() => {
-                setLit((current) => Math.min(current + 1, target));
-            }, delayMs);
-        }
-
-        return () => clearTimeout(timerRef.current);
-    }, [target, lit, delayMs]);
-
-    return lit;
+function AboutCopy({ children, className }) {
+    const words = children.replace(/\s+/g, ' ').trim().split(' ');
+    return (
+        <p className={className} style={S.p}>
+            {words.map((word, index) => (
+                <Fragment key={index}>
+                    <span className="about-copy-word">{word}</span>
+                    {index < words.length - 1 ? ' ' : null}
+                </Fragment>
+            ))}
+        </p>
+    );
 }
 
-function TimelineItem({ year, degree, academic_track, school, desc, active, ref }) {
-    const lit = active;
-
+function TimelineItem({ year, degree, academic_track, school, desc }) {
     return (
         <div
-            ref={ref}
             className="about-timeline-item relative pl-8 pb-8 last:pb-0"
         >
             <div
                 className="about-timeline-line absolute left-1.5 -translate-x-1/2 top-3 -bottom-3 last:bottom-0 w-px"
                 style={{ backgroundColor: 'var(--void-border)' }}
-            />
+            >
+                <span className="about-timeline-line-fill" />
+            </div>
             <div
-                className="about-timeline-dot absolute left-0 top-1.5 w-3 h-3 rounded-full border-2 transition-all duration-300"
+                className="about-timeline-dot absolute left-0 top-1.5 w-3 h-3 rounded-full border-2"
                 style={{
-                    borderColor: lit ? 'var(--void-accent)' : 'var(--void-border)',
-                    backgroundColor: lit ? 'var(--void-accent)' : 'transparent',
-                    boxShadow: lit ? '0 0 10px var(--void-accent)' : 'none',
+                    borderColor: 'var(--void-border)',
                 }}
-            />
-            <div>
+            >
+                <span className="about-timeline-dot-fill" />
+            </div>
+            <div className="about-timeline-content">
                 <p
                     className="about-timeline-year text-[10px] tracking-[0.2em] uppercase mb-1"
                     style={{ fontFamily: "'Space Grotesk', monospace", color: 'var(--void-text-muted)' }}
@@ -158,9 +145,9 @@ function TimelineItem({ year, degree, academic_track, school, desc, active, ref 
     );
 }
 
-export default function AboutPage() {
-    const { itemRefs, activeIndex } = useTimelineSpy(EDUCATION.length);
-    const litIndex = useStaggeredReveal(activeIndex, DOT_GLOW_STAGGER_MS);
+export default function AboutPage({ motionReady = true }) {
+    const pageRef = useRef(null);
+    const galleryRef = useRef(null);
     const [lightboxCertificate, setLightboxCertificate] = useState(null);
     const [certCategory, setCertCategory] = useState('All');
     const [certPage, setCertPage] = useState(0);
@@ -192,8 +179,14 @@ export default function AboutPage() {
     const certStart = certSafePage * certPageSize;
     const visibleCerts = filteredCerts.slice(certStart, certStart + certPageSize);
 
+    useAboutAnimations(pageRef, motionReady);
+    useAboutCertificateAnimations(galleryRef, certCategory, certSafePage, certPageSize);
+
     return (
-        <div className="about-page">
+        <div ref={pageRef} className="about-page">
+            <div className="about-scroll-progress" aria-hidden="true">
+                <span className="about-scroll-progress-fill" />
+            </div>
             {/* Header */}
             <div className="about-header mb-10 pb-6 border-b" style={{ borderColor: 'var(--void-border)' }}>
                 <p className="about-label uppercase mb-2" style={S.label}>
@@ -202,8 +195,13 @@ export default function AboutPage() {
                 <h2
                     className="about-title text-4xl font-bold uppercase"
                     style={{ ...S.h2, letterSpacing: '0.18em' }}
+                    aria-label="About"
                 >
-                    About
+                    <span className="about-title-mask" aria-hidden="true">
+                        {'About'.split('').map((letter, index) => (
+                            <span key={index} className="about-title-char">{letter}</span>
+                        ))}
+                    </span>
                 </h2>
             </div>
 
@@ -216,23 +214,23 @@ export default function AboutPage() {
                     <h3 className="about-section-title uppercase mb-5" style={S.h3}>
                         Introduction
                     </h3>
-                    <p className="about-copy text-[15px] leading-[1.7] mb-6" style={S.p}>
+                    <AboutCopy className="about-copy text-[15px] leading-[1.7] mb-6">
                         Hi, I'm John Jessienel M. Arquesola. I'm a computer science student passionate
                         about exploring the endless possibilities of technology. I'm constantly
                         experimenting with new tools, refining my craft in programming and design,
                         and finding fresh ways to blend logic with imagination.
-                    </p>
-                    <p className="about-copy text-[15px] leading-[1.7] mb-6" style={S.p}>
+                    </AboutCopy>
+                    <AboutCopy className="about-copy text-[15px] leading-[1.7] mb-6">
                         For me, growth isn't just about learning new skills, it's about stretching
                         boundaries, embracing the unknown, and turning obstacles into opportunities.
                         Whether I'm sketching out a design, debugging a tricky line of code, or
                         exploring the next wave of innovation, I bring both creativity and
                         determination to the table.
-                    </p>
-                    <p className="about-copy text-[15px] leading-[1.7]" style={S.p}>
+                    </AboutCopy>
+                    <AboutCopy className="about-copy text-[15px] leading-[1.7]">
                         I don't just chase challenges, I welcome them, because each one is a chance
                         to create something meaningful, elegant, and lasting.
-                    </p>
+                    </AboutCopy>
                 </div>
 
                 {/* Right — Profile Picture */}
@@ -241,25 +239,27 @@ export default function AboutPage() {
                         Profile Picture
                     </h3>
                     <div className="about-profile-wrap mb-0">
-                        <TiltCard
-                            className="about-profile-card rounded-2xl overflow-hidden border"
-                            style={{
-                                borderColor: 'var(--void-border)',
-                                boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
-                            }}
-                            tiltAmount={14}
-                            scale={1.03}
-                            depth={0}
-                        >
-                            <img
-                                src={profileImage}
-                                alt="Profile avatar"
-                                className="about-profile-image w-full h-full object-cover"
-                                loading="lazy"
-                                decoding="async"
-                                draggable={false}
-                            />
-                        </TiltCard>
+                        <div className="about-profile-parallax">
+                            <TiltCard
+                                className="about-profile-card rounded-2xl overflow-hidden border"
+                                style={{
+                                    borderColor: 'var(--void-border)',
+                                    boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
+                                }}
+                                tiltAmount={14}
+                                scale={1.03}
+                                depth={0}
+                            >
+                                <img
+                                    src={profileImage}
+                                    alt="Profile avatar"
+                                    className="about-profile-image w-full h-full object-cover"
+                                    loading="lazy"
+                                    decoding="async"
+                                    draggable={false}
+                                />
+                            </TiltCard>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -298,7 +298,7 @@ export default function AboutPage() {
                     {filteredCerts.length} {filteredCerts.length === 1 ? 'certificate' : 'certificates'}
                     {certCategory === 'All' ? ' across all topics' : ` in ${certCategory}`}
                 </p>
-                <div id="about-certifications-grid" className="about-certifications-grid grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
+                <div ref={galleryRef} id="about-certifications-grid" className="about-certifications-grid grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
                     {visibleCerts.map(cert => (
                         <button
                             key={cert.id}
@@ -426,11 +426,13 @@ export default function AboutPage() {
                 <h3 className="about-section-title uppercase mb-5" style={S.h3}>
                     Résumé and Curriculum Vitae
                 </h3>
-                <DeferredSection minHeight={500}>
-                    <Suspense fallback={null}>
-                        <CvViewer />
-                    </Suspense>
-                </DeferredSection>
+                <div className="about-document-reveal">
+                    <DeferredSection minHeight={500}>
+                        <Suspense fallback={null}>
+                            <CvViewer />
+                        </Suspense>
+                    </DeferredSection>
+                </div>
             </div>
 
             {/* Divider: CV Viewer → GitHub Contributions */}
@@ -443,9 +445,11 @@ export default function AboutPage() {
                 <h3 className="about-section-title uppercase mb-5" style={S.h3}>
                     GitHub Contributions
                 </h3>
-                <DeferredSection>
-                    <GitHubContributions username="Cocoasaur" />
-                </DeferredSection>
+                <div className="about-document-reveal">
+                    <DeferredSection>
+                        <GitHubContributions username="Cocoasaur" />
+                    </DeferredSection>
+                </div>
             </div>
 
             {/* Divider 3: GitHub Contributions → Bottom */}
@@ -464,11 +468,7 @@ export default function AboutPage() {
                         {EDUCATION.map((item, idx) => (
                             <TimelineItem
                                 key={idx}
-                                ref={(el) => {
-                                    itemRefs.current[idx] = el;
-                                }}
                                 {...item}
-                                active={idx <= litIndex}
                             />
                         ))}
                     </div>
