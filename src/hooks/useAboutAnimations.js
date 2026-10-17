@@ -392,3 +392,32 @@ export function useAboutCertificateAnimations(galleryRef, category, page, pageSi
         return () => media.revert();
     }, { scope: galleryRef, dependencies: [category, page, pageSize, tier], revertOnUpdate: true });
 }
+
+// These viewers mount lazily, so register their persistent UI at their own mount.
+// Keep the PDF canvas and contribution cells grouped to avoid hundreds of tweens.
+export function useAboutDetailAnimations(viewerRef, kind, version = false) {
+    const { tier } = useRenderProfile();
+    useGSAP(() => {
+        const viewer = viewerRef.current;
+        const scroller = viewer.closest('.portfolio-overlay-panel');
+        if (!scroller) return;
+        const media = gsap.matchMedia();
+        media.add(MEDIA, ({ conditions }) => {
+            if (conditions.reducedMotion) return;
+            const fullMotion = conditions.desktop && tier !== 'low';
+            const selectors = kind === 'cv'
+                ? '.about-cv-tab, .about-cv-toolbar-label, .about-cv-toolbar-actions, .about-cv-scroll, .about-cv-filename, .about-cv-download'
+                : '.about-contributions-header, .about-contributions-body, .about-contributions-fallback, :scope > .about-contributions-status';
+            const controllers = Array.from(viewer.querySelectorAll(selectors), (element, index) =>
+                repeatingReveal(element, scroller, {
+                    y: fullMotion ? 40 : 22,
+                    scale: 0.97,
+                    rotationX: fullMotion && element.matches('.about-cv-scroll, .about-contributions-body') ? -7 : 0,
+                    transformPerspective: 1000,
+                    delay: (index % 3) * 0.04,
+                }, { scrollStagger: (index % 3) * 8, exitVars: { y: -30, scale: 0.97 } }));
+            return preserveFocus(viewer, controllers);
+        }, viewer);
+        return () => media.revert();
+    }, { scope: viewerRef, dependencies: [kind, tier, version], revertOnUpdate: true });
+}
