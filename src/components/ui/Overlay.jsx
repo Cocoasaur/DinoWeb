@@ -15,7 +15,6 @@ function ReadyContent({ onReady, children }) {
 }
 
 const PAGE_MAP = {
-    about: <AboutPage />,
     skills: <SkillsPage />,
     contacts: <ContactsPage />,
 };
@@ -72,6 +71,8 @@ export default function Overlay({
 
     const pageContent = faceName === 'projects'
         ? <ProjectsPage selectedProject={selectedProject} onSelectProject={onSelectProject} />
+        : faceName === 'about'
+        ? <AboutPage motionReady={phase === 'open'} />
         : (PAGE_MAP[faceName] ?? <p style={{ fontFamily: "'Inter', sans-serif", color: 'var(--void-text-dim)' }}>No data found.</p>);
 
     return (
