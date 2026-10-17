@@ -80,6 +80,63 @@
     width: 100%;
 }
 
+.about-title-mask {
+    display: inline-block;
+    overflow: hidden;
+    vertical-align: top;
+}
+
+.about-title-char {
+    display: inline-block;
+}
+
+.about-copy-word {
+    display: inline-block;
+    vertical-align: baseline;
+}
+
+.about-cv-toolbar-label,
+.about-cv-filename {
+    display: inline-block;
+}
+
+.about-scroll-progress {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    height: 2px;
+    margin-bottom: -2px;
+    pointer-events: none;
+}
+
+.about-scroll-progress-fill {
+    display: block;
+    height: 100%;
+    background: var(--void-accent);
+    transform: scaleX(0);
+    transform-origin: left center;
+}
+
+.about-timeline-line-fill {
+    position: absolute;
+    inset: 0;
+    background: var(--void-accent);
+}
+
+.about-timeline-dot-fill {
+    position: absolute;
+    inset: -2px;
+    border-radius: inherit;
+    background: var(--void-accent);
+    box-shadow: 0 0 10px var(--void-accent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .about-scroll-progress {
+        display: none;
+    }
+}
+
 .about-header,
 .about-divider {
     border-color: var(--void-border);
