@@ -112,6 +112,7 @@ export default function Overlay({
             />
             <div
                 ref={scrollPanelRef}
+                data-page={faceName}
                 className="portfolio-overlay-panel relative w-[90vw] max-w-5xl max-h-[85vh] border overlay-scroll"
                 style={{
                     backgroundColor: 'var(--void-surface)',
