@@ -241,13 +241,14 @@ export function useAboutAnimations(pageRef, ready) {
                 }, { readyRef, ...options }));
             };
 
-            const entrance = gsap.timeline({
+            const headline = select('.about-title-char, .about-title-accent');
+            const headerMotion = gsap.timeline({
                 defaults: { ease: 'power3.out', duration },
                 paused: true,
             });
-            entrance
-                .from(select('.about-label'), { y: 12, opacity: 0, clearProps: 'transform,opacity' })
-                .from(select('.about-title-char, .about-title-accent'), {
+            headerMotion
+                .from(select('.about-label'), { y: 12, opacity: 0, duration: 0.4, clearProps: 'transform,opacity' }, 0)
+                .from(headline, {
                     yPercent: 110,
                     opacity: 0,
                     rotationX: fullMotion ? -75 : -35,
@@ -255,11 +256,35 @@ export function useAboutAnimations(pageRef, ready) {
                     scale: 0.75,
                     transformPerspective: 700,
                     transformOrigin: 'center bottom',
-                    stagger: 0.075,
-                    duration: fullMotion ? 0.85 : 0.5,
+                    stagger: { amount: 0.18 },
+                    duration: 0.72,
                     clearProps: 'transform,transformOrigin,opacity',
-                }, '<0.1');
-            controllers.push(repeatAnimation(root.querySelector('.about-header'), entrance, scroller, { readyRef }));
+                }, 0.1)
+                .to({}, { duration: 1 }, 1)
+                // Exit upward through the existing letter mask instead of
+                // replaying the downward entrance as the header scrolls out.
+                .fromTo(headline, {
+                    yPercent: 0, rotation: 0, rotationX: 0, scale: 1, opacity: 1,
+                }, {
+                    yPercent: -110,
+                    rotationX: fullMotion ? 35 : 15,
+                    transformOrigin: 'center top',
+                    opacity: 0,
+                    duration: 0.8,
+                    stagger: { amount: 0.2 },
+                    ease: 'power1.out',
+                    immediateRender: false,
+                }, 2)
+                .fromTo(select('.about-label'), { y: 0, opacity: 1 }, {
+                    y: -10, opacity: 0, duration: 0.5, immediateRender: false,
+                }, 2);
+            const headerOpening = gsap.to(headerMotion, {
+                time: 1, duration: fullMotion ? 1.25 : 0.8, ease: 'none', paused: true,
+            });
+            controllers.push(repeatAnimation(root.querySelector('.about-header'), headerMotion, scroller, {
+                readyRef, phased: true, opening: headerOpening,
+                restTargets: [...headline, ...select('.about-label')],
+            }));
 
             const stopProgress = trackScrollProgress(root, scroller);
 
