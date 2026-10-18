@@ -4,6 +4,7 @@ import { Document, Page, pdfjs } from 'react-pdf';
 import resumePdf from '../../assets/resume/John_Arquesola_Resume.pdf';
 import cvPdf from '../../assets/resume/John_Arquesola_Curriculum_Vitae.pdf';
 import { getPdfRasterRatio } from '../../utils/pdfRenderBudget';
+import { useAboutDetailAnimations } from '../../hooks/useAboutAnimations';
 
 pdfjs.GlobalWorkerOptions.workerSrc = new URL(
     'pdfjs-dist/build/pdf.worker.min.mjs',
@@ -96,6 +97,8 @@ function DownloadIcon() {
 
 export default function CvViewer() {
     const { tier = 'high' } = useRenderProfile();
+    const viewerRef = useRef(null);
+    useAboutDetailAnimations(viewerRef, 'cv');
     const stackRef = useRef(null);
     const [activeDocumentId, setActiveDocumentId] = useState(DOCUMENTS[0].id);
     const [numPages, setNumPages] = useState(null);
@@ -152,7 +155,7 @@ export default function CvViewer() {
     };
 
     return (
-        <div className="about-cv-viewer-container border" style={{ borderColor: 'var(--void-border)' }}>
+        <div ref={viewerRef} className="about-cv-viewer-container border" style={{ borderColor: 'var(--void-border)' }}>
             <div
                 className="about-cv-tabs"
                 role="tablist"

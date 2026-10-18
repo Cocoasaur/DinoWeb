@@ -1,10 +1,10 @@
-import { useState, useEffect, useRef, lazy, Suspense } from 'react';
+import { useState, useEffect, useRef, lazy, Suspense, Fragment } from 'react';
 import { createPortal } from 'react-dom';
 import DeferredSection from '../components/ui/DeferredSection';
 import TiltCard from '../components/ui/TiltCard';
 import OverlayNavIcon from '../components/ui/OverlayNavIcon';
 import GitHubContributions from '../components/ui/GitHubContributions';
-import { useTimelineSpy } from '../hooks/useTimelineSpy';
+import { useAboutAnimations, useAboutCertificateAnimations } from '../hooks/useAboutAnimations';
 import profileImage from '../assets/images/profile/me.webp';
 
 const CvViewer = lazy(() => import('../components/ui/CvViewer'));
@@ -18,25 +18,7 @@ import gdgBacolod from '../assets/certifications/GDG_Bacolod.webp';
 import googleForEducation from '../assets/certifications/Google_for_Education.webp';
 import ciscoIntroDS from '../assets/certifications/Cisco_Data_Science.webp';
 
-const DOT_GLOW_STAGGER_MS = 400;
-
 const S = {
-    label: {
-        fontFamily: "'Space Grotesk', monospace",
-        color: 'var(--void-text-dim)',
-        fontSize: '10px',
-        letterSpacing: '0.3em',
-    },
-    h2: {
-        fontFamily: "'Space Grotesk', monospace",
-        color: 'var(--void-text-full)',
-    },
-    h3: {
-        fontFamily: "'Space Grotesk', monospace",
-        color: 'var(--void-text-dim)',
-        fontSize: '10px',
-        letterSpacing: '0.3em',
-    },
     p: {
         fontFamily: "'Inter', sans-serif",
         color: 'var(--void-text)',
@@ -84,51 +66,52 @@ const CERTIFICATIONS = [
 
 const CERT_CATEGORIES = ['All', 'AI & Data', 'Programming', 'Excel', 'Tech Events'];
 
-function useStaggeredReveal(target, delayMs) {
-    const [lit, setLit] = useState(target);
-    const timerRef = useRef(0);
-
-    useEffect(() => {
-        clearTimeout(timerRef.current);
-
-        if (target < lit) {
-            setLit(target);
-            return;
-        }
-
-        if (target > lit) {
-            timerRef.current = setTimeout(() => {
-                setLit((current) => Math.min(current + 1, target));
-            }, delayMs);
-        }
-
-        return () => clearTimeout(timerRef.current);
-    }, [target, lit, delayMs]);
-
-    return lit;
+function AboutCopy({ children, className }) {
+    const words = children.replace(/\s+/g, ' ').trim().split(' ');
+    return (
+        <p className={className} style={S.p}>
+            {words.map((word, index) => (
+                <Fragment key={index}>
+                    <span className="about-copy-word">{word}</span>
+                    {index < words.length - 1 ? ' ' : null}
+                </Fragment>
+            ))}
+        </p>
+    );
 }
 
-function TimelineItem({ year, degree, academic_track, school, desc, active, ref }) {
-    const lit = active;
+function ChapterHeader({ number, title, note, id }) {
+    return (
+        <div className="about-chapter-bar">
+            <h3 id={id} className="about-section-title">
+                <span className="about-chapter-number">{number}</span> / {title}
+            </h3>
+            <span className="about-chapter-note">{note}</span>
+            <span className="about-divider" aria-hidden="true" />
+        </div>
+    );
+}
 
+function TimelineItem({ year, degree, academic_track, school, desc }) {
     return (
         <div
-            ref={ref}
             className="about-timeline-item relative pl-8 pb-8 last:pb-0"
         >
             <div
                 className="about-timeline-line absolute left-1.5 -translate-x-1/2 top-3 -bottom-3 last:bottom-0 w-px"
                 style={{ backgroundColor: 'var(--void-border)' }}
-            />
+            >
+                <span className="about-timeline-line-fill" />
+            </div>
             <div
-                className="about-timeline-dot absolute left-0 top-1.5 w-3 h-3 rounded-full border-2 transition-all duration-300"
+                className="about-timeline-dot absolute left-0 top-1.5 w-3 h-3 rounded-full border-2"
                 style={{
-                    borderColor: lit ? 'var(--void-accent)' : 'var(--void-border)',
-                    backgroundColor: lit ? 'var(--void-accent)' : 'transparent',
-                    boxShadow: lit ? '0 0 10px var(--void-accent)' : 'none',
+                    borderColor: 'var(--void-border)',
                 }}
-            />
-            <div>
+            >
+                <span className="about-timeline-dot-fill" />
+            </div>
+            <div className="about-timeline-content">
                 <p
                     className="about-timeline-year text-[10px] tracking-[0.2em] uppercase mb-1"
                     style={{ fontFamily: "'Space Grotesk', monospace", color: 'var(--void-text-muted)' }}
@@ -158,9 +141,10 @@ function TimelineItem({ year, degree, academic_track, school, desc, active, ref 
     );
 }
 
-export default function AboutPage() {
-    const { itemRefs, activeIndex } = useTimelineSpy(EDUCATION.length);
-    const litIndex = useStaggeredReveal(activeIndex, DOT_GLOW_STAGGER_MS);
+export default function AboutPage({ motionReady = true }) {
+    const pageRef = useRef(null);
+    const galleryRef = useRef(null);
+    const paginationPanRef = useRef(false);
     const [lightboxCertificate, setLightboxCertificate] = useState(null);
     const [certCategory, setCertCategory] = useState('All');
     const [certPage, setCertPage] = useState(0);
@@ -192,137 +176,134 @@ export default function AboutPage() {
     const certStart = certSafePage * certPageSize;
     const visibleCerts = filteredCerts.slice(certStart, certStart + certPageSize);
 
+    useAboutAnimations(pageRef, motionReady);
+    useAboutCertificateAnimations(galleryRef, certCategory, certSafePage, certPageSize, paginationPanRef);
+
+    const changeCertificatePage = (nextPage) => {
+        if (nextPage === certSafePage) return;
+        paginationPanRef.current = true;
+        setCertPage(nextPage);
+    };
+
     return (
-        <div className="about-page">
-            {/* Header */}
-            <div className="about-header mb-10 pb-6 border-b" style={{ borderColor: 'var(--void-border)' }}>
-                <p className="about-label uppercase mb-2" style={S.label}>
-                    FACE_01 / ENTITY_PROFILE
-                </p>
-                <h2
-                    className="about-title text-4xl font-bold uppercase"
-                    style={{ ...S.h2, letterSpacing: '0.18em' }}
-                >
-                    About
-                </h2>
+        <div ref={pageRef} className="about-page about-page--grid">
+            <div className="about-scroll-progress" aria-hidden="true">
+                <span className="about-scroll-progress-fill" />
             </div>
-
-            {/* ═══════════════════════════════════════════════════════
-                TOP SECTION: Introduction | Profile Picture
-            ═══════════════════════════════════════════════════════ */}
-            <div className="about-grid grid grid-cols-1 md:grid-cols-2 gap-12">
-                {/* Left — Introduction */}
-                <div className="about-section about-introduction">
-                    <h3 className="about-section-title uppercase mb-5" style={S.h3}>
-                        Introduction
-                    </h3>
-                    <p className="about-copy text-[15px] leading-[1.7] mb-6" style={S.p}>
-                        Hi, I'm John Jessienel M. Arquesola. I'm a computer science student passionate
-                        about exploring the endless possibilities of technology. I'm constantly
-                        experimenting with new tools, refining my craft in programming and design,
-                        and finding fresh ways to blend logic with imagination.
-                    </p>
-                    <p className="about-copy text-[15px] leading-[1.7] mb-6" style={S.p}>
-                        For me, growth isn't just about learning new skills, it's about stretching
-                        boundaries, embracing the unknown, and turning obstacles into opportunities.
-                        Whether I'm sketching out a design, debugging a tricky line of code, or
-                        exploring the next wave of innovation, I bring both creativity and
-                        determination to the table.
-                    </p>
-                    <p className="about-copy text-[15px] leading-[1.7]" style={S.p}>
-                        I don't just chase challenges, I welcome them, because each one is a chance
-                        to create something meaningful, elegant, and lasting.
-                    </p>
+            <header className="about-header">
+                <div className="about-masthead">
+                    <p className="about-label">01 / Profile</p>
+                    <span className="about-masthead-note">John Jessienel M. Arquesola</span>
                 </div>
+                <div className="about-heading-cell">
+                    <h2 className="about-title" aria-label="About">
+                        <span className="about-title-mask" aria-hidden="true">
+                            {'About'.split('').map((letter, index) => (
+                                <span key={index} className="about-title-char">{letter}</span>
+                            ))}{' '}
+                            <em className="about-title-accent">me.</em>
+                        </span>
+                    </h2>
+                    <p className="about-heading-note">A work in progress. Always moving forward.</p>
+                </div>
+            </header>
 
-                {/* Right — Profile Picture */}
-                <div className="about-section about-profile-section">
-                    <h3 className="about-section-title uppercase mb-5" style={S.h3}>
-                        Profile Picture
-                    </h3>
-                    <div className="about-profile-wrap mb-0">
-                        <TiltCard
-                            className="about-profile-card rounded-2xl overflow-hidden border"
-                            style={{
-                                borderColor: 'var(--void-border)',
-                                boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
-                            }}
-                            tiltAmount={14}
-                            scale={1.03}
-                            depth={0}
-                        >
-                            <img
-                                src={profileImage}
-                                alt="Profile avatar"
-                                className="about-profile-image w-full h-full object-cover"
-                                loading="lazy"
-                                decoding="async"
-                                draggable={false}
-                            />
-                        </TiltCard>
+            <div className="about-grid">
+                <section className="about-section about-introduction about-grid-cell" aria-labelledby="about-intro-heading">
+                    <div className="about-cell-bar">
+                        <span className="about-cell-index">01.1</span>
+                        <span>Introduction</span>
                     </div>
-                </div>
-            </div>
-
-            {/* Divider 1: Top → Middle */}
-            <div className="about-divider my-10 w-full h-px" style={{ backgroundColor: 'var(--void-border)' }} />
-
-            {/* ═══════════════════════════════════════════════════════
-                MIDDLE SECTION: Certifications (full width)
-            ═══════════════════════════════════════════════════════ */}
-            <div className="about-section about-certifications mb-0">
-                <h3 className="about-section-title uppercase mb-5" style={S.h3}>
-                    Certifications
-                </h3>
-                <div className="about-cert-filters" role="group" aria-label="Filter certifications by topic">
-                    {CERT_CATEGORIES.map(category => (
-                        <button
-                            key={category}
-                            type="button"
-                            className="about-cert-filter"
-                            aria-pressed={certCategory === category}
-                            aria-controls="about-certifications-grid"
-                            onClick={() => {
-                                setCertCategory(category);
-                                setCertPage(0);
-                            }}
-                        >
-                            {category}
-                            <span className="about-cert-filter-count" aria-hidden="true">
-                                {category === 'All' ? CERTIFICATIONS.length : CERTIFICATIONS.filter(cert => cert.category === category).length}
-                            </span>
-                        </button>
-                    ))}
-                </div>
-                <p className="about-cert-results" role="status">
-                    {filteredCerts.length} {filteredCerts.length === 1 ? 'certificate' : 'certificates'}
-                    {certCategory === 'All' ? ' across all topics' : ` in ${certCategory}`}
-                </p>
-                <div id="about-certifications-grid" className="about-certifications-grid grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
-                    {visibleCerts.map(cert => (
-                        <button
-                            key={cert.id}
-                            type="button"
-                            aria-label={`View ${cert.title} certificate from ${cert.issuer}`}
-                            className="about-cert-cell relative border overflow-hidden cursor-zoom-in"
-                            onClick={() => setLightboxCertificate(cert)}
-                        >
-                            <span className="about-cert-thumbnail block aspect-[4/3]">
+                    <div className="about-cell-content">
+                        <h3 id="about-intro-heading" className="about-intro-heading">Logic meets <em>imagination.</em></h3>
+                        <AboutCopy className="about-copy">
+                            Hi, I'm John Jessienel M. Arquesola, a computer science student
+                            exploring programming and design. I experiment with new tools
+                            and find fresh ways to blend logic with imagination.
+                        </AboutCopy>
+                        <AboutCopy className="about-copy">
+                            From sketching a design to debugging a tricky line of code,
+                            I learn by taking on challenges. Each one is a chance to
+                            create something meaningful, elegant, and lasting.
+                        </AboutCopy>
+                    </div>
+                </section>
+                <section className="about-section about-profile-section about-grid-cell" aria-label="Portrait">
+                    <div className="about-cell-bar">
+                        <span className="about-cell-index">01.2</span>
+                        <span>Behind the screen</span>
+                    </div>
+                    <div className="about-profile-wrap">
+                        <div className="about-profile-parallax">
+                            <TiltCard className="about-profile-card" tiltAmount={6} scale={1.01} depth={0} glare={false}>
                                 <img
-                                    src={cert.src}
-                                    alt=""
-                                    className="w-full h-full object-contain p-2"
-                                    loading="lazy"
+                                    src={profileImage}
+                                    alt="John Jessienel M. Arquesola"
+                                    className="about-profile-image"
                                     decoding="async"
                                     draggable={false}
                                 />
-                            </span>
-                            <span className="about-cert-caption">
-                                <span className="about-cert-title" title={cert.title}>{cert.title}</span>
-                                <span className="about-cert-issuer">{cert.issuer}</span>
-                                <span className="about-cert-topic">{cert.category}</span>
-                            </span>
-                        </button>
+                            </TiltCard>
+                        </div>
+                    </div>
+                    <p className="about-portrait-caption"><span>Computer science student</span><span>Philippines</span></p>
+                </section>
+            </div>
+
+            <section className="about-section about-certifications" aria-labelledby="about-cert-heading">
+                <ChapterHeader number="02" title="Certifications" note="Learning, put into practice" id="about-cert-heading" />
+                <div className="about-cert-tools">
+                    <div className="about-cert-filters" role="group" aria-label="Filter certifications by topic">
+                        {CERT_CATEGORIES.map(category => (
+                            <button
+                                key={category}
+                                type="button"
+                                className="about-cert-filter"
+                                aria-pressed={certCategory === category}
+                                aria-controls="about-certifications-grid"
+                                onClick={() => {
+                                    setCertCategory(category);
+                                    setCertPage(0);
+                                }}
+                            >
+                                {category}
+                                <span className="about-cert-filter-count" aria-hidden="true">
+                                    {category === 'All' ? CERTIFICATIONS.length : CERTIFICATIONS.filter(cert => cert.category === category).length}
+                                </span>
+                            </button>
+                        ))}
+                    </div>
+                    <p className="about-cert-results" role="status">
+                        {filteredCerts.length} {filteredCerts.length === 1 ? 'certificate' : 'certificates'}
+                        {certCategory === 'All' ? ' across all topics' : ` in ${certCategory}`}
+                    </p>
+                </div>
+                <div ref={galleryRef} id="about-certifications-grid" className="about-certifications-grid">
+                    {visibleCerts.map(cert => (
+                        <div key={cert.id} className="about-cert-frame">
+                            <button
+                                type="button"
+                                aria-label={`View ${cert.title} certificate from ${cert.issuer}`}
+                                className="about-cert-cell cursor-zoom-in"
+                                onClick={() => setLightboxCertificate(cert)}
+                            >
+                                <span className="about-cert-thumbnail block aspect-[4/3]">
+                                    <img
+                                        src={cert.src}
+                                        alt=""
+                                        className="w-full h-full object-contain p-2"
+                                        loading="lazy"
+                                        decoding="async"
+                                        draggable={false}
+                                    />
+                                </span>
+                                <span className="about-cert-caption">
+                                    <span className="about-cert-title" title={cert.title}>{cert.title}</span>
+                                    <span className="about-cert-issuer">{cert.issuer}</span>
+                                    <span className="about-cert-topic">{cert.category}</span>
+                                </span>
+                            </button>
+                        </div>
                     ))}
                 </div>
 
@@ -336,7 +317,7 @@ export default function AboutPage() {
                         aria-label="Previous page"
                         className="about-cert-pagination-btn about-cert-pagination-arrow"
                         disabled={certSafePage === 0}
-                        onClick={() => setCertPage(certSafePage - 1)}
+                        onClick={() => changeCertificatePage(certSafePage - 1)}
                     >
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                             <path d="M15 18l-6-6 6-6" />
@@ -349,7 +330,7 @@ export default function AboutPage() {
                             aria-label={`Page ${i + 1}`}
                             aria-current={i === certSafePage ? 'page' : undefined}
                             className={`about-cert-pagination-btn${i === certSafePage ? ' about-cert-pagination-btn--active' : ''}`}
-                            onClick={() => setCertPage(i)}
+                            onClick={() => changeCertificatePage(i)}
                         >
                             {i + 1}
                         </button>
@@ -359,14 +340,14 @@ export default function AboutPage() {
                         aria-label="Next page"
                         className="about-cert-pagination-btn about-cert-pagination-arrow"
                         disabled={certSafePage === certTotalPages - 1}
-                        onClick={() => setCertPage(certSafePage + 1)}
+                        onClick={() => changeCertificatePage(certSafePage + 1)}
                     >
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                             <path d="M9 18l6-6-6-6" />
                         </svg>
                     </button>
                 </div>}
-            </div>
+            </section>
 
             {/* ── Certification lightbox — portaled to <body> so the
                 overlay panel's transform can't contain it ── */}
@@ -416,90 +397,59 @@ export default function AboutPage() {
                 document.body
             )}
 
-            {/* Divider 2: Certifications → CV Viewer */}
-            <div className="about-divider my-10 w-full h-px" style={{ backgroundColor: 'var(--void-border)' }} />
-
-            {/* ═══════════════════════════════════════════════════════
-                MIDDLE SECTION: Document Viewer (full width)
-            ═══════════════════════════════════════════════════════ */}
-            <div className="about-section about-cv-viewer mb-0">
-                <h3 className="about-section-title uppercase mb-5" style={S.h3}>
-                    Résumé and Curriculum Vitae
-                </h3>
-                <DeferredSection minHeight={500}>
-                    <Suspense fallback={null}>
-                        <CvViewer />
-                    </Suspense>
-                </DeferredSection>
-            </div>
-
-            {/* Divider: CV Viewer → GitHub Contributions */}
-            <div className="about-divider my-10 w-full h-px" style={{ backgroundColor: 'var(--void-border)' }} />
-
-            {/* ═══════════════════════════════════════════════════════
-                MIDDLE SECTION: GitHub Contributions (full width)
-            ═══════════════════════════════════════════════════════ */}
-            <div className="about-section about-contributions mb-0">
-                <h3 className="about-section-title uppercase mb-5" style={S.h3}>
-                    GitHub Contributions
-                </h3>
-                <DeferredSection>
-                    <GitHubContributions username="Cocoasaur" />
-                </DeferredSection>
-            </div>
-
-            {/* Divider 3: GitHub Contributions → Bottom */}
-            <div className="about-divider my-10 w-full h-px" style={{ backgroundColor: 'var(--void-border)' }} />
-
-            {/* ═══════════════════════════════════════════════════════
-                BOTTOM SECTION: Education | Parameters
-            ═══════════════════════════════════════════════════════ */}
-            <div className="about-bottom-grid grid grid-cols-1 md:grid-cols-2 gap-12">
-                {/* Left — Education Timeline */}
-                <div className="about-section about-education">
-                    <h3 className="about-section-title uppercase mb-6" style={S.h3}>
-                        Education
-                    </h3>
-                    <div>
-                        {EDUCATION.map((item, idx) => (
-                            <TimelineItem
-                                key={idx}
-                                ref={(el) => {
-                                    itemRefs.current[idx] = el;
-                                }}
-                                {...item}
-                                active={idx <= litIndex}
-                            />
-                        ))}
+            <section className="about-section about-cv-viewer" aria-labelledby="about-documents-heading">
+                <ChapterHeader number="03" title="Documents" note="The details, on paper" id="about-documents-heading" />
+                <div className="about-document-cell">
+                    <div className="about-document-reveal">
+                        <DeferredSection minHeight="calc(var(--about-cv-height) + 116px)">
+                            <Suspense fallback={null}>
+                                <CvViewer />
+                            </Suspense>
+                        </DeferredSection>
                     </div>
                 </div>
+            </section>
 
-                {/* Right — Parameters */}
-                <div className="about-section about-parameter-section">
-                    <h3 className="about-section-title uppercase mb-5" style={S.h3}>
-                        Parameters
-                    </h3>
-                    <div className="about-parameters space-y-3">
-                        {[
-                            ['ROLE', 'Full-Stack Developer'],
-                            ['FOCUS', 'To Graduate'],
-                            ['STATUS', 'Busy'],
-                            ['LOCATION', 'Philippines'],
-                        ].map(([label, value]) => (
-                            <div
-                                key={label}
-                                className="about-parameter-row flex justify-between items-center border-b pb-3"
-                                style={{ borderColor: 'var(--void-border-dim)' }}
-                            >
-                                <span className="about-parameter-key uppercase" style={S.key}>
-                                    {label}
-                                </span>
-                                <span className="about-parameter-value" style={S.val}>{value}</span>
-                            </div>
-                        ))}
+            <section className="about-section about-contributions" aria-labelledby="about-activity-heading">
+                <ChapterHeader number="04" title="GitHub activity" note="One contribution at a time" id="about-activity-heading" />
+                <div className="about-document-cell">
+                    <div className="about-document-reveal">
+                        <DeferredSection>
+                            <GitHubContributions username="Cocoasaur" />
+                        </DeferredSection>
                     </div>
                 </div>
-            </div>
+            </section>
+
+            <section aria-labelledby="about-background-heading">
+                <ChapterHeader number="05" title="Background" note="The journey so far" id="about-background-heading" />
+                <div className="about-bottom-grid">
+                    <section className="about-section about-education about-grid-cell" aria-labelledby="about-education-heading">
+                        <div className="about-cell-bar"><span className="about-cell-index">05.1</span><h3 id="about-education-heading">Education</h3></div>
+                        <div className="about-cell-content">
+                            {EDUCATION.map((item, idx) => <TimelineItem key={idx} {...item} />)}
+                        </div>
+                    </section>
+                    <section className="about-section about-parameter-section about-grid-cell" aria-labelledby="about-details-heading">
+                        <div className="about-cell-bar"><span className="about-cell-index">05.2</span><h3 id="about-details-heading">At a glance</h3></div>
+                        <div className="about-parameters">
+                            {[
+                                ['ROLE', 'Full-Stack Developer'],
+                                ['STUDY', 'Computer Science'],
+                                ['INTERESTS', 'Programming & Design'],
+                                ['LOCATION', 'Philippines'],
+                            ].map(([label, value]) => (
+                                <div key={label} className="about-parameter-cell">
+                                    <div className="about-parameter-row">
+                                        <span className="about-parameter-key" style={S.key}>{label}</span>
+                                        <span className="about-parameter-value" style={S.val}>{value}</span>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+                </div>
+            </section>
         </div>
     );
 }

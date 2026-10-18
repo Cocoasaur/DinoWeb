@@ -5,6 +5,7 @@ import { transitionProgress, easeInOut } from '../utils/cubeTransition';
 import { createCornerMarkerGeometry, getCornerMarkerPalette, updateCornerMarker } from '../utils/cubeCornerMarkers';
 import { createCubeWipeUniforms, bindCubeWipeMaterial, updateCubeWipeUniforms, cubeWipeRegion, updateCubeNextLighting } from '../utils/cubeWipeMaterial';
 import { CUBE_SHININESS, CUBE_SPECULAR, shadeCubeVertex } from '../utils/cubeLighting';
+import { getCubeSurfaceTexture } from '../utils/cubeSurface';
 
 let renderer, scene, camera, cube, body, geometry, assets, homeIcon;
 let builtReduceEffects = false, cornerPalette;
@@ -82,7 +83,8 @@ function buildScene(icon, maps) {
     scene.add(cube);
     geometry = new RoundedBoxGeometry(2,2,2,state.reduceEffects ? 2 : 3,.06);
     if (state.reduceEffects) geometry.setAttribute('color',new THREE.Float32BufferAttribute(new Float32Array(geometry.attributes.position.count*3),3));
-    body = new THREE.Mesh(geometry, state.reduceEffects ? new THREE.MeshBasicMaterial({ vertexColors: true }) : new THREE.MeshPhongMaterial({ color: paletteColors['--cube-color'], shininess:CUBE_SHININESS, specular:CUBE_SPECULAR }));
+    const surface = getCubeSurfaceTexture(appliedTheme);
+    body = new THREE.Mesh(geometry, state.reduceEffects ? new THREE.MeshBasicMaterial({ vertexColors: true, map: surface }) : new THREE.MeshPhongMaterial({ color: paletteColors['--cube-color'], map: surface, shininess:CUBE_SHININESS, specular:CUBE_SPECULAR }));
     cube.add(body);
     if (!state.reduceEffects) {
         const edge = new THREE.Mesh(geometry,new THREE.MeshBasicMaterial({ color: paletteColors['--cube-edge-color'], transparent:true, opacity:parseFloat(paletteColors['--cube-edge-opacity'])||.35, side:THREE.BackSide }));
@@ -215,6 +217,7 @@ function receiveState(next) {
 }
 
 function updatePaletteMaterials() {
+    body.material.map = getCubeSurfaceTexture(appliedTheme);
     cornerPalette = getCornerMarkerPalette(paletteColors);
     const edge=cube.getObjectByName('edge');
     if(edge){edge.material.color.set(paletteColors['--cube-edge-color']);edge.material.opacity=parseFloat(paletteColors['--cube-edge-opacity'])||.35;}
@@ -276,6 +279,8 @@ function renderFrame(now) {
         wipeUniforms.cubeWipeActive.value = 1;
         wipeRegion = cubeWipeRegion(body, camera, wipeFrame);
         const bodyTarget = body.material.userData.cubeWipe;
+        bodyTarget.map.value = getCubeSurfaceTexture(state.nextPalette.theme);
+        bodyTarget.hasMap.value = 1;
         if (builtReduceEffects) updateCubeNextLighting(body, colors['--cube-color']);
         else bodyTarget.color.value.set(colors['--cube-color']);
         bodyTarget.opacity.value = body.material.opacity;

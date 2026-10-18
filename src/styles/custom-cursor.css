@@ -1,0 +1,94 @@
+/* The native cursor is replaced only after a fine mouse pointer is tracked.
+   Removing this attribute immediately restores every control's own cursor. */
+@media (any-hover: hover) and (any-pointer: fine) and (prefers-reduced-motion: no-preference) and (forced-colors: none) {
+    html[data-custom-cursor='active'],
+    html[data-custom-cursor='active'] * {
+        cursor: none !important;
+    }
+}
+
+.portfolio-cursor,
+.portfolio-cursor * {
+    pointer-events: none !important;
+    user-select: none !important;
+}
+
+.portfolio-cursor {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    overflow: hidden;
+    visibility: hidden;
+    opacity: 0;
+    color: var(--void-text-full);
+    contain: strict;
+}
+
+.portfolio-cursor[data-visible='true'] {
+    visibility: visible;
+}
+
+.portfolio-cursor__point,
+.portfolio-cursor__follower {
+    position: absolute;
+    top: 0;
+    left: 0;
+    will-change: transform;
+}
+
+.portfolio-cursor__point {
+    width: 4px;
+    height: 4px;
+    background: var(--void-text-full);
+    outline: 1px solid var(--void-surface);
+}
+
+.portfolio-cursor__follower {
+    width: 24px;
+    height: 24px;
+}
+
+.portfolio-cursor__frame {
+    position: absolute;
+    inset: 0;
+    filter: drop-shadow(0 0 1px var(--void-surface));
+}
+
+.portfolio-cursor__frame > i {
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    border: solid currentColor;
+    border-width: 0;
+}
+
+.portfolio-cursor__frame > i:nth-child(1) { top: 0; left: 0; border-top-width: 1px; border-left-width: 1px; }
+.portfolio-cursor__frame > i:nth-child(2) { top: 0; right: 0; border-top-width: 1px; border-right-width: 1px; }
+.portfolio-cursor__frame > i:nth-child(3) { bottom: 0; right: 0; border-bottom-width: 1px; border-right-width: 1px; }
+.portfolio-cursor__frame > i:nth-child(4) { bottom: 0; left: 0; border-bottom-width: 1px; border-left-width: 1px; }
+
+.portfolio-cursor__label {
+    position: absolute;
+    top: 30px;
+    left: 18px;
+    padding: 4px 6px;
+    border: 1px solid var(--void-border);
+    background: var(--void-surface);
+    font-family: 'Space Grotesk', monospace;
+    font-size: 9px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 1;
+    letter-spacing: .12em;
+    white-space: nowrap;
+    transform-origin: left top;
+}
+
+.portfolio-cursor__label:empty,
+.portfolio-cursor[data-pressed='true'] .portfolio-cursor__label {
+    display: none;
+}
+
+@media (any-hover: none), (prefers-reduced-motion: reduce), (forced-colors: active) {
+    .portfolio-cursor { display: none; }
+}

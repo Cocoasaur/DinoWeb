@@ -7,6 +7,7 @@ import { getCornerMarkerPalette } from '../../utils/cubeCornerMarkers';
 import { useRenderProfile } from '../../context/RenderProfileContext';
 import { prepareCubeResources, prewarmCubeLabels, getFaceTextures } from '../../utils/cubeResources';
 import { FACE_CONFIG } from '../../constants/cubeConfig';
+import { getCubeSurfaceTexture } from '../../utils/cubeSurface';
 
 import { Vector4 } from 'three';
 import { getCubeTransition, getCubeStageStyle } from '../../utils/cubeTransition';
@@ -28,6 +29,10 @@ function updateFallbackTargets(objects, next, labelScale) {
         const { cubeColorKey, cubeText, cubeLabelState, cubeCorner, cubeHoverProgress } = object.userData;
         target.opacity.value = material.opacity;
         if (cubeColorKey) {
+            if (cubeColorKey === '--cube-color') {
+                target.map.value = getCubeSurfaceTexture(next.theme);
+                target.hasMap.value = 1;
+            }
             const value = next.colors[cubeColorKey];
             if (material.vertexColors) updateCubeNextLighting(object, value);
             else target.color.value.set(value.replace(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,[^)]+)?\)/, 'rgb($1, $2, $3)'));

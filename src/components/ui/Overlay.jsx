@@ -15,7 +15,6 @@ function ReadyContent({ onReady, children }) {
 }
 
 const PAGE_MAP = {
-    about: <AboutPage />,
     skills: <SkillsPage />,
     contacts: <ContactsPage />,
 };
@@ -72,6 +71,8 @@ export default function Overlay({
 
     const pageContent = faceName === 'projects'
         ? <ProjectsPage selectedProject={selectedProject} onSelectProject={onSelectProject} />
+        : faceName === 'about'
+        ? <AboutPage motionReady={phase === 'open'} />
         : (PAGE_MAP[faceName] ?? <p style={{ fontFamily: "'Inter', sans-serif", color: 'var(--void-text-dim)' }}>No data found.</p>);
 
     return (
@@ -111,6 +112,7 @@ export default function Overlay({
             />
             <div
                 ref={scrollPanelRef}
+                data-page={faceName}
                 className="portfolio-overlay-panel relative w-[90vw] max-w-5xl max-h-[85vh] border overlay-scroll"
                 style={{
                     backgroundColor: 'var(--void-surface)',
