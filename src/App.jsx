@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, Suspense, lazy } from 'react';
+import { useState, useEffect, useRef, useSyncExternalStore, Suspense, lazy } from 'react';
 import { flushSync } from 'react-dom';
 import MobileBranding from './components/ui/MobileBranding';
 import RotatePrompt from './components/ui/RotatePrompt';
@@ -22,6 +22,7 @@ import { revealCubeWithWipe } from './utils/themeWipe';
 import { prepareBackdropWipe } from './utils/backdropWipe';
 import './styles/home-layout.css';
 import { RenderProfileContext } from './context/RenderProfileContext';
+import { customCursorSupport } from './utils/customCursorSupport';
 
 // Start the scene automatically. The boot overlay stays up until its first
 // rendered frame, then reveals the real interactive cube.
@@ -33,6 +34,9 @@ const LazyCubeStage = lazy(async () => {
   await stage.default.prepareResources();
   return stage;
 });
+
+const LazyCustomCursor = lazy(() => import('./components/ui/CustomCursor'));
+const LazyCustomScrollbars = lazy(() => import('./components/ui/CustomScrollbars'));
 
 const SCENE_CAMERA_FOV = 45;
 const SCENE_CAMERA_Z = 5;
@@ -56,12 +60,19 @@ function getCubeScreenOrigin(zoomZ) {
 
 export default function App() {
   const { toggle, isDark, revealCubeTheme } = useTheme();
+  useEffect(() => {
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content',
+      isDark ? '#002451' : '#f2f2f2');
+  }, [isDark]);
   const transitionInProgressRef = useRef(false);
   const cancelActiveWipeRef = useRef(null);
   const screenPosRef = useRef({ x: 0, y: 0, valid: false });
   const faceDownPosRef = useRef({ x: 0, y: 0, valid: false });
   const { dpr, tier, isMobile, labelScale } = useAdaptiveDPR();
   const reducedMotion = useReducedMotion();
+  const customCursorEnabled = useSyncExternalStore(
+    customCursorSupport.subscribe, customCursorSupport.getSnapshot, customCursorSupport.getServerSnapshot,
+  );
   usePortfolioViewportSize();
 
   const {
@@ -295,6 +306,9 @@ export default function App() {
         ) : undefined}
       />}
     </div>
+    {stagePainted && customCursorEnabled && (
+      <Suspense fallback={null}><LazyCustomCursor /><LazyCustomScrollbars /></Suspense>
+    )}
     </RenderProfileContext.Provider>
   );
 }
