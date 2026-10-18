@@ -1,0 +1,1 @@
+var e=`(any-hover: hover) and (any-pointer: fine) and (prefers-reduced-motion: no-preference) and (forced-colors: none)`,t={subscribe(t){let n=window.matchMedia(e);return n.addEventListener(`change`,t),()=>n.removeEventListener(`change`,t)},getSnapshot:()=>window.matchMedia(e).matches,getServerSnapshot:()=>!1};export{t as n,e as t};
