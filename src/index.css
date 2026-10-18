@@ -8,62 +8,63 @@
 :root,
 [data-theme='clair-obscur'] {
   /* ── Core surface ── */
-  --void-bg: #e8e6e1;
-  --void-surface: #f5f3ef;
-  --void-surface-80: rgba(245, 243, 239, 0.95);
-  --void-border: rgba(0, 0, 0, 0.25);
-  --void-border-dim: rgba(0, 0, 0, 0.14);
+  --void-bg: #f2f2f2;
+  --void-surface: #ffffff;
+  --void-surface-80: rgba(255, 255, 255, 0.95);
+  --void-border: rgba(90, 90, 90, 0.30);
+  --void-border-dim: rgba(90, 90, 90, 0.16);
 
   /* ── Grid ── */
-  --void-grid: rgba(0, 0, 0, 0.10);
-  --void-grid-drift: rgba(0, 0, 0, 0.14);
-  --floor-pool: radial-gradient(ellipse, rgba(0,0,0,.09), transparent 68%);
-  --floor-shadow: radial-gradient(ellipse, rgba(0,0,0,.16), rgba(0,0,0,.08) 22%, rgba(0,0,0,.025) 48%, transparent 72%);
-  --void-overlay-grid: rgba(93, 93, 93, 0.186);
+  --void-grid: rgba(90, 90, 90, 0.10);
+  --void-grid-drift: rgba(90, 90, 90, 0.12);
+  --floor-pool: radial-gradient(ellipse, rgba(24,24,24,.09), transparent 68%);
+  --floor-shadow: radial-gradient(ellipse, rgba(24,24,24,.18), rgba(24,24,24,.09) 22%, rgba(24,24,24,.025) 48%, transparent 72%);
+  --void-overlay-grid: rgba(90, 90, 90, 0.16);
 
   /* ── Text ── */
   --void-text: rgba(20, 20, 20, 0.92);
-  --void-text-dim: rgba(40, 40, 40, 0.75);
-  --void-text-muted: rgba(15, 15, 15, 0.986);
-  --void-text-full: #0a0a0a;
-  --void-accent: #1a1a1a;
-  --home-hatch-color: rgba(10, 10, 10, 0.36);
+  --void-text-dim: #626262;
+  --void-text-muted: #626262;
+  --void-text-full: #141414;
+  --void-accent: #343434;
+  --void-selected-bg: #242424;
+  --home-hatch-color: rgba(20, 20, 20, 0.36);
 
   /* ── Status ── */
-  --void-green: rgba(40, 100, 40, 0.85);
-  --void-yellow: rgba(160, 100, 20, 0.85);
+  --void-green: rgba(64, 64, 64, 0.85);
+  --void-yellow: rgba(96, 96, 96, 0.85);
 
   /* ── GitHub contributions ── */
-  --contrib-level-0: #e6e4df;
-  --contrib-level-1: #9be9a8;
-  --contrib-level-2: #40c463;
-  --contrib-level-3: #30a14e;
-  --contrib-level-4: #216e39;
+  --contrib-level-0: #f2f2f2;
+  --contrib-level-1: #d0d0d0;
+  --contrib-level-2: #a0a0a0;
+  --contrib-level-3: #666666;
+  --contrib-level-4: #242424;
 
   /* ── Chrome ── */
-  --void-marker: rgba(0, 0, 0, 0.45);
-  --void-scrubber: rgb(0, 0, 0);
-  --void-btn-bg: rgba(210, 207, 201, 0.95);
-  --void-btn-border: rgba(0, 0, 0, 0.28);
+  --void-marker: rgba(80, 80, 80, 0.70);
+  --void-scrubber: #343434;
+  --void-btn-bg: rgba(242, 242, 242, 0.95);
+  --void-btn-border: rgba(90, 90, 90, 0.30);
 
   /* ── Cube ── */
-  --cube-color: #3d3d3d;
-  --cube-edge-color: #4a4a4a;
-  --cube-edge-opacity: 0.40;
-  --cube-text-default: #e8e6e1;
+  --cube-color: #484848;
+  --cube-edge-color: #bdbdbd;
+  --cube-edge-opacity: 0.18;
+  --cube-text-default: #ffffff;
   --cube-text-hover: #ffffff;
-  --cube-text-accent: #c8c6c1;
-  --cube-ticks-idle: rgb(48, 48, 48);
-  --cube-ticks-hover: rgba(0, 0, 0, 0.95);
+  --cube-text-accent: #bdbdbd;
+  --cube-ticks-idle: #343434;
+  --cube-ticks-hover: #bdbdbd;
   --cube-ticks-hover-scale: 1.05;
 
   /* ── Cards ── */
-  --skill-card-bg-hover: rgb(249, 249, 249);
-  --skill-card-bg: rgb(255, 255, 255);
+  --skill-card-bg-hover: var(--void-bg);
+  --skill-card-bg: var(--void-surface);
 
   /* ── Scrollbar (desktop) ── */
-  --scrollbar-thumb: rgb(0, 0, 0);
-  --scrollbar-thumb-outline: rgb(0, 0, 0);
+  --scrollbar-thumb: var(--void-text-full);
+  --scrollbar-thumb-outline: var(--void-text-full);
 }
 
 /* ══════════════════════════════════════════════════════
@@ -90,6 +91,7 @@
   --void-text-muted: rgba(251, 251, 251, 0.808);
   --void-text-full: #ffffff;
   --void-accent: #eff6ff;
+  --void-selected-bg: var(--void-text-full);
   --home-hatch-color: rgba(255, 255, 255, 0.36);
 
   /* ── Status ── */
