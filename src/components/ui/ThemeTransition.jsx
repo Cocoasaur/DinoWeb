@@ -5,7 +5,7 @@ const THEME_CLAIR = 'clair-obscur';
 
 const COLORS = {
     [THEME_DEMAIN]: '#002451', // dark blue
-    [THEME_CLAIR]: '#e8e6e1',  // light beige
+    [THEME_CLAIR]: '#f2f2f2',  // neutral light gray
 };
 
 export default function ThemeTransition({ active, onToggle, onComplete }) {
