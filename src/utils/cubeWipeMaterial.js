@@ -57,7 +57,7 @@ export function bindCubeWipeMaterial(material, uniforms, geometry) {
                 'diffuseColor.rgb *= mix(vColor.rgb, vCubeNextColor, cubeNew);');
         }
     };
-    material.customProgramCacheKey = () => 'cube-circular-palette-v1';
+    material.customProgramCacheKey = () => 'cube-circular-palette-v3';
     material.needsUpdate = true;
     return target;
 }
