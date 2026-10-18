@@ -108,6 +108,20 @@ for (const profile of profiles) {
       if (!profile.reduced) {
         await expect(root.locator('.about-timeline-content').first()).toHaveCSS('opacity', '0')
 
+        // The title must visibly exit upward while the header is still on
+        // screen, then restore its readable state when scrolling back up.
+        await panel.evaluate(el => {
+          const header = el.querySelector('.about-header')
+          el.scrollTop = Math.max(0, header.offsetHeight - el.clientHeight * .18)
+        })
+        const titleLetter = root.locator('.about-title-char').first()
+        await expect.poll(() => titleLetter.evaluate(el => Number(getComputedStyle(el).opacity))).toBeLessThan(.9)
+        await expect.poll(() => titleLetter.evaluate(el => new DOMMatrixReadOnly(getComputedStyle(el).transform).m42)).toBeLessThan(-4)
+        await expect(root.locator('.about-header')).toHaveCSS('transform', 'none')
+        await expect(root.locator('.about-heading-cell')).toHaveCSS('transform', 'none')
+        await panel.evaluate(el => { el.scrollTop = 0 })
+        await fullyRevealed(titleLetter)
+
         // Revisit a card through both edges of the viewport, without remounting.
         const firstCard = root.locator('.about-cert-cell').first()
         await firstCard.scrollIntoViewIfNeeded()
@@ -141,15 +155,25 @@ for (const profile of profiles) {
         await expect.poll(() => firstCard.evaluate(el => Number(getComputedStyle(el).opacity))).toBeLessThan(.1)
         await placeCard(.68)
         await fullyRevealed(firstCard)
-        // The upper exit should lift away, distinct from its lower entrance.
+        // Keep the upper third readable, then visibly exit closer to the edge.
         await firstCard.evaluate(card => {
           const scroller = card.closest('.portfolio-overlay-panel')
-          scroller.scrollTop += card.getBoundingClientRect().bottom
-            - scroller.getBoundingClientRect().top - scroller.clientHeight * .14
+          scroller.scrollTop += card.closest('.about-cert-frame').getBoundingClientRect().bottom
+            - scroller.getBoundingClientRect().top - scroller.clientHeight * .34
+        })
+        await fullyRevealed(firstCard)
+        await firstCard.evaluate(card => {
+          const scroller = card.closest('.portfolio-overlay-panel')
+          scroller.scrollTop += card.closest('.about-cert-frame').getBoundingClientRect().bottom
+            - scroller.getBoundingClientRect().top - scroller.clientHeight * .18
         })
         await expect.poll(() => firstCard.evaluate(el => Number(getComputedStyle(el).opacity))).toBeGreaterThan(.1)
         await expect.poll(() => firstCard.evaluate(el => Number(getComputedStyle(el).opacity))).toBeLessThan(.9)
         await expect.poll(() => firstCard.evaluate(el => new DOMMatrixReadOnly(getComputedStyle(el).transform).m42)).toBeLessThan(0)
+        expect(await firstCard.evaluate(card => {
+          const scroller = card.closest('.portfolio-overlay-panel')
+          return (card.closest('.about-cert-frame').getBoundingClientRect().bottom - scroller.getBoundingClientRect().top) / scroller.clientHeight
+        })).toBeGreaterThan(.16)
         await revealAtCenter(firstCard)
         await panel.evaluate(el => { el.scrollTop = 0 })
         await expect(firstCard).toHaveCSS('opacity', '0')
