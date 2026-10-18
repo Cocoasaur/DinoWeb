@@ -32,21 +32,28 @@ function revealStart(element, scroller) {
 // Scrub the reveal through a visible band at each viewport edge. Scrolling up
 // unwinds the entrance before the element disappears below the panel.
 function repeatAnimation(element, animation, scroller, {
-    anchor = element, readyRef, phased = false, opening, scrollStagger = 0,
+    anchor = element, readyRef, phased = false, opening, scrollStagger = 0, restTargets = [element],
 } = {}) {
     let previousProgress = -1;
     let enterStart;
     let enterEnd;
     let exitStart;
     let exitEnd;
+    const restoreRest = () => restTargets.forEach(target => {
+        target.style.removeProperty('transform');
+        target.style.removeProperty('opacity');
+        target.style.removeProperty('transform-origin');
+    });
     const measure = () => {
         const top = layoutTop(anchor, scroller);
         const height = scroller.clientHeight;
         const maxScroll = scroller.scrollHeight - height;
         enterStart = Math.min(maxScroll - 1, revealStart(anchor, scroller) + scrollStagger);
         enterEnd = Math.max(enterStart + 1, Math.min(maxScroll, top - height * 0.7 + scrollStagger));
-        exitStart = Math.max(0, enterEnd, top + anchor.offsetHeight - height * 0.24 + scrollStagger * 0.5);
-        exitEnd = Math.max(exitStart + 1, top + anchor.offsetHeight - height * 0.04 + scrollStagger * 0.5);
+        // Keep content readable through the middle and upper third, then
+        // perform the visible exit close to the panel's top edge.
+        exitStart = Math.max(0, enterEnd, top + anchor.offsetHeight - height * 0.30 + scrollStagger * 0.5);
+        exitEnd = Math.max(exitStart + 1, top + anchor.offsetHeight - height * 0.06 + scrollStagger * 0.5);
     };
     const sync = (force = false) => {
         if (readyRef && !readyRef.current) return;
@@ -70,10 +77,7 @@ function repeatAnimation(element, animation, scroller, {
         } else {
             opening?.pause();
             animation.pause().progress(progress);
-            if (phased && progress === rest) {
-                element.style.removeProperty('transform');
-                element.style.removeProperty('opacity');
-            }
+            if (phased && progress === rest) restoreRest();
         }
         previousProgress = progress;
     };
@@ -92,10 +96,7 @@ function repeatAnimation(element, animation, scroller, {
         reveal: () => {
             opening?.pause();
             animation.pause().progress(phased ? 1 / 3 : 1);
-            if (phased) {
-                element.style.removeProperty('transform');
-                element.style.removeProperty('opacity');
-            }
+            if (phased) restoreRest();
         },
     };
 }
@@ -133,11 +134,11 @@ function repeatingReveal(element, scroller, vars = {}, options) {
             x: 0, y: 0, scale: 1, rotation: 0, rotationX: 0, rotationY: 0,
             skewX: 0, skewY: 0, opacity: 1,
         }, {
-            y: -28,
-            scale: 0.97,
+            y: -36,
+            scale: 0.95,
             opacity: 0,
             duration: 1,
-            ease: 'power2.inOut',
+            ease: 'power1.out',
             immediateRender: false,
             ...exitVars,
         }, 2);
@@ -240,13 +241,14 @@ export function useAboutAnimations(pageRef, ready) {
                 }, { readyRef, ...options }));
             };
 
-            const entrance = gsap.timeline({
+            const headline = select('.about-title-char, .about-title-accent');
+            const headerMotion = gsap.timeline({
                 defaults: { ease: 'power3.out', duration },
                 paused: true,
             });
-            entrance
-                .from(select('.about-label'), { y: 12, opacity: 0, clearProps: 'transform,opacity' })
-                .from(select('.about-title-char, .about-title-accent'), {
+            headerMotion
+                .from(select('.about-label'), { y: 12, opacity: 0, duration: 0.4, clearProps: 'transform,opacity' }, 0)
+                .from(headline, {
                     yPercent: 110,
                     opacity: 0,
                     rotationX: fullMotion ? -75 : -35,
@@ -254,11 +256,35 @@ export function useAboutAnimations(pageRef, ready) {
                     scale: 0.75,
                     transformPerspective: 700,
                     transformOrigin: 'center bottom',
-                    stagger: 0.075,
-                    duration: fullMotion ? 0.85 : 0.5,
+                    stagger: { amount: 0.18 },
+                    duration: 0.72,
                     clearProps: 'transform,transformOrigin,opacity',
-                }, '<0.1');
-            controllers.push(repeatAnimation(root.querySelector('.about-header'), entrance, scroller, { readyRef }));
+                }, 0.1)
+                .to({}, { duration: 1 }, 1)
+                // Exit upward through the existing letter mask instead of
+                // replaying the downward entrance as the header scrolls out.
+                .fromTo(headline, {
+                    yPercent: 0, rotation: 0, rotationX: 0, scale: 1, opacity: 1,
+                }, {
+                    yPercent: -110,
+                    rotationX: fullMotion ? 35 : 15,
+                    transformOrigin: 'center top',
+                    opacity: 0,
+                    duration: 0.8,
+                    stagger: { amount: 0.2 },
+                    ease: 'power1.out',
+                    immediateRender: false,
+                }, 2)
+                .fromTo(select('.about-label'), { y: 0, opacity: 1 }, {
+                    y: -10, opacity: 0, duration: 0.5, immediateRender: false,
+                }, 2);
+            const headerOpening = gsap.to(headerMotion, {
+                time: 1, duration: fullMotion ? 1.25 : 0.8, ease: 'none', paused: true,
+            });
+            controllers.push(repeatAnimation(root.querySelector('.about-header'), headerMotion, scroller, {
+                readyRef, phased: true, opening: headerOpening,
+                restTargets: [...headline, ...select('.about-label')],
+            }));
 
             const stopProgress = trackScrollProgress(root, scroller);
 
@@ -430,7 +456,11 @@ export function useAboutCertificateAnimations(galleryRef, category, page, pageSi
             panRequestedRef.current = false;
             frame = requestAnimationFrame(contextSafe(() => {
                 ScrollTrigger.refresh();
-                const inset = Math.min(64, scroller.clientHeight * 0.1);
+                const rowHeight = gallery.querySelector('.about-cert-frame')?.offsetHeight || 0;
+                // Land the new first row in the readable middle band. A short
+                // result page placed near the top would already be exiting.
+                const inset = Math.max(Math.min(64, scroller.clientHeight * 0.1),
+                    (scroller.clientHeight - rowHeight) / 2);
                 const top = gsap.utils.clamp(0, scroller.scrollHeight - scroller.clientHeight,
                     layoutTop(gallery, scroller) - inset);
                 // A native smooth scroll can be stopped by layout refreshes.

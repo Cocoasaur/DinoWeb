@@ -15,7 +15,8 @@ controls remain the foundation for future About page work.
 - Pagination explicitly pans the overlay to the updated certificate grid after
   React commits it. GSAP drives the pan so layout refreshes cannot stop a native
   smooth scroll halfway. Reduced motion jumps instantly; user input cancels the
-  pan. Category changes, resizing, and the initial mount do not request a pan.
+  pan. The new first row lands in the readable middle band instead of the upper
+  exit zone. Category changes, resizing, and the initial mount do not request a pan.
 - `useAboutDetailAnimations` runs when the lazy résumé and contribution viewers
   mount. Fixed-height controls and native scrollports fade in place, so their
   contents cannot slide underneath neighboring rows. Keep PDF canvases and
@@ -55,7 +56,12 @@ controls remain the foundation for future About page work.
 - Reveals have three timeline segments: entrance, readable rest, and a distinct
   exit. Scrolling backward retraces these segments without remounting content.
 - Entry motion runs through the lower viewport band, approximately 96% to 70%.
-  Upper exits run as the element's bottom crosses approximately 24% to 4%.
+  Upper exits run as the element's bottom crosses approximately 30% to 6%,
+  keeping content readable through the middle and upper third of the panel.
+  Movement remains visible near the top before the panel clips it. Exit easing
+  starts visibly instead of spending the early part of that band near rest.
+  The About title has its own upward letter exit through the heading mask;
+  its opening animation and readable rest remain separate from that exit.
   Bounds are adjusted so the final rows can finish revealing at the scroll limit.
 - `scrollStagger` offsets scroll distances, giving cards and controls a cascade
   that remains visible while scrubbing. Time delays serve the opening sequence.
