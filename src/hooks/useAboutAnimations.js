@@ -246,8 +246,9 @@ export function useAboutAnimations(pageRef, ready) {
             });
             entrance
                 .from(select('.about-label'), { y: 12, opacity: 0, clearProps: 'transform,opacity' })
-                .from(select('.about-title-char'), {
+                .from(select('.about-title-char, .about-title-accent'), {
                     yPercent: 110,
+                    opacity: 0,
                     rotationX: fullMotion ? -75 : -35,
                     rotation: index => (index % 2 ? 1 : -1) * (fullMotion ? 10 : 4),
                     scale: 0.75,
@@ -255,27 +256,22 @@ export function useAboutAnimations(pageRef, ready) {
                     transformOrigin: 'center bottom',
                     stagger: 0.075,
                     duration: fullMotion ? 0.85 : 0.5,
-                    clearProps: 'transform,transformOrigin',
+                    clearProps: 'transform,transformOrigin,opacity',
                 }, '<0.1');
             controllers.push(repeatAnimation(root.querySelector('.about-header'), entrance, scroller, { readyRef }));
 
             const stopProgress = trackScrollProgress(root, scroller);
 
-            // A separate parent layer provides movement throughout each scroll,
-            // while children can replay their own entrances without transform conflicts.
-            select('.about-header, .about-section').forEach(section => {
-                const drift = fullMotion ? 22 : 9;
-                gsap.fromTo(section, { y: drift }, {
-                    y: -drift,
-                    ease: 'none',
-                    scrollTrigger: {
-                        trigger: section, scroller,
-                        start: () => layoutTop(section, scroller) - scroller.clientHeight,
-                        end: () => layoutTop(section, scroller) + section.offsetHeight,
-                        scrub: fullMotion ? 0.45 : true,
-                    },
-                });
-            });
+            // The editorial grid owns static borders. Only content inside a
+            // cell moves; transforming sections would disconnect shared rules.
+            select('.about-intro-heading, .about-heading-note, .about-chapter-note')
+                .forEach(element => reveal(element, { y: 18 }, {
+                    exitVars: { y: -18, scale: 1 },
+                }));
+            select('.about-portrait-caption, .about-cell-bar > *')
+                .forEach(element => reveal(element, { y: 0 }, {
+                    exitVars: { y: 0, scale: 1 },
+                }));
 
             select('.about-section-title').forEach(element => reveal(element, {
                 x: -32, y: 10, rotationX: fullMotion ? -55 : -20,
@@ -295,7 +291,10 @@ export function useAboutAnimations(pageRef, ready) {
                 rotation: fullMotion ? -5 : -2,
                 rotationY: fullMotion ? -16 : 0,
                 transformPerspective: 900,
-            }, { exitVars: { y: -45, x: 12, scale: 0.9, rotation: 4, rotationY: fullMotion ? 12 : 0 } }));
+            }, { exitVars: {
+                y: -45, x: fullMotion ? 12 : 0, scale: 0.9,
+                rotation: fullMotion ? 4 : 2, rotationY: fullMotion ? 12 : 0,
+            } }));
             select('.about-cert-filter').forEach((element, index) => reveal(element, {
                 y: fullMotion ? 32 : 20,
                 rotationX: fullMotion ? -45 : 0,
@@ -322,7 +321,7 @@ export function useAboutAnimations(pageRef, ready) {
 
             select('.about-timeline-item').forEach(element => {
                 const content = element.querySelector('.about-timeline-content');
-                reveal(content, { x: fullMotion ? 44 : 24, y: 0 }, {
+                reveal(content, { x: fullMotion ? 44 : 16, y: 0 }, {
                     anchor: element,
                     nestedTargets: content.children,
                     exitVars: { x: -20, y: -16, scale: 0.98 },
@@ -345,7 +344,8 @@ export function useAboutAnimations(pageRef, ready) {
                 });
             });
             select('.about-parameter-row').forEach((element, index) => reveal(element, {
-                x: index % 2 ? -32 : 32, y: 8, scale: 0.96, delay: index * 0.06,
+                x: (index % 2 ? -1 : 1) * (fullMotion ? 24 : 16),
+                y: 8, scale: 0.96, delay: index * 0.06,
             }, { scrollStagger: index * 8, exitVars: { x: index % 2 ? 20 : -20, y: -12 } }));
             const stopFocus = preserveFocus(root, controllers);
             return () => { stopProgress(); stopFocus(); };
@@ -381,18 +381,18 @@ export function useAboutAnimations(pageRef, ready) {
     }, { scope: pageRef, dependencies: [ready] });
 }
 
-export function useAboutCertificateAnimations(galleryRef, category, page, pageSize) {
+export function useAboutCertificateAnimations(galleryRef, category, page, pageSize, panRequestedRef) {
     const { tier } = useRenderProfile();
-    useGSAP(() => {
+    useGSAP((_, contextSafe) => {
         const gallery = galleryRef.current;
         const section = gallery.parentElement;
         const scroller = gallery.closest('.portfolio-overlay-panel');
         if (!scroller) return;
         const media = gsap.matchMedia();
-        media.add({ ...MEDIA, tablet: '(min-width: 768px)', wide: '(min-width: 1280px)' }, ({ conditions }) => {
+        media.add({ ...MEDIA, tablet: '(min-width: 768px)' }, ({ conditions }) => {
             if (conditions.reducedMotion) return;
             const fullMotion = conditions.desktop && tier !== 'low';
-            const columns = conditions.wide ? 4 : conditions.tablet ? 3 : 2;
+            const columns = getComputedStyle(gallery).gridTemplateColumns.split(' ').length;
             const controllers = [];
             gallery.querySelectorAll('.about-cert-cell').forEach((card, index) => {
                 const side = index % columns < columns / 2 ? -1 : 1;
@@ -422,7 +422,36 @@ export function useAboutCertificateAnimations(galleryRef, category, page, pageSi
             });
             return preserveFocus(section, controllers);
         }, gallery);
-        return () => media.revert();
+        let frame = 0;
+        let pan;
+        const cancelPan = () => pan?.kill();
+        const interruptEvents = ['wheel', 'touchstart', 'pointerdown', 'keydown'];
+        if (panRequestedRef?.current) {
+            panRequestedRef.current = false;
+            frame = requestAnimationFrame(contextSafe(() => {
+                ScrollTrigger.refresh();
+                const inset = Math.min(64, scroller.clientHeight * 0.1);
+                const top = gsap.utils.clamp(0, scroller.scrollHeight - scroller.clientHeight,
+                    layoutTop(gallery, scroller) - inset);
+                // A native smooth scroll can be stopped by layout refreshes.
+                // Tween a proxy so refreshes cannot interrupt the pan, and
+                // context reversion never restores an old DOM scroll position.
+                const position = { top: scroller.scrollTop };
+                pan = gsap.to(position, {
+                    top,
+                    duration: window.matchMedia(MEDIA.reducedMotion).matches ? 0 : 0.55,
+                    ease: 'power2.inOut',
+                    onUpdate: () => { scroller.scrollTop = position.top; },
+                });
+            }));
+            interruptEvents.forEach(event => scroller.addEventListener(event, cancelPan, { passive: true }));
+        }
+        return () => {
+            cancelAnimationFrame(frame);
+            cancelPan();
+            interruptEvents.forEach(event => scroller.removeEventListener(event, cancelPan));
+            media.revert();
+        };
     }, { scope: galleryRef, dependencies: [category, page, pageSize, tier], revertOnUpdate: true });
 }
 
@@ -437,18 +466,19 @@ export function useAboutDetailAnimations(viewerRef, kind, version = false) {
         const media = gsap.matchMedia();
         media.add(MEDIA, ({ conditions }) => {
             if (conditions.reducedMotion) return;
-            const fullMotion = conditions.desktop && tier !== 'low';
             const selectors = kind === 'cv'
                 ? '.about-cv-tab, .about-cv-toolbar-label, .about-cv-toolbar-actions, .about-cv-scroll, .about-cv-filename, .about-cv-download'
                 : '.about-contributions-header, .about-contributions-body, .about-contributions-fallback, :scope > .about-contributions-status';
             const controllers = Array.from(viewer.querySelectorAll(selectors), (element, index) =>
                 repeatingReveal(element, scroller, {
-                    y: fullMotion ? 40 : 22,
-                    scale: 0.97,
-                    rotationX: fullMotion && element.matches('.about-cv-scroll, .about-contributions-body') ? -7 : 0,
-                    transformPerspective: 1000,
+                    // Controls sit in short fixed rows. Moving them below a
+                    // sibling's opaque scrollport cuts off labels and buttons.
+                    // Fade viewers in place, preserving native scroll geometry
+                    // and square contribution cells throughout the animation.
+                    y: 0,
+                    scale: 1,
                     delay: (index % 3) * 0.04,
-                }, { scrollStagger: (index % 3) * 8, exitVars: { y: -30, scale: 0.97 } }));
+                }, { scrollStagger: (index % 3) * 8, exitVars: { y: 0, scale: 1 } }));
             return preserveFocus(viewer, controllers);
         }, viewer);
         return () => media.revert();
