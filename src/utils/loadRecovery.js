@@ -25,7 +25,7 @@ function showNotice(message, canRetry) {
     const panel = document.createElement('div');
     panel.id = 'portfolio-load-notice';
     panel.setAttribute('role', canRetry ? 'alert' : 'status');
-    panel.style.cssText = 'position:fixed;inset:0;z-index:2147483647;display:grid;place-content:center;gap:20px;padding:32px;text-align:center;font:16px/1.6 system-ui,sans-serif;background:var(--void-bg,#e8e7e2);color:var(--void-text-full,#111)';
+    panel.style.cssText = 'position:fixed;inset:0;z-index:2147483647;display:grid;place-content:center;gap:20px;padding:32px;text-align:center;font:16px/1.6 system-ui,sans-serif;background:var(--void-bg,#f2f2f2);color:var(--void-text-full,#141414)';
     const text = document.createElement('p');
     text.textContent = message;
     panel.append(text);
