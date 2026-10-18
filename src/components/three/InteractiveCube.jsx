@@ -5,6 +5,7 @@ import * as THREE from 'three';
 import CubeFace from './CubeFace';
 import { FACE_CONFIG, DEFAULT_ROTATION, DEFAULT_CAMERA_DISTANCE, CUBE_CENTER_X } from '../../constants/cubeConfig';
 import { useCubePalette } from '../../hooks/useCubePalette';
+import { getCubeSurfaceTexture } from '../../utils/cubeSurface';
 import { useReducedMotion } from '../../hooks/useReducedMotion';
 import { getCubeTransition, transitionProgress, easeInOut } from '../../utils/cubeTransition';
 import { CUBE_SHININESS, CUBE_SPECULAR, shadeCubeVertex } from '../../utils/cubeLighting';
@@ -87,7 +88,8 @@ export default function InteractiveCube({
     const reducedMotion = useReducedMotion();
     const transition = getCubeTransition(reduceEffects, reducedMotion);
 
-    const { colors: cssVars } = useCubePalette();
+    const { theme, colors: cssVars } = useCubePalette();
+    const surface = getCubeSurfaceTexture(theme);
 
     const cubeColor = cssVars['--cube-color'] || '#4a6b9a';
     const edgeColor = cssVars['--cube-edge-color'] || '#ffffff';
@@ -320,8 +322,8 @@ export default function InteractiveCube({
     useEffect(() => () => boxGeometry.dispose(), [boxGeometry]);
 
     const boxMaterial = useMemo(() => (
-        reduceEffects ? <meshBasicMaterial vertexColors /> : <meshPhongMaterial color={cubeColor} shininess={CUBE_SHININESS} specular={CUBE_SPECULAR} />
-    ), [cubeColor, reduceEffects]);
+        reduceEffects ? <meshBasicMaterial vertexColors map={surface} /> : <meshPhongMaterial color={cubeColor} map={surface} shininess={CUBE_SHININESS} specular={CUBE_SPECULAR} />
+    ), [cubeColor, reduceEffects, surface]);
 
     const edgeMaterial = useMemo(() => (
         <meshBasicMaterial
