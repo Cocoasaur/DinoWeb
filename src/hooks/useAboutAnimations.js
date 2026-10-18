@@ -456,7 +456,11 @@ export function useAboutCertificateAnimations(galleryRef, category, page, pageSi
             panRequestedRef.current = false;
             frame = requestAnimationFrame(contextSafe(() => {
                 ScrollTrigger.refresh();
-                const inset = Math.min(64, scroller.clientHeight * 0.1);
+                const rowHeight = gallery.querySelector('.about-cert-frame')?.offsetHeight || 0;
+                // Land the new first row in the readable middle band. A short
+                // result page placed near the top would already be exiting.
+                const inset = Math.max(Math.min(64, scroller.clientHeight * 0.1),
+                    (scroller.clientHeight - rowHeight) / 2);
                 const top = gsap.utils.clamp(0, scroller.scrollHeight - scroller.clientHeight,
                     layoutTop(gallery, scroller) - inset);
                 // A native smooth scroll can be stopped by layout refreshes.
