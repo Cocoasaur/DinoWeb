@@ -45,8 +45,10 @@ function repeatAnimation(element, animation, scroller, {
         const maxScroll = scroller.scrollHeight - height;
         enterStart = Math.min(maxScroll - 1, revealStart(anchor, scroller) + scrollStagger);
         enterEnd = Math.max(enterStart + 1, Math.min(maxScroll, top - height * 0.7 + scrollStagger));
-        exitStart = Math.max(0, enterEnd, top + anchor.offsetHeight - height * 0.24 + scrollStagger * 0.5);
-        exitEnd = Math.max(exitStart + 1, top + anchor.offsetHeight - height * 0.04 + scrollStagger * 0.5);
+        // Keep content readable through the middle and upper third, then
+        // perform the visible exit close to the panel's top edge.
+        exitStart = Math.max(0, enterEnd, top + anchor.offsetHeight - height * 0.30 + scrollStagger * 0.5);
+        exitEnd = Math.max(exitStart + 1, top + anchor.offsetHeight - height * 0.06 + scrollStagger * 0.5);
     };
     const sync = (force = false) => {
         if (readyRef && !readyRef.current) return;
@@ -133,11 +135,11 @@ function repeatingReveal(element, scroller, vars = {}, options) {
             x: 0, y: 0, scale: 1, rotation: 0, rotationX: 0, rotationY: 0,
             skewX: 0, skewY: 0, opacity: 1,
         }, {
-            y: -28,
-            scale: 0.97,
+            y: -36,
+            scale: 0.95,
             opacity: 0,
             duration: 1,
-            ease: 'power2.inOut',
+            ease: 'power1.out',
             immediateRender: false,
             ...exitVars,
         }, 2);
