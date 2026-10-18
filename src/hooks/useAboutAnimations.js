@@ -173,6 +173,46 @@ function preserveFocus(scope, controllers) {
     };
 }
 
+// Native scroll position is the source of truth. Refreshing reveal triggers
+// must not rewind this indicator, and lazy content must not move it backwards
+// merely by increasing the page height. Rebase at the current position when
+// the range changes, retaining a monotonic path to either end of the page.
+function trackScrollProgress(root, scroller) {
+    const fill = root.querySelector('.about-scroll-progress-fill');
+    gsap.set(fill, { scaleX: 0 });
+    const paint = gsap.quickSetter(fill, 'scaleX');
+    let frame = 0;
+    let range = Math.max(0, scroller.scrollHeight - scroller.clientHeight);
+    let anchorTop = 0, anchorProgress = 0, progress = 0;
+    const update = () => {
+        frame = 0;
+        const nextRange = Math.max(0, scroller.scrollHeight - scroller.clientHeight);
+        const top = gsap.utils.clamp(0, nextRange, scroller.scrollTop);
+        if (nextRange !== range) {
+            anchorTop = progress > 0 ? top : 0;
+            anchorProgress = progress;
+            range = nextRange;
+        }
+        if (!range || top <= 0) progress = 0;
+        else if (top >= range - 1) progress = 1;
+        else if (top <= anchorTop) progress = anchorProgress * top / Math.max(1, anchorTop);
+        else progress = anchorProgress + (1 - anchorProgress)
+            * (top - anchorTop) / Math.max(1, range - anchorTop);
+        paint(gsap.utils.clamp(0, 1, progress));
+    };
+    const schedule = () => { if (!frame) frame = requestAnimationFrame(update); };
+    const observer = new ResizeObserver(schedule);
+    observer.observe(root);
+    observer.observe(scroller);
+    scroller.addEventListener('scroll', schedule, { passive: true });
+    update();
+    return () => {
+        cancelAnimationFrame(frame);
+        observer.disconnect();
+        scroller.removeEventListener('scroll', schedule);
+    };
+}
+
 // About scrolls inside the overlay's native panel. Every animation belongs to
 // its media context, so unmounts and reduced-motion changes revert all styles.
 export function useAboutAnimations(pageRef, ready) {
@@ -219,15 +259,7 @@ export function useAboutAnimations(pageRef, ready) {
                 }, '<0.1');
             controllers.push(repeatAnimation(root.querySelector('.about-header'), entrance, scroller, { readyRef }));
 
-            gsap.fromTo(select('.about-scroll-progress-fill'), { scaleX: 0 }, {
-                scaleX: 1,
-                ease: 'none',
-                scrollTrigger: {
-                    scroller, start: 0,
-                    end: () => Math.max(1, scroller.scrollHeight - scroller.clientHeight),
-                    scrub: true,
-                },
-            });
+            const stopProgress = trackScrollProgress(root, scroller);
 
             // A separate parent layer provides movement throughout each scroll,
             // while children can replay their own entrances without transform conflicts.
@@ -315,7 +347,8 @@ export function useAboutAnimations(pageRef, ready) {
             select('.about-parameter-row').forEach((element, index) => reveal(element, {
                 x: index % 2 ? -32 : 32, y: 8, scale: 0.96, delay: index * 0.06,
             }, { scrollStagger: index * 8, exitVars: { x: index % 2 ? 20 : -20, y: -12 } }));
-            return preserveFocus(root, controllers);
+            const stopFocus = preserveFocus(root, controllers);
+            return () => { stopProgress(); stopFocus(); };
         }, root);
 
         // Lazy content changes the positions below it. Refresh only after layout changes.
