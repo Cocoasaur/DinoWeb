@@ -32,13 +32,18 @@ function revealStart(element, scroller) {
 // Scrub the reveal through a visible band at each viewport edge. Scrolling up
 // unwinds the entrance before the element disappears below the panel.
 function repeatAnimation(element, animation, scroller, {
-    anchor = element, readyRef, phased = false, opening, scrollStagger = 0,
+    anchor = element, readyRef, phased = false, opening, scrollStagger = 0, restTargets = [element],
 } = {}) {
     let previousProgress = -1;
     let enterStart;
     let enterEnd;
     let exitStart;
     let exitEnd;
+    const restoreRest = () => restTargets.forEach(target => {
+        target.style.removeProperty('transform');
+        target.style.removeProperty('opacity');
+        target.style.removeProperty('transform-origin');
+    });
     const measure = () => {
         const top = layoutTop(anchor, scroller);
         const height = scroller.clientHeight;
@@ -72,10 +77,7 @@ function repeatAnimation(element, animation, scroller, {
         } else {
             opening?.pause();
             animation.pause().progress(progress);
-            if (phased && progress === rest) {
-                element.style.removeProperty('transform');
-                element.style.removeProperty('opacity');
-            }
+            if (phased && progress === rest) restoreRest();
         }
         previousProgress = progress;
     };
@@ -94,10 +96,7 @@ function repeatAnimation(element, animation, scroller, {
         reveal: () => {
             opening?.pause();
             animation.pause().progress(phased ? 1 / 3 : 1);
-            if (phased) {
-                element.style.removeProperty('transform');
-                element.style.removeProperty('opacity');
-            }
+            if (phased) restoreRest();
         },
     };
 }
