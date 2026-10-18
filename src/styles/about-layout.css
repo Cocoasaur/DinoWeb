@@ -1089,7 +1089,8 @@
 
 .about-contributions-calendar {
     overflow-x: auto;
-    padding-bottom: 4px;
+    /* Leave room for the custom 12px rail below the legend on narrow views. */
+    padding-bottom: 20px;
     /* Grid scrollport: a single max-content track so the legend's grid
        area spans the full graph width — its static right edge then sits
        past the scrollport edge, which is what makes sticky right bind. */
