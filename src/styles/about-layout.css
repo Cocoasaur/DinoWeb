@@ -77,6 +77,7 @@
 }
 
 .about-page {
+    --about-cv-height: 800px;
     width: 100%;
 }
 
@@ -84,6 +85,8 @@
     display: inline-block;
     overflow: hidden;
     vertical-align: top;
+    padding: .08em .12em .12em .02em;
+    margin: -.08em -.12em -.12em -.02em;
 }
 
 .about-title-char {
@@ -293,7 +296,7 @@
 
 /* ── Scrollable page column ── */
 .about-cv-scroll {
-    height: 800px;
+    height: var(--about-cv-height);
     overflow: auto;
     background-color: var(--void-surface);
 }
@@ -432,8 +435,8 @@
 }
 
 .about-cert-filter[aria-pressed='true'] {
-    border-color: var(--void-text-full);
-    background: var(--void-text-full);
+    border-color: var(--void-selected-bg);
+    background: var(--void-selected-bg);
     color: var(--void-surface-80);
 }
 
@@ -548,8 +551,8 @@
 }
 
 .about-cert-pagination-btn--active {
-    background-color: var(--void-text-full);
-    border-color: var(--void-text-full);
+    background-color: var(--void-selected-bg);
+    border-color: var(--void-selected-bg);
     color: var(--void-surface-80);
     cursor: default;
 }
@@ -780,8 +783,8 @@
         width: 28px;
     }
 
-    .about-cv-scroll {
-        height: 500px;
+    .about-page {
+        --about-cv-height: 500px;
     }
 
     .about-cv-tabs,
@@ -904,23 +907,7 @@
         font-size: 13px !important;
     }
 
-    /* GitHub contribution calendar — compact cells, weekday labels
-       dropped, smooth horizontal scroll with a themed thin scrollbar */
-    .about-contributions-grid {
-        grid-template-columns: 0 repeat(var(--weeks), 8px);
-        grid-auto-rows: 8px;
-        column-gap: 1px;
-    }
-
-    .about-contributions-day {
-        width: 8px;
-        height: 8px;
-    }
-
-    .about-contributions-weekday {
-        display: none;
-    }
-
+    /* Compact labels and a themed horizontal scrollbar for the full year. */
     .about-contributions-month-label {
         font-size: 8px;
     }
@@ -1107,18 +1094,18 @@
        area spans the full graph width — its static right edge then sits
        past the scrollport edge, which is what makes sticky right bind. */
     display: grid;
-    grid-template-columns: max-content;
+    grid-template-columns: minmax(100%, max-content);
 }
 
-/* CSS grid: col 1 = weekday labels, cols 2..N+1 = one 11px column per week.
-   Every day cell is exactly 11px × 11px by construction. */
+/* Equal week tracks set each day's square size. Small screens scroll the
+   minimum-width year; larger screens grow both axes with the same 3px gaps. */
 .about-contributions-grid {
     display: grid;
-    grid-template-columns: 34px repeat(var(--weeks), 11px);
-    grid-auto-rows: 11px;
-    column-gap: 2px;
-    row-gap: 2px;
-    width: max-content;
+    grid-template-columns: 34px repeat(var(--weeks), minmax(8px, 1fr));
+    grid-template-rows: 14px repeat(7, auto);
+    gap: 3px;
+    min-width: calc(34px + var(--weeks) * 11px);
+    width: 100%;
     padding-bottom: 2px;
 }
 
@@ -1144,6 +1131,9 @@
     padding-right: 6px;
     font-family: 'Space Grotesk', monospace;
     font-size: 9px;
+    /* The square cells determine row height, including on narrow screens.
+       Center the label ink without its line box enlarging the grid track. */
+    line-height: 0;
     letter-spacing: 0.08em;
     color: var(--void-text-muted);
     white-space: nowrap;
@@ -1153,6 +1143,12 @@
     width: 11px;
     height: 11px;
     border-radius: 2px;
+}
+
+.about-contributions-grid .about-contributions-day {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1;
 }
 
 .about-contributions-day--pad {
@@ -1198,20 +1194,6 @@
     color: var(--void-text-muted);
 }
 
-/* ── Desktop: stretch the graph across the full container width —
-   square cells kept, extra space distributed between columns, and
-   the legend's right edge aligned under the year dropdown ── */
-@media (min-width: 1024px) {
-    .about-contributions-calendar {
-        grid-template-columns: 100%;
-    }
-
-    .about-contributions-grid {
-        width: 100%;
-        justify-content: space-between;
-    }
-}
-
 .about-contributions-status {
     font-family: 'Inter', sans-serif;
     font-size: 13px;
@@ -1237,19 +1219,6 @@
 .about-contributions-retry:hover {
     border-color: var(--void-text-dim);
     color: var(--void-text-full);
-}
-
-/* ── Tablet: shrink the graph so a full year fits without scrolling ── */
-@media (min-width: 768px) and (max-width: 1023px) {
-    .about-contributions-grid {
-        grid-template-columns: 28px repeat(var(--weeks), 10px);
-        grid-auto-rows: 10px;
-    }
-
-    .about-contributions-day {
-        width: 10px;
-        height: 10px;
-    }
 }
 
 /* ── Day tooltip — themed popup shown above the hovered/tapped day ── */
