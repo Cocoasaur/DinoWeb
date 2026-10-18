@@ -1,6 +1,6 @@
 // Keep soft reflections without the cost of a physical material/environment map.
-export const CUBE_SHININESS = 36;
-export const CUBE_SPECULAR = '#484848';
+export const CUBE_SHININESS = 28;
+export const CUBE_SPECULAR = '#242424';
 
 const direction = (x, y, z) => {
     const length = Math.hypot(x, y, z);
