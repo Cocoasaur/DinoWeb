@@ -47,6 +47,8 @@ const profiles = [
   { name: 'desktop', width: 1440, height: 900 },
   { name: 'blue theme', width: 1440, height: 900, dark: true },
   { name: 'phone', width: 390, height: 844, touch: true },
+  { name: 'tablet', width: 820, height: 1180, touch: true },
+  { name: 'portrait monitor', width: 900, height: 1440 },
   { name: 'low-end phone', width: 430, height: 800, touch: true, low: true },
   { name: 'reduced motion', width: 430, height: 800, touch: true, reduced: true },
 ]
@@ -82,7 +84,7 @@ for (const profile of profiles) {
       // Shared rules stay in place while the content inside their cells moves.
       await expect(root.locator('.about-grid')).toHaveCSS('transform', 'none')
       const columns = await root.locator('.about-grid').evaluate(el => getComputedStyle(el).gridTemplateColumns.split(' ').length)
-      expect(columns).toBe(profile.touch ? 1 : 2)
+      expect(columns).toBe(profile.width < 768 ? 1 : 2)
       await expect(root.locator('.about-title-accent')).toHaveCSS('transform', 'none')
       if (!profile.touch) await fullyRevealed(root.locator('.about-profile-wrap'))
       const introPath = testInfo.outputPath('intro.png')
@@ -112,11 +114,12 @@ for (const profile of profiles) {
         // screen, then restore its readable state when scrolling back up.
         await panel.evaluate(el => {
           const header = el.querySelector('.about-header')
-          el.scrollTop = Math.max(0, header.offsetHeight - el.clientHeight * .18)
+          el.scrollTop = Math.max(header.offsetHeight * .25, header.offsetHeight - el.clientHeight * .26)
         })
         const titleLetter = root.locator('.about-title-char').first()
+        await expect.poll(() => titleLetter.evaluate(el => Number(getComputedStyle(el).opacity))).toBeGreaterThan(.2)
         await expect.poll(() => titleLetter.evaluate(el => Number(getComputedStyle(el).opacity))).toBeLessThan(.9)
-        await expect.poll(() => titleLetter.evaluate(el => new DOMMatrixReadOnly(getComputedStyle(el).transform).m42)).toBeLessThan(-4)
+        await expect.poll(() => titleLetter.evaluate(el => new DOMMatrixReadOnly(getComputedStyle(el).transform).m42)).toBeLessThan(-8)
         await expect(root.locator('.about-header')).toHaveCSS('transform', 'none')
         await expect(root.locator('.about-heading-cell')).toHaveCSS('transform', 'none')
         await panel.evaluate(el => { el.scrollTop = 0 })
@@ -137,46 +140,116 @@ for (const profile of profiles) {
         const placeCard = async fraction => {
           await firstCard.evaluate((card, fraction) => {
             const scroller = card.closest('.portfolio-overlay-panel')
-            scroller.scrollTop += card.getBoundingClientRect().top
+            scroller.scrollTop += card.closest('.about-cert-frame').getBoundingClientRect().top
               - scroller.getBoundingClientRect().top - scroller.clientHeight * fraction
           }, fraction)
         }
-        await placeCard(.83)
-        await expect.poll(() => firstCard.evaluate(el => Number(getComputedStyle(el).opacity))).toBeGreaterThan(.1)
-        await expect.poll(() => firstCard.evaluate(el => Number(getComputedStyle(el).opacity))).toBeLessThan(.9)
-        // Cards in the same row must cascade with scroll, rather than sharing
-        // one progress value with time delays that disappear while scrubbing.
-        await expect.poll(() => root.locator('.about-cert-cell').evaluateAll(cards =>
-          Number(getComputedStyle(cards[0]).opacity) - Number(getComputedStyle(cards[1]).opacity)
-        )).toBeGreaterThan(.02)
-        await expect(firstCard).toBeInViewport()
-        await expect.poll(() => firstCard.evaluate(el => new DOMMatrixReadOnly(getComputedStyle(el).transform).m42)).toBeGreaterThan(0)
-        await placeCard(.97)
-        await expect.poll(() => firstCard.evaluate(el => Number(getComputedStyle(el).opacity))).toBeLessThan(.1)
+        // A tall panel can include this row on first load. Such a card cannot
+        // cross the lower edge by scrolling above the page's starting position.
+        const canCrossLowerEdge = await firstCard.evaluate(card => {
+          const scroller = card.closest('.portfolio-overlay-panel')
+          return card.closest('.about-cert-frame').getBoundingClientRect().top
+            - scroller.getBoundingClientRect().top + scroller.scrollTop >= scroller.clientHeight * .97
+        })
+        if (canCrossLowerEdge) {
+          await placeCard(.90)
+          await expect.poll(() => firstCard.evaluate(el => Number(getComputedStyle(el).opacity))).toBeGreaterThan(.1)
+          await expect.poll(() => firstCard.evaluate(el => Number(getComputedStyle(el).opacity))).toBeLessThan(.9)
+          // Cards in the same row cascade with scroll, rather than sharing
+          // one progress value with time delays that disappear while scrubbing.
+          await expect.poll(() => root.locator('.about-cert-cell').evaluateAll(cards =>
+            Number(getComputedStyle(cards[0]).opacity) - Number(getComputedStyle(cards[1]).opacity)
+          )).toBeGreaterThan(.02)
+          await expect(firstCard).toBeInViewport()
+          await expect.poll(() => firstCard.evaluate(el => new DOMMatrixReadOnly(getComputedStyle(el).transform).m42)).toBeGreaterThan(0)
+          await placeCard(.97)
+          await expect.poll(() => firstCard.evaluate(el => Number(getComputedStyle(el).opacity))).toBeLessThan(.1)
+        }
         await placeCard(.68)
         await fullyRevealed(firstCard)
-        // Keep the upper third readable, then visibly exit closer to the edge.
+        // An image must visibly depart before its long caption reaches the
+        // upper band. The caption remains readable throughout this image exit.
+        const thumbnail = firstCard.locator('.about-cert-thumbnail')
+        await revealAtCenter(firstCard)
+        await fullyRevealed(thumbnail)
+        await thumbnail.evaluate(el => {
+          const panel = el.closest('.portfolio-overlay-panel')
+          panel.scrollTop += el.getBoundingClientRect().bottom
+            - panel.getBoundingClientRect().top - panel.clientHeight * .22
+        })
+        await expect.poll(() => thumbnail.evaluate(el => Number(getComputedStyle(el).opacity))).toBeGreaterThan(.25)
+        await expect.poll(() => thumbnail.evaluate(el => Number(getComputedStyle(el).opacity))).toBeLessThan(.8)
+        await expect.poll(() => thumbnail.evaluate(el => new DOMMatrixReadOnly(getComputedStyle(el).transform).m42)).toBeLessThan(-4)
+        await expect.poll(() => firstCard.evaluate(el => Number(getComputedStyle(el).opacity))).toBeGreaterThan(.9)
+        await expect(thumbnail).toBeInViewport()
+        await panel.screenshot({ path: testInfo.outputPath('thumbnail-upper-exit.png') })
+        const thumbnailExit = await thumbnail.evaluate(el => ({
+          top: el.closest('.portfolio-overlay-panel').scrollTop,
+          opacity: Number(getComputedStyle(el).opacity),
+        }))
+        await panel.evaluate(el => { el.scrollTop += el.clientHeight * .2 })
+        await expect(thumbnail).toHaveCSS('opacity', '0')
+        await panel.evaluate((el, top) => { el.scrollTop = top }, thumbnailExit.top)
+        await expect.poll(() => thumbnail.evaluate((el, opacity) =>
+          Math.abs(Number(getComputedStyle(el).opacity) - opacity), thumbnailExit.opacity)
+        ).toBeLessThan(.015)
+        // Keyboard focus restores both parts of the same interactive card.
+        await page.keyboard.press('Tab')
+        await firstCard.focus()
+        await fullyRevealed(firstCard)
+        await fullyRevealed(thumbnail)
+        await firstCard.evaluate(el => el.blur())
+        await revealAtCenter(firstCard)
+        // Keep content fully readable before the exit boundary, then visibly
+        // fade as its last lines approach the panel's top edge.
         await firstCard.evaluate(card => {
           const scroller = card.closest('.portfolio-overlay-panel')
           scroller.scrollTop += card.closest('.about-cert-frame').getBoundingClientRect().bottom
-            - scroller.getBoundingClientRect().top - scroller.clientHeight * .34
+            - scroller.getBoundingClientRect().top - scroller.clientHeight * .38
         })
         await fullyRevealed(firstCard)
+        await panel.screenshot({ path: testInfo.outputPath('upper-readable.png') })
         await firstCard.evaluate(card => {
           const scroller = card.closest('.portfolio-overlay-panel')
           scroller.scrollTop += card.closest('.about-cert-frame').getBoundingClientRect().bottom
-            - scroller.getBoundingClientRect().top - scroller.clientHeight * .18
+            - scroller.getBoundingClientRect().top - scroller.clientHeight * .22
         })
-        await expect.poll(() => firstCard.evaluate(el => Number(getComputedStyle(el).opacity))).toBeGreaterThan(.1)
-        await expect.poll(() => firstCard.evaluate(el => Number(getComputedStyle(el).opacity))).toBeLessThan(.9)
-        await expect.poll(() => firstCard.evaluate(el => new DOMMatrixReadOnly(getComputedStyle(el).transform).m42)).toBeLessThan(0)
+        await expect.poll(() => firstCard.evaluate(el => Number(getComputedStyle(el).opacity))).toBeGreaterThan(.25)
+        await expect.poll(() => firstCard.evaluate(el => Number(getComputedStyle(el).opacity))).toBeLessThan(.8)
+        await expect.poll(() => firstCard.evaluate(el => new DOMMatrixReadOnly(getComputedStyle(el).transform).m42)).toBeLessThan(-6)
+        await expect(firstCard).toBeInViewport()
+        const exitOpacity = await firstCard.evaluate(el => Number(getComputedStyle(el).opacity))
+        await panel.screenshot({ path: testInfo.outputPath('upper-exit.png') })
+        // Finish the exit while the last part of the frame is still on screen.
+        await firstCard.evaluate(card => {
+          const scroller = card.closest('.portfolio-overlay-panel')
+          scroller.scrollTop += card.closest('.about-cert-frame').getBoundingClientRect().bottom
+            - scroller.getBoundingClientRect().top - scroller.clientHeight * .06
+        })
+        await expect(firstCard).toHaveCSS('opacity', '0')
         expect(await firstCard.evaluate(card => {
           const scroller = card.closest('.portfolio-overlay-panel')
           return (card.closest('.about-cert-frame').getBoundingClientRect().bottom - scroller.getBoundingClientRect().top) / scroller.clientHeight
-        })).toBeGreaterThan(.16)
+        })).toBeGreaterThan(.045)
+        // The upper-edge entrance retraces the same visible state on reversal.
+        await firstCard.evaluate(card => {
+          const scroller = card.closest('.portfolio-overlay-panel')
+          scroller.scrollTop += card.closest('.about-cert-frame').getBoundingClientRect().bottom
+            - scroller.getBoundingClientRect().top - scroller.clientHeight * .22
+        })
+        await expect.poll(() => firstCard.evaluate((el, expected) =>
+          Math.abs(Number(getComputedStyle(el).opacity) - expected), exitOpacity)
+        ).toBeLessThan(.015)
+        await expect.poll(() => firstCard.evaluate(el => new DOMMatrixReadOnly(getComputedStyle(el).transform).m42)).toBeLessThan(-6)
         await revealAtCenter(firstCard)
         await panel.evaluate(el => { el.scrollTop = 0 })
-        await expect(firstCard).toHaveCSS('opacity', '0')
+        // Tall viewports can already include the first card at scrollTop 0.
+        // Only cards below the entrance edge should still be hidden there.
+        if (await firstCard.evaluate(card => {
+          const scroller = card.closest('.portfolio-overlay-panel')
+          return card.closest('.about-cert-frame').getBoundingClientRect().top
+            >= scroller.getBoundingClientRect().top + scroller.clientHeight * .96
+        })) await expect(firstCard).toHaveCSS('opacity', '0')
         await fullyRevealed(root.locator('.about-copy').first())
         await expect(root.locator('.about-title-char').last()).toHaveCSS('transform', 'none')
         await firstCard.scrollIntoViewIfNeeded()
@@ -206,8 +279,8 @@ for (const profile of profiles) {
       await page.keyboard.press('Escape')
       await expect(page.locator('.cert-lightbox')).toHaveCount(0)
       await page.getByRole('button', { name: 'All', exact: true }).click()
-      await expect(root.locator('.about-cert-cell')).toHaveCount(profile.touch ? 6 : 7)
-      if (profile.touch) {
+      await expect(root.locator('.about-cert-cell')).toHaveCount(profile.width < 768 ? 6 : 7)
+      if (profile.width < 768) {
         await page.getByRole('button', { name: 'Next page' }).click()
         await expect(root.locator('.about-cert-cell')).toHaveCount(1)
         // Pagination must bring the shorter result page into view itself.
@@ -300,6 +373,28 @@ for (const profile of profiles) {
       expect(cells.gapX).toBeCloseTo(3, 0)
       await panel.screenshot({ path: testInfo.outputPath('contributions-grid.png') })
 
+      // Headings, text, controls, and timeline entries should all stay at full
+      // opacity inside both readable edges, in either scroll direction.
+      if (!profile.reduced) {
+        const targets = root.locator('.about-heading-note, .about-copy, .about-section-title, .about-cv-toolbar-actions, .about-cv-download, .about-contributions-header, .about-timeline-content')
+        for (const target of await targets.all()) {
+          await revealAtCenter(target)
+          await target.evaluate(el => {
+            const panel = el.closest('.portfolio-overlay-panel')
+            panel.scrollTop += el.getBoundingClientRect().top
+              - panel.getBoundingClientRect().top - panel.clientHeight * .8
+          })
+          await fullyRevealed(target)
+          await target.evaluate(el => {
+            const panel = el.closest('.portfolio-overlay-panel')
+            panel.scrollTop += el.getBoundingClientRect().bottom
+              - panel.getBoundingClientRect().top - panel.clientHeight * .38
+          })
+          await fullyRevealed(target)
+          await revealAtCenter(target)
+        }
+      }
+
       await panel.evaluate(el => { el.scrollTop = el.scrollHeight })
       const education = root.locator('.about-timeline-content')
       for (const item of await education.all()) await revealAtCenter(item)
@@ -362,6 +457,85 @@ for (const profile of profiles) {
       await expect(panel).toHaveJSProperty('scrollTop', 0)
       await fullyRevealed(root.locator('.about-copy').first())
       expect(errors).toEqual([])
+    })
+  })
+}
+
+for (const viewport of [{ width: 640, height: 1000 }, { width: 720, height: 1024 }]) {
+  test.describe(`calendar scrollbar ${viewport.width}px`, () => {
+    test.use({ viewport, serviceWorkers: 'block' })
+
+    test('stays attached to the calendar through scrolling, fades, and dragging', async ({ page }, testInfo) => {
+      test.setTimeout(60000)
+      await page.route('https://github-contributions-api.jogruber.de/**', route => route.fulfill({
+        json: { contributions: [{ date: `${new Date().getFullYear()}-01-01`, level: 2, count: 3 }] },
+      }))
+      await openAbout(page, viewport)
+      const calendar = page.locator('.about-contributions-calendar')
+      const panel = page.locator('.portfolio-overlay-panel')
+      await page.locator('.about-contributions').evaluate(el => el.scrollIntoView({ block: 'center', behavior: 'instant' }))
+      await calendar.evaluate(el => el.scrollIntoView({ block: 'center', behavior: 'instant' }))
+      await expect(page.locator('.about-cv-page-wrap').first()).toHaveAttribute('aria-busy', 'false', { timeout: 15000 })
+      await expect(calendar).toHaveAttribute('data-scrollbars', 'custom')
+      expect(await calendar.evaluate(el => el.scrollWidth - el.clientWidth)).toBeGreaterThan(1)
+      const id = await calendar.getAttribute('id')
+      const bar = page.locator(`[role="scrollbar"][aria-controls="${id}"][aria-orientation="horizontal"]`)
+
+      // The actual bottom edge must travel with the graph, including while
+      // entering/leaving the panel. A viewport-clamped rail floats over content.
+      for (const fraction of [1.06, .85, .5, .18, .06, .18, .5, .85, 1.06]) {
+        await calendar.evaluate(async (el, fraction) => {
+          const panel = el.closest('.portfolio-overlay-panel')
+          panel.scrollTop += el.getBoundingClientRect().bottom
+            - panel.getBoundingClientRect().top - panel.clientHeight * fraction
+          await new Promise(requestAnimationFrame)
+          await new Promise(requestAnimationFrame)
+        }, fraction)
+        const sample = await bar.evaluate((rail, id) => {
+          const calendar = document.getElementById(id)
+          const opacity = element => {
+            let value = 1
+            for (let node = element; node; node = node.parentElement) value *= Number(getComputedStyle(node).opacity)
+            return value
+          }
+          return {
+            offset: rail.getBoundingClientRect().bottom - calendar.getBoundingClientRect().bottom,
+            railOpacity: opacity(rail),
+            calendarOpacity: opacity(calendar),
+          }
+        }, id)
+        expect(Math.abs(sample.offset), `rail detached at ${fraction}: ${JSON.stringify(sample)}`).toBeLessThan(1)
+        expect(Math.abs(sample.railOpacity - sample.calendarOpacity), `rail fade at ${fraction}`).toBeLessThan(.01)
+      }
+
+      await revealAtCenter(page.locator('.about-contributions-body'))
+      await expect(bar).toBeInViewport({ ratio: 1 })
+      const thumb = bar.locator('.portfolio-scrollbar__thumb')
+      const box = await thumb.boundingBox()
+      const legend = await page.locator('.about-contributions-legend').boundingBox()
+      expect(box.y - legend.y - legend.height).toBeGreaterThanOrEqual(8)
+      await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2)
+      await page.mouse.down()
+      await page.mouse.move(box.x + box.width / 2 + 60, box.y + box.height / 2, { steps: 8 })
+      await expect(page.locator('.portfolio-cursor')).toHaveAttribute('data-visible', 'true')
+      await expect.poll(() => calendar.evaluate(el => el.scrollLeft)).toBeGreaterThan(0)
+      await page.mouse.up()
+      await bar.focus()
+      await page.keyboard.press('Home')
+      await expect(bar).toHaveAttribute('aria-valuenow', '0')
+      await page.keyboard.press('End')
+      await expect(bar).toHaveAttribute('aria-valuenow', '100')
+      const left = await calendar.evaluate(el => el.scrollLeft)
+      await panel.evaluate(el => { el.scrollTop += 30 })
+      await expect(calendar).toHaveJSProperty('scrollLeft', left)
+      await panel.screenshot({ path: testInfo.outputPath('calendar-scrollbar.png') })
+
+      // A wider viewport must remove the rail without leaving a floating thumb.
+      await page.setViewportSize({ width: 1440, height: 900 })
+      await expect(bar).toBeHidden()
+      await page.setViewportSize(viewport)
+      await calendar.evaluate(el => el.scrollIntoView({ block: 'center', behavior: 'instant' }))
+      await expect(bar).toBeInViewport({ ratio: 1 })
     })
   })
 }
