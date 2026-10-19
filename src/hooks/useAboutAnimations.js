@@ -32,7 +32,8 @@ function revealStart(element, scroller) {
 // Scrub the reveal through a visible band at each viewport edge. Scrolling up
 // unwinds the entrance before the element disappears below the panel.
 function repeatAnimation(element, animation, scroller, {
-    anchor = element, readyRef, phased = false, opening, scrollStagger = 0, restTargets = [element],
+    anchor = element, focusTarget = element, readyRef, phased = false, opening,
+    scrollStagger = 0, restTargets = [element],
 } = {}) {
     let previousProgress = -1;
     let enterStart;
@@ -49,18 +50,18 @@ function repeatAnimation(element, animation, scroller, {
         const height = scroller.clientHeight;
         const maxScroll = scroller.scrollHeight - height;
         enterStart = Math.min(maxScroll - 1, revealStart(anchor, scroller) + scrollStagger);
-        enterEnd = Math.max(enterStart + 1, Math.min(maxScroll, top - height * 0.7 + scrollStagger));
-        // Keep content readable through the middle and upper third, then
-        // perform the visible exit close to the panel's top edge.
-        exitStart = Math.max(0, enterEnd, top + anchor.offsetHeight - height * 0.30 + scrollStagger * 0.5);
-        exitEnd = Math.max(exitStart + 1, top + anchor.offsetHeight - height * 0.06 + scrollStagger * 0.5);
+        enterEnd = Math.max(enterStart + 1, Math.min(maxScroll, top - height * 0.84 + scrollStagger));
+        // Animate through the upper third and finish inside the panel, so the
+        // lift/fade and its reverse are visible before native clipping begins.
+        exitStart = Math.max(0, enterEnd, top + anchor.offsetHeight - height * 0.34 + scrollStagger * 0.15);
+        exitEnd = Math.max(exitStart + 1, top + anchor.offsetHeight - height * 0.08 + scrollStagger * 0.5);
     };
     const sync = (force = false) => {
         if (readyRef && !readyRef.current) return;
         const scroll = scroller.scrollTop;
         const entry = gsap.utils.clamp(0, 1, (scroll - enterStart) / (enterEnd - enterStart));
         const exit = gsap.utils.clamp(0, 1, (exitEnd - scroll) / (exitEnd - exitStart));
-        const focused = element.contains(document.activeElement)
+        const focused = focusTarget.contains(document.activeElement)
             && document.activeElement.matches(':focus-visible');
         // Entry, readable rest, and exit occupy separate timeline segments.
         // The upper exit can therefore lift/turn away instead of replaying entry.
@@ -92,7 +93,7 @@ function repeatAnimation(element, animation, scroller, {
     });
     sync();
     return {
-        element, sync,
+        element: focusTarget, sync,
         reveal: () => {
             opening?.pause();
             animation.pause().progress(phased ? 1 / 3 : 1);
@@ -134,11 +135,11 @@ function repeatingReveal(element, scroller, vars = {}, options) {
             x: 0, y: 0, scale: 1, rotation: 0, rotationX: 0, rotationY: 0,
             skewX: 0, skewY: 0, opacity: 1,
         }, {
-            y: -36,
-            scale: 0.95,
+            y: -28,
+            scale: 0.98,
             opacity: 0,
             duration: 1,
-            ease: 'power1.out',
+            ease: 'power1.inOut',
             immediateRender: false,
             ...exitVars,
         }, 2);
@@ -266,13 +267,13 @@ export function useAboutAnimations(pageRef, ready) {
                 .fromTo(headline, {
                     yPercent: 0, rotation: 0, rotationX: 0, scale: 1, opacity: 1,
                 }, {
-                    yPercent: -110,
-                    rotationX: fullMotion ? 35 : 15,
+                    yPercent: -90,
+                    rotationX: fullMotion ? 18 : 8,
                     transformOrigin: 'center top',
                     opacity: 0,
                     duration: 0.8,
                     stagger: { amount: 0.2 },
-                    ease: 'power1.out',
+                    ease: 'power1.inOut',
                     immediateRender: false,
                 }, 2)
                 .fromTo(select('.about-label'), { y: 0, opacity: 1 }, {
@@ -302,14 +303,14 @@ export function useAboutAnimations(pageRef, ready) {
             select('.about-section-title').forEach(element => reveal(element, {
                 x: -32, y: 10, rotationX: fullMotion ? -55 : -20,
                 transformPerspective: 700,
-            }, { exitVars: { x: 20, y: -18, rotationX: 25 } }));
+            }, { exitVars: { x: -10, y: -14, rotationX: 12 } }));
             select('.about-copy').forEach((element, index) => reveal(element, {
                 x: (index % 2 ? 1 : -1) * (fullMotion ? 10 : 4),
                 skewY: fullMotion ? 1 : 0,
                 delay: index * 0.08,
             }, {
                 nestedTargets: element.querySelectorAll('.about-copy-word'),
-                exitVars: { x: -10, y: fullMotion ? -40 : -24, skewY: fullMotion ? -1 : 0 },
+                exitVars: { x: -8, y: -24, skewY: 0, scale: 1 },
             }));
             select('.about-profile-wrap').forEach(element => reveal(element, {
                 y: fullMotion ? 80 : 38,
@@ -317,18 +318,22 @@ export function useAboutAnimations(pageRef, ready) {
                 rotation: fullMotion ? -5 : -2,
                 rotationY: fullMotion ? -16 : 0,
                 transformPerspective: 900,
-            }, { exitVars: {
-                y: -45, x: fullMotion ? 12 : 0, scale: 0.9,
-                rotation: fullMotion ? 4 : 2, rotationY: fullMotion ? 12 : 0,
-            } }));
+            }, {
+                exitVars: {
+                    y: -32, x: fullMotion ? 8 : 0, scale: fullMotion ? 0.94 : 0.96,
+                    rotation: fullMotion ? 2 : 1, rotationY: fullMotion ? 6 : 0,
+                }
+            }));
             select('.about-cert-filter').forEach((element, index) => reveal(element, {
                 y: fullMotion ? 32 : 20,
                 rotationX: fullMotion ? -45 : 0,
                 scale: 0.9,
                 transformPerspective: 700,
                 delay: index * 0.04,
-            }, { scrollStagger: index * (fullMotion ? 12 : 6) }));
-            select('.about-cert-results').forEach(element => reveal(element, { y: 12 }));
+            }, { scrollStagger: index * (fullMotion ? 12 : 6), exitVars: { y: -10, scale: 1 } }));
+            select('.about-cert-results').forEach(element => reveal(element, { y: 12 }, {
+                exitVars: { y: -12, scale: 1 },
+            }));
 
             select('.about-divider').forEach(element => {
                 gsap.from(element, {
@@ -350,7 +355,7 @@ export function useAboutAnimations(pageRef, ready) {
                 reveal(content, { x: fullMotion ? 44 : 16, y: 0 }, {
                     anchor: element,
                     nestedTargets: content.children,
-                    exitVars: { x: -20, y: -16, scale: 0.98 },
+                    exitVars: { x: -12, y: -16, scale: 1 },
                 });
                 reveal(element.querySelector('.about-timeline-dot-fill'), {
                     y: 0, scale: 0, duration: 0.4, ease: 'back.out(1.5)',
@@ -372,7 +377,7 @@ export function useAboutAnimations(pageRef, ready) {
             select('.about-parameter-row').forEach((element, index) => reveal(element, {
                 x: (index % 2 ? -1 : 1) * (fullMotion ? 24 : 16),
                 y: 8, scale: 0.96, delay: index * 0.06,
-            }, { scrollStagger: index * 8, exitVars: { x: index % 2 ? 20 : -20, y: -12 } }));
+            }, { scrollStagger: index * 8, exitVars: { x: index % 2 ? 12 : -12, y: -12, scale: 1 } }));
             const stopFocus = preserveFocus(root, controllers);
             return () => { stopProgress(); stopFocus(); };
         }, root);
@@ -433,18 +438,34 @@ export function useAboutCertificateAnimations(galleryRef, category, page, pageSi
                 }, {
                     scrollStagger: (index % columns) * (fullMotion ? 22 : 10),
                     exitVars: {
-                        x: -side * (fullMotion ? 28 : 8),
-                        y: fullMotion ? -48 : -28,
-                        rotation: -side * (fullMotion ? 5 : 2),
-                        rotationY: -side * (fullMotion ? 10 : 0),
-                        scale: 0.92,
+                        x: -side * (fullMotion ? 16 : 6),
+                        y: fullMotion ? -36 : -22,
+                        rotation: -side * (fullMotion ? 3 : 1.5),
+                        rotationY: -side * (fullMotion ? 6 : 0),
+                        scale: 0.96,
                     },
                 }));
+                const thumbnail = card.querySelector('.about-cert-thumbnail');
+                if (thumbnail) {
+                    // A long caption puts the card's bottom well below the image.
+                    // Give the image its own upper exit before it is clipped;
+                    // its lower entrance still belongs to the parent card.
+                    controllers.push(repeatingReveal(thumbnail, scroller, {
+                        y: 0, scale: 1, opacity: 1, duration: 0,
+                    }, {
+                        focusTarget: card,
+                        exitVars: {
+                            y: fullMotion ? -24 : -16,
+                            scale: 0.94,
+                            rotation: side * (fullMotion ? 2 : 1),
+                        },
+                    }));
+                }
             });
             section.querySelectorAll('.about-cert-pagination-btn').forEach((button, index) => {
                 controllers.push(repeatingReveal(button, scroller, {
                     y: 22, scale: 0.8, delay: index * 0.04,
-                }, { scrollStagger: index * 8 }));
+                }, { scrollStagger: index * 8, exitVars: { y: -10, scale: 1 } }));
             });
             return preserveFocus(section, controllers);
         }, gallery);
