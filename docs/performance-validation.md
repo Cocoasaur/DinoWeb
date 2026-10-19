@@ -875,3 +875,68 @@ A dedicated temporary production preview on port 4186 was used for these checks;
 the user's preview servers were not changed. Main-checkout integration verifies
 the captured original file hashes before copying the fix, preserves existing
 commits/local changes, and rebuilds matching production assets.
+
+## About GSAP and scrollbar audit — October 19, 2026
+
+The production build containing the current About scroll reveals, independent
+certificate-thumbnail exits, and calendar scrollbar fixes retains a Lighthouse
+Performance score of **100/100 in all three desktop and all three mobile runs**.
+The values below are medians across those runs.
+
+| Profile | Performance | FCP | LCP | Blocking time | CLS |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Desktop | 100 | 0.36 s | 0.58 s | 1.5 ms | 0.00021 |
+| Mobile | 100 | 0.99 s | 1.38 s | 18.5 ms | 0.00103 |
+
+Lighthouse 13.4.1 ran against an isolated local production preview using its
+official desktop and default mobile presets, with fresh Chrome profiles and
+sequential runs. Network/CPU settings were not relaxed. All six reports have no
+run warnings. A 100 score does not mean every diagnostic is clear: navigation
+reports still flag approximately 21 KiB of potentially unused vendor JavaScript,
+and one desktop run reports forced layout work.
+
+The production build succeeds, focused ESLint and whitespace checks pass, and
+all 10 About regression tests pass. Coverage includes desktop, both themes,
+phone, tablet, portrait monitor, low-end phone, reduced motion, two narrow
+mouse-controlled calendar viewports, and first-load progress. A separate
+production-preview desktop About smoke test also passes.
+
+### About scrolling beyond the navigation score
+
+Separate runtime checks open About through the cube, scroll the native panel
+fully down and up, and repeat after deferred content settles. They load the
+real GitHub contribution data and PDF without network mocks. The desktop profile
+is 1440×900 at DPR 1 and 1× CPU; mobile is 390×844 at DPR 2 with live 4× CPU
+throttling. Runtime networking is unthrottled. Native wheel input drives both
+profiles; physical touch inertia is not measured.
+
+Without Lighthouse trace recording, repeat scrolling has **zero long tasks
+over 50 ms and zero layout shifts** in both profiles. First scrolling includes
+one 107 ms task on desktop and two tasks of 52–53 ms on mobile. The cube reports
+that rendering is paused while About is open. The calendar and PDF render, with
+no page errors, console warnings/errors, or failed requests recorded.
+
+**Remaining issue:** deferred content causes a first-scroll layout shift. The
+mobile Lighthouse interaction trace reports CLS 0.166, attributed to movement
+of the GitHub activity section. An independent pass without tracing reproduces
+a single layout-shift event of 0.235. Desktop first scrolling also shifts.
+Repeat scrolling has no shifts in either profile; navigation-only scores do
+not expose this problem.
+
+A likely contributor is `DeferredSection` releasing its reserved minimum height
+as soon as it enters view while the PDF's `Suspense` fallback is null. Keeping
+that space reserved until the viewer is ready, together with a stable calendar
+loading placeholder, is follow-up work. This cause needs an isolated fix to
+confirm; the audit does not establish GSAP as the sole source of layout work.
+
+The runner is headless Chrome 154 with ANGLE SwiftShader software rendering,
+confirmed through Chrome SystemInfo. Lighthouse tracing noticeably increases
+runtime overhead, so the no-trace repeat supplies the timing comparison.
+requestAnimationFrame callback intervals are not presented-frame FPS. These
+results do not guarantee frame rate on every physical device or measure the
+deployed site's CDN/network delivery.
+
+The local audit artifacts are in `gsap-performance-2026-10-19/`, including six
+navigation HTML/JSON reports, desktop/mobile About user-flow reports, traced and
+untraced runtime measurements, the tested build hashes, and audit scripts.
+Those generated reports are kept outside the application bundle.

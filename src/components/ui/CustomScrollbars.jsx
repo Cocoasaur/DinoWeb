@@ -24,10 +24,15 @@ export default function CustomScrollbars() {
             if (generatedId) scroller.id = `portfolio-scrollport-${++nextId}`;
             const axes = ['vertical', 'horizontal'].map(orientation => {
                 const vertical = orientation === 'vertical';
+                // The calendar's body owns its fade. Keep this rail beside the
+                // native scrollport so browser layout handles page scrolling,
+                // clipping, and opacity together, without a fixed overlay lag.
+                const local = !vertical && scroller.matches('.about-contributions-calendar');
                 const bar = document.createElement('div');
                 const thumb = document.createElement('span');
                 bar.className = 'portfolio-scrollbar';
                 bar.dataset.orientation = orientation;
+                if (local) bar.dataset.placement = 'local';
                 bar.setAttribute('role', 'scrollbar');
                 bar.setAttribute('aria-label', `${scroller.getAttribute('aria-label') || 'Content'} ${orientation} scroll`);
                 bar.setAttribute('aria-orientation', orientation);
@@ -39,8 +44,9 @@ export default function CustomScrollbars() {
                 bar.appendChild(thumb);
                 // Stay within the modal's accessibility tree while escaping
                 // the scrolling element's content and clipping.
-                (scroller.closest('[role="dialog"]') || layer).appendChild(bar);
-                const axis = { bar, thumb, vertical, range: 0, travel: 0, drag: null };
+                const host = local ? scroller.parentElement : scroller.closest('[role="dialog"]') || layer;
+                host.appendChild(bar);
+                const axis = { bar, thumb, vertical, local, range: 0, travel: 0, drag: null };
                 const getPosition = () => vertical ? scroller.scrollTop : scroller.scrollLeft;
                 const setPosition = value => {
                     if (vertical) scroller.scrollTop = value;
@@ -51,6 +57,7 @@ export default function CustomScrollbars() {
                     if (event.button !== 0 || !axis.travel) return;
                     event.preventDefault();
                     event.stopPropagation();
+                    bar.dataset.pointerFocus = 'true';
                     bar.focus({ preventScroll: true });
                     const coordinate = vertical ? event.clientY : event.clientX;
                     if (event.target !== thumb) {
@@ -77,11 +84,13 @@ export default function CustomScrollbars() {
                     if (bar.hasPointerCapture(event.pointerId)) bar.releasePointerCapture(event.pointerId);
                     release();
                 });
+                bar.addEventListener('blur', () => { delete bar.dataset.pointerFocus; });
                 bar.addEventListener('keydown', event => {
                     const page = vertical ? scroller.clientHeight : scroller.clientWidth;
                     const changes = vertical ? { ArrowUp: -40, ArrowDown: 40 } : { ArrowLeft: -40, ArrowRight: 40 };
                     const change = changes[event.key] ?? ({ PageUp: -page, PageDown: page }[event.key]);
                     if (change === undefined && event.key !== 'Home' && event.key !== 'End') return;
+                    delete bar.dataset.pointerFocus;
                     event.preventDefault();
                     setPosition(event.key === 'Home' ? 0 : event.key === 'End' ? axis.range : getPosition() + change);
                 });
@@ -162,10 +171,11 @@ export default function CustomScrollbars() {
                     width: scroller.clientWidth, height: scroller.clientHeight,
                     scrollWidth: scroller.scrollWidth, scrollHeight: scroller.scrollHeight,
                     left: scroller.scrollLeft, top: scroller.scrollTop,
-                    borderX: scroller.clientLeft, borderY: scroller.clientTop };
+                    borderX: scroller.clientLeft, borderY: scroller.clientTop,
+                    offsetX: scroller.offsetLeft, offsetY: scroller.offsetTop };
             });
             for (const m of measurements) for (const axis of m.record.axes) {
-                const { bar, thumb, vertical } = axis;
+                const { bar, thumb, vertical, local } = axis;
                 const extent = vertical ? m.height : m.width;
                 const total = vertical ? m.scrollHeight : m.scrollWidth;
                 const range = Math.max(0, total - extent);
@@ -180,8 +190,14 @@ export default function CustomScrollbars() {
                 axis.range = range;
                 axis.travel = travel;
                 if (bar.hidden) continue;
-                Object.assign(bar.style, { left: `${x}px`, top: `${y}px`, width: `${width}px`, height: `${height}px`,
-                    clipPath: `inset(${Math.max(0, m.bounds.top - y)}px ${Math.max(0, x + width - m.bounds.right)}px ${Math.max(0, y + height - m.bounds.bottom)}px ${Math.max(0, m.bounds.left - x)}px)` });
+                Object.assign(bar.style, local ? {
+                    left: `${m.offsetX + m.borderX}px`,
+                    top: `${m.offsetY + m.borderY + m.height - 12}px`,
+                    width: `${width}px`, height: `${height}px`,
+                } : {
+                    left: `${x}px`, top: `${y}px`, width: `${width}px`, height: `${height}px`,
+                    clipPath: `inset(${Math.max(0, m.bounds.top - y)}px ${Math.max(0, x + width - m.bounds.right)}px ${Math.max(0, y + height - m.bounds.bottom)}px ${Math.max(0, m.bounds.left - x)}px)`,
+                });
                 const progress = range ? clamp((vertical ? m.top : m.left) / range, 0, 1) : 0;
                 thumb.style[vertical ? 'height' : 'width'] = `${size}px`;
                 thumb.style.transform = `translate3d(${vertical ? 0 : progress * travel}px, ${vertical ? progress * travel : 0}px, 0)`;

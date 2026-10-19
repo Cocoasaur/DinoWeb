@@ -55,14 +55,24 @@ controls remain the foundation for future About page work.
   scroll the minimum-width year instead of distorting its cells.
 - Reveals have three timeline segments: entrance, readable rest, and a distinct
   exit. Scrolling backward retraces these segments without remounting content.
-- Entry motion runs through the lower viewport band, approximately 96% to 70%.
-  Upper exits run as the element's bottom crosses approximately 30% to 6%,
-  keeping content readable through the middle and upper third of the panel.
-  Movement remains visible near the top before the panel clips it. Exit easing
-  starts visibly instead of spending the early part of that band near rest.
+- Entry motion runs through a short lower viewport band, approximately 96% to 84%,
+  so incoming content reaches full opacity sooner.
+  Upper exits run as the element's bottom crosses 34% to 8%, completing inside
+  the panel before its last lines are clipped. An in/out ease makes both the lift
+  and its scroll reversal visible. Text travels 12–24px, portraits 32px, and
+  certificates 22–36px with small rotations; short controls move only 10px.
+  PDF controls, document scrollports, and the calendar fade in place to retain
+  their bounds and scrollbar alignment.
+  Certificate thumbnails have their own upper exit, so a long caption does not
+  postpone the image animation until it is already clipped. They inherit the
+  card's lower entrance and are restored with the card on keyboard focus.
   The About title has its own upward letter exit through the heading mask;
   its opening animation and readable rest remain separate from that exit.
   Bounds are adjusted so the final rows can finish revealing at the scroll limit.
+- The calendar's horizontal custom rail lives beside its native scrollport,
+  inside the animated body. Browser layout keeps it attached below the legend,
+  clips it with the panel, and applies the same fade without viewport clamping.
+  Pointer capture, keyboard scrolling, and the custom cursor remain available.
 - `scrollStagger` offsets scroll distances, giving cards and controls a cascade
   that remains visible while scrubbing. Time delays serve the opening sequence.
 - Keep resting content free of motion transforms and opacity overrides. Preserve
@@ -88,12 +98,17 @@ PLAYWRIGHT_BASE_URL=http://127.0.0.1:5173/DinoWeb/ npx playwright test \
   --grep 'reveals panel|fits sharp PDFs' --workers=1
 ```
 
-The checks cover desktop, the blue theme, phone, low-end phone, reduced motion, visible
+The checks cover desktop, the blue theme, phone, tablet, portrait monitor,
+low-end phone, reduced motion, visible
 scroll reversal, word reveals, card staggering, upward exits, keyboard access,
 filters, pagination, lightboxes, modal reopening, and responsive PDF rendering.
 The About suite also samples toolbar bounds during entry/exit, measures day-cell
-aspect ratios and both gaps, and delays the document module to exercise progress
+aspect ratios and both gaps, checks calendar rail alignment and inherited opacity
+in narrow mouse viewports through both scroll directions, and delays the document
+module to exercise progress
 while first-load content and scroll ranges change in both directions.
+It also checks thumbnail motion while captions remain readable, verifies the
+same partial exit on scroll reversal, and restores both image and card on focus.
 Run `npm run build` and lint the changed animation files as well. Repository-wide
 lint also contains pre-existing errors outside the new motion implementation.
 

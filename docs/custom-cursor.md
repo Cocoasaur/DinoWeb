@@ -29,8 +29,12 @@ until the component has tracked an actual mouse move; touch events hide it.
   remain exact throughout dragging. Wheel events and keyboard arrows, Page Up/
   Down, Home, and End scroll the real content; ARIA scrollbar values update
   with it. Wheel events at a nested viewer boundary chain to the outer panel.
+  Pointer dragging suppresses the rail's focus outline while retaining focus
+  for scroll keys. Keyboard navigation restores the visible focus outline.
 - Rails are portaled outside clipping containers and clipped to the visible
-  scrollport. Nested rails keep separate hit areas; modal rails stay inside
+  scrollport. The calendar's horizontal rail instead stays inside its animated
+  body, beside the scrollport, so it scrolls, clips, and fades with the calendar.
+  Nested rails keep separate hit areas; modal rails stay inside
   their dialog’s accessibility tree. Resize/mutation observers handle lazy content and newly opened
   pages. Measurements are batched into animation frames, with no per-frame
   React state updates. Closing a page removes its rails. Disabling the cursor

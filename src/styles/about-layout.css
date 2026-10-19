@@ -1087,6 +1087,12 @@
     color: var(--void-text-full);
 }
 
+.about-contributions-body {
+    /* The calendar rail shares this body's GSAP fade and native page clipping. */
+    position: relative;
+    min-width: 0;
+}
+
 .about-contributions-calendar {
     overflow-x: auto;
     /* Leave room for the custom 12px rail below the legend on narrow views. */
