@@ -2,7 +2,8 @@
 [data-scrollbars='custom']::-webkit-scrollbar { display: none !important; width: 0 !important; height: 0 !important; }
 
 .portfolio-scrollbars { position: fixed; inset: 0; z-index: 150; pointer-events: none; }
-.portfolio-scrollbar { position: fixed; z-index: 150; pointer-events: auto; touch-action: none; user-select: none; }
+.portfolio-scrollbar { position: fixed; z-index: 150; pointer-events: auto; touch-action: none; user-select: none; outline: none; }
+.portfolio-scrollbar[data-placement='local'] { position: absolute; z-index: 1; }
 .portfolio-scrollbar[hidden] { display: none; }
 .portfolio-scrollbar__thumb { position: absolute; background: var(--scrollbar-thumb); opacity: .4; border-radius: 2px; }
 .portfolio-scrollbar[data-orientation='vertical'] .portfolio-scrollbar__thumb { top: 0; left: 4px; width: 4px; }
@@ -10,4 +11,5 @@
 .portfolio-scrollbar:hover .portfolio-scrollbar__thumb,
 .portfolio-scrollbar:focus-visible .portfolio-scrollbar__thumb,
 .portfolio-scrollbar[data-dragging='true'] .portfolio-scrollbar__thumb { opacity: .9; }
-.portfolio-scrollbar:focus-visible { outline: 1px solid var(--void-text-dim); outline-offset: -1px; }
+/* Pointer drags retain scroll-key focus without drawing a box around the rail. */
+.portfolio-scrollbar:focus-visible:not([data-pointer-focus]) { outline: 1px solid var(--void-text-dim); outline-offset: -1px; }
