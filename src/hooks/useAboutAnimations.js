@@ -3,6 +3,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useGSAP } from '@gsap/react';
 import { useRef } from 'react';
 import { useRenderProfile } from '../context/RenderProfileContext';
+import { layoutTop, revealStart, scrollRevealBounds } from '../utils/scrollRevealBounds';
 
 gsap.registerPlugin(ScrollTrigger, useGSAP);
 
@@ -11,23 +12,6 @@ const MEDIA = {
     compact: '(max-width: 1023px), (hover: none), (pointer: coarse)',
     reducedMotion: '(prefers-reduced-motion: reduce)',
 };
-
-// Layout offsets exclude the transforms on animated sections and their children.
-// That keeps trigger positions stable after fonts, PDFs, filters, or resizing.
-function layoutTop(element, scroller) {
-    let top = 0;
-    for (let node = element; node && node !== scroller; node = node.offsetParent) {
-        top += node.offsetTop;
-    }
-    return top;
-}
-
-function revealStart(element, scroller) {
-    return Math.min(
-        scroller.scrollHeight - scroller.clientHeight - 1,
-        layoutTop(element, scroller) - scroller.clientHeight * 0.96,
-    );
-}
 
 // Scrub the reveal through a visible band at each viewport edge. Scrolling up
 // unwinds the entrance before the element disappears below the panel.
@@ -46,15 +30,7 @@ function repeatAnimation(element, animation, scroller, {
         target.style.removeProperty('transform-origin');
     });
     const measure = () => {
-        const top = layoutTop(anchor, scroller);
-        const height = scroller.clientHeight;
-        const maxScroll = scroller.scrollHeight - height;
-        enterStart = Math.min(maxScroll - 1, revealStart(anchor, scroller) + scrollStagger);
-        enterEnd = Math.max(enterStart + 1, Math.min(maxScroll, top - height * 0.84 + scrollStagger));
-        // Animate through the upper third and finish inside the panel, so the
-        // lift/fade and its reverse are visible before native clipping begins.
-        exitStart = Math.max(0, enterEnd, top + anchor.offsetHeight - height * 0.34 + scrollStagger * 0.15);
-        exitEnd = Math.max(exitStart + 1, top + anchor.offsetHeight - height * 0.08 + scrollStagger * 0.5);
+        ({ enterStart, enterEnd, exitStart, exitEnd } = scrollRevealBounds(anchor, scroller, scrollStagger));
     };
     const sync = (force = false) => {
         if (readyRef && !readyRef.current) return;
