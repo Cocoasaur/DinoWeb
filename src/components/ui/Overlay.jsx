@@ -15,7 +15,6 @@ function ReadyContent({ onReady, children }) {
 }
 
 const PAGE_MAP = {
-    skills: <SkillsPage />,
     contacts: <ContactsPage />,
 };
 
@@ -73,11 +72,13 @@ export default function Overlay({
         ? <ProjectsPage selectedProject={selectedProject} onSelectProject={onSelectProject} />
         : faceName === 'about'
         ? <AboutPage motionReady={phase === 'open'} />
+        : faceName === 'skills'
+        ? <SkillsPage motionReady={phase === 'open'} />
         : (PAGE_MAP[faceName] ?? <p style={{ fontFamily: "'Inter', sans-serif", color: 'var(--void-text-dim)' }}>No data found.</p>);
 
     return (
         <div
-            className="fixed inset-0 z-[100] flex items-center justify-center overflow-hidden"
+            className="fixed inset-0 z-[100] flex items-center justify-center overflow-clip"
             data-phase={phase}
             role="dialog"
             aria-modal="true"
