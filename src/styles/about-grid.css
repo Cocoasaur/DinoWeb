@@ -11,6 +11,7 @@
 
 .portfolio-overlay-panel[data-page='about'] .portfolio-overlay-close {
     position: sticky !important;
+    z-index: 50 !important;
     top: 0 !important;
     right: 0 !important;
     width: 48px !important;
