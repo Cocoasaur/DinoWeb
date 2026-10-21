@@ -145,6 +145,22 @@ function requestFrame() {
     frameId=self.requestAnimationFrame(renderFrame);
 }
 function pose() { return { x:cube.position.x,y:cube.position.y,z:camera.position.z,rx:cube.rotation.x,ry:cube.rotation.y }; }
+// Resizing a paused WebGL canvas clears its backing image. Repaint the held
+// pose once, without advancing motion, firing completion signals, or an idle loop.
+function drawScene() {
+    renderer.render(scene,camera);draws+=renderer.info.render.calls;
+    cube.updateWorldMatrix(true,false);origin.setFromMatrixPosition(cube.matrixWorld).project(camera);
+    send('frame',{x:THREE.MathUtils.radToDeg(cube.rotation.x),y:THREE.MathUtils.radToDeg(cube.rotation.y),draws,origin:{x:(origin.x+1)*width/2,y:(1-origin.y)*height/2}});
+}
+function repaintHeldFrame() {
+    if (!initialized || !state.paused) return;
+    if (state.isZoomed && state.zoomInComplete) {
+        cube.scale.setScalar(state.layout.cubeScale);
+        camera.position.set(0,0,zoomedZ());
+    }
+    updateLighting();
+    drawScene();
+}
 function zoomedZ() {
     const size=state.layout.cubeScale, breakpoint=state.layout.breakpoint;
     const overscan=breakpoint==='phone'?1.55:breakpoint==='tablet'?1.45:1.65;
@@ -205,6 +221,7 @@ function receiveState(next) {
                 }
             }
             updatePaletteMaterials();
+            repaintHeldFrame();
             requestFrame();
         }).catch((error)=>send('error',{message:error.message}));
     }
@@ -214,6 +231,8 @@ function receiveState(next) {
     }
     if(state.paused){if(frameId)self.cancelAnimationFrame(frameId);frameId=0;previousTime=0;}
     else requestFrame();
+    if (previous.dpr !== state.dpr || previous.layout.cubeScale !== state.layout.cubeScale
+        || previous.layout.breakpoint !== state.layout.breakpoint) repaintHeldFrame();
 }
 
 function updatePaletteMaterials() {
@@ -306,9 +325,7 @@ function renderFrame(now) {
             }
         }
     }
-    renderer.render(scene,camera);draws+=renderer.info.render.calls;
-    cube.updateWorldMatrix(true,false);origin.setFromMatrixPosition(cube.matrixWorld).project(camera);
-    send('frame',{x:THREE.MathUtils.radToDeg(cube.rotation.x),y:THREE.MathUtils.radToDeg(cube.rotation.y),draws,origin:{x:(origin.x+1)*width/2,y:(1-origin.y)*height/2}});
+    drawScene();
     // Publish the current pose before either transition signal changes React state.
     if(startDissolve)send('dissolve-start');
     if(completedIn)send('zoom-in-complete');
@@ -378,6 +395,6 @@ self.onmessage=({data})=>{
     else if(data.type==='resize'){
         width=Math.max(1,data.width);height=Math.max(1,data.height);
         if(renderer)renderer.setSize(width,height,false);
-        if(camera){camera.aspect=width/height;camera.updateProjectionMatrix();requestFrame();}
+        if(camera){camera.aspect=width/height;camera.updateProjectionMatrix();repaintHeldFrame();requestFrame();}
     }
 };
