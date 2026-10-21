@@ -940,3 +940,14 @@ The local audit artifacts are in `gsap-performance-2026-10-19/`, including six
 navigation HTML/JSON reports, desktop/mobile About user-flow reports, traced and
 untraced runtime measurements, the tested build hashes, and audit scripts.
 Those generated reports are kept outside the application bundle.
+
+
+## Covered-scene resize and closing flash — October 21, 2026
+
+Resizing while About or Skills was open could clear the paused WebGL buffer. The overlay then exposed the homepage before the returning cube was rendered. The fallback also allowed a responsive React update to reapply the resting cube position over the held navigation pose.
+
+Both renderers now repaint a held frame after viewport/profile changes without advancing the transition or starting an idle loop. Completed approaches refit the zoomed camera to the new viewport. The fallback's declarative initial position stays stable, so only its animation code changes the live pose. Early-close camera poses remain interrupted rather than snapping to a completed approach.
+
+The new covered-resize regression reproduced the missing pixels before the fix in both renderers. It checks the actual canvas image repeatedly after desktop-to-phone, phone-to-tablet, and tablet-to-desktop changes, verifies a painted zoomed face survives compositing, checks worker draws settle, and closes cleanly. It covers About in Demain Soir Bleu and Skills in Clair Obscur with both worker and fallback rendering.
+
+Sixteen distinct browser checks are verified: four covered-page resize cases, six home-resize profiles, and six transition profiles. One initial desktop-fallback timing check missed an overlapping opacity sample under parallel load and passed in the final targeted run. Build, focused ESLint, and whitespace checks pass. No new Lighthouse score is claimed for this update. Evidence: `/tmp/dinoweb-covered-resize-repro`, `/tmp/dinoweb-covered-resize-final`, and `/tmp/dinoweb-covered-resize-confirmed`.
