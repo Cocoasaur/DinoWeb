@@ -69,34 +69,78 @@ export function useSkillsMotion(pageRef, ready, active, expanded, reducedMotion)
                 start: 'top top', end: 'bottom top', scrub: true },
         });
 
-        // Pointer motion reuses two tweens; no idle render loop or extra WebGL.
-        const media = gsap.matchMedia();
-        media.add('(hover: hover) and (pointer: fine)', () => {
-            if (tier === 'low') return;
-            const stage = root.querySelector('.skills-stack-stage');
-            const rig = root.querySelector('.skills-stack-rig');
-            const rx = gsap.quickTo(rig, 'rotationX', { duration: .45, ease: 'power3.out' });
-            const rz = gsap.quickTo(rig, 'rotationZ', { duration: .45, ease: 'power3.out' });
-            let bounds;
-            const move = event => {
-                if (event.pointerType !== 'mouse') return;
-                bounds ||= stage.getBoundingClientRect();
-                const x = gsap.utils.clamp(-1, 1, (event.clientX - bounds.left) / bounds.width * 2 - 1);
-                const y = gsap.utils.clamp(-1, 1, (event.clientY - bounds.top) / bounds.height * 2 - 1);
-                rx(58 - y * 6);
-                rz(-34 + x * 7);
-            };
-            const reset = () => { bounds = null; rx(58); rz(-34); };
-            stage.addEventListener('pointermove', move);
-            stage.addEventListener('pointerleave', reset);
-            scroller.addEventListener('scroll', reset, { passive: true });
-            return () => {
-                stage.removeEventListener('pointermove', move);
-                stage.removeEventListener('pointerleave', reset);
-                scroller.removeEventListener('scroll', reset);
-            };
-        }, root);
-        return () => media.revert();
+        // Match About's tap/drag feedback without cancelling native pan or pinch.
+        // Pointer updates reuse two tweens, including on lower-capability touch devices.
+        const stage = root.querySelector('.skills-stack-stage');
+        const rig = root.querySelector('.skills-stack-rig');
+        const hover = window.matchMedia('(hover: hover) and (pointer: fine)');
+        const amount = tier === 'low' ? .65 : 1;
+        // Preserve GSAP's decomposition of the CSS 3D pose when settling.
+        const baseX = Number(gsap.getProperty(rig, 'rotationX'));
+        const baseZ = Number(gsap.getProperty(rig, 'rotationZ'));
+        const rx = gsap.quickTo(rig, 'rotationX', { duration: .35, ease: 'power3.out' });
+        const rz = gsap.quickTo(rig, 'rotationZ', { duration: .35, ease: 'power3.out' });
+        let bounds, pointerId = null, timer = 0, active = false;
+        const update = (event, tap = false) => {
+            clearTimeout(timer);
+            timer = 0;
+            bounds ||= stage.getBoundingClientRect();
+            if (!bounds.width || !bounds.height) return;
+            let x = gsap.utils.clamp(-1, 1, (event.clientX - bounds.left) / bounds.width * 2 - 1);
+            let y = gsap.utils.clamp(-1, 1, (event.clientY - bounds.top) / bounds.height * 2 - 1);
+            if (tap && Math.abs(x) < .1 && Math.abs(y) < .1) { x = .2; y = -.2; }
+            active = true;
+            rx(baseX - y * 6 * amount);
+            rz(baseZ + x * 7 * amount);
+        };
+        const reset = () => {
+            clearTimeout(timer);
+            timer = 0;
+            pointerId = null;
+            bounds = null;
+            if (active) { rx(baseX); rz(baseZ); }
+            active = false;
+        };
+        const down = event => {
+            if (!event.isPrimary) { reset(); return; }
+            if (event.button !== 0) return;
+            if (event.pointerType === 'mouse' && (tier === 'low' || !hover.matches)) return;
+            pointerId = event.pointerId;
+            update(event, event.pointerType !== 'mouse');
+        };
+        const move = event => {
+            if (event.pointerType === 'mouse') {
+                if (tier !== 'low' && hover.matches) update(event);
+            } else if (event.pointerId === pointerId) update(event);
+        };
+        const up = event => {
+            if (event.pointerId !== pointerId) return;
+            pointerId = null;
+            if (event.pointerType !== 'mouse') timer = window.setTimeout(reset, 180);
+        };
+        const leave = event => { if (event.pointerType === 'mouse') reset(); };
+        const visibility = () => { if (document.hidden) reset(); };
+        stage.addEventListener('pointerdown', down);
+        stage.addEventListener('pointermove', move);
+        stage.addEventListener('pointerup', up);
+        stage.addEventListener('pointerleave', leave);
+        stage.addEventListener('pointercancel', reset);
+        scroller.addEventListener('scroll', reset, { passive: true });
+        window.addEventListener('resize', reset, { passive: true });
+        window.addEventListener('blur', reset);
+        document.addEventListener('visibilitychange', visibility);
+        return () => {
+            clearTimeout(timer);
+            stage.removeEventListener('pointerdown', down);
+            stage.removeEventListener('pointermove', move);
+            stage.removeEventListener('pointerup', up);
+            stage.removeEventListener('pointerleave', leave);
+            stage.removeEventListener('pointercancel', reset);
+            scroller.removeEventListener('scroll', reset);
+            window.removeEventListener('resize', reset);
+            window.removeEventListener('blur', reset);
+            document.removeEventListener('visibilitychange', visibility);
+        };
     }, { scope: pageRef, dependencies: [ready, reducedMotion, reduceEffects, tier], revertOnUpdate: true });
 
     useGSAP(() => {

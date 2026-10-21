@@ -62,7 +62,7 @@ function StackSculpture({ active, expanded, onExpand }) {
             </div>
         </div>
         <div className="skills-specimen-controls">
-            <span className="skills-specimen-caption" data-skills-reveal>A toolkit, in perspective.</span>
+            <span className="skills-specimen-caption" data-skills-reveal>Tap or drag to tilt.</span>
             <button type="button" className="skills-spread-button" data-skills-reveal aria-pressed={expanded} onClick={onExpand}>
                 <span aria-hidden="true">{expanded ? '−' : '+'}</span> {expanded ? 'Bring together' : 'Spread layers'}
             </button>
