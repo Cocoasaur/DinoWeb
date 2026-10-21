@@ -12,6 +12,7 @@ export default function TiltCard({
     glare = true,
     perspective = 1000,
     depth = 0,
+    highlightOnTouch = false,
 }) {
     const { reduceEffects, tier } = useRenderProfile();
     const reducedMotion = useReducedMotion();
@@ -28,6 +29,7 @@ export default function TiltCard({
         clearTimeout(current.timer);
         Object.assign(current, { pointerId: null, rect: null, frame: 0, timer: 0, active: false });
         if (cardRef.current) {
+            cardRef.current.removeAttribute('data-touch-active');
             cardRef.current.style.transition = reducedMotion || instant ? 'none' : settle;
             cardRef.current.style.transform = reducedMotion ? 'none' : neutral;
             cardRef.current.style.willChange = '';
@@ -98,6 +100,9 @@ export default function TiltCard({
         if (!event.isPrimary) { reset(); return; }
         if (event.button !== 0) return;
         interaction.current.pointerId = event.pointerId;
+        if (highlightOnTouch && event.pointerType !== 'mouse') {
+            cardRef.current?.setAttribute('data-touch-active', 'true');
+        }
         update(event, event.pointerType !== 'mouse');
         // Leave native touch scrolling and pinch zoom enabled.
     };
@@ -109,13 +114,14 @@ export default function TiltCard({
         interaction.current.pointerId = null;
         if (event.pointerType === 'mouse') return;
         // Let quick taps remain visible briefly, then settle without a frame loop.
-        interaction.current.timer = window.setTimeout(() => reset(), 180);
+        interaction.current.timer = window.setTimeout(() => reset(), highlightOnTouch ? 500 : 180);
     };
 
     return (
         <div
             ref={cardRef}
             className={className}
+            data-cursor-label={reducedMotion ? undefined : 'TILT'}
             style={{
                 display: 'inline-block',
                 verticalAlign: 'top',
@@ -127,10 +133,10 @@ export default function TiltCard({
             }}
             onPointerEnter={reducedMotion ? undefined : event => { if (event.pointerType === 'mouse') update(event); }}
             onPointerMove={reducedMotion ? undefined : onPointerMove}
-            onPointerDown={reducedMotion ? undefined : onPointerDown}
-            onPointerUp={reducedMotion ? undefined : onPointerUp}
+            onPointerDown={reducedMotion && !highlightOnTouch ? undefined : onPointerDown}
+            onPointerUp={reducedMotion && !highlightOnTouch ? undefined : onPointerUp}
             onPointerLeave={reducedMotion ? undefined : event => { if (event.pointerType === 'mouse') reset(); }}
-            onPointerCancel={reducedMotion ? undefined : () => reset()}
+            onPointerCancel={reducedMotion && !highlightOnTouch ? undefined : () => reset()}
         >
             <div style={{ position: 'relative', zIndex: 2, transform: !reducedMotion && depth ? `translateZ(${depth}px)` : undefined }}>
                 {children}
