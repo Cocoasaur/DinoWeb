@@ -69,6 +69,8 @@ export default function ImageCarousel({ images, imageCount, className = '', onIm
         <div
             className={`image-carousel relative select-none ${className}`}
             ref={containerRef}
+            data-cursor-label={onImageClick ? 'VIEW / DRAG' : 'DRAG'}
+            data-cursor-pressed-label="DRAG"
             onPointerDown={handlePointerDown}
             onPointerMove={handlePointerMove}
             onPointerUp={handlePointerUp}
@@ -178,6 +180,7 @@ export default function ImageCarousel({ images, imageCount, className = '', onIm
             {totalImages > 1 && (
                 <div
                     className="image-carousel__counter absolute top-3 right-3 px-2 py-1 text-[10px] tracking-widest uppercase border"
+                    data-cursor-label=""
                     style={{
                         fontFamily: "'Space Grotesk', monospace",
                         backgroundColor: 'var(--void-surface-80)',

@@ -224,7 +224,6 @@ export function useAboutAnimations(pageRef, ready) {
                 paused: true,
             });
             headerMotion
-                .from(select('.about-label'), { y: 12, opacity: 0, duration: 0.4, clearProps: 'transform,opacity' }, 0)
                 .from(headline, {
                     yPercent: 110,
                     opacity: 0,
@@ -251,16 +250,13 @@ export function useAboutAnimations(pageRef, ready) {
                     stagger: { amount: 0.2 },
                     ease: 'power1.inOut',
                     immediateRender: false,
-                }, 2)
-                .fromTo(select('.about-label'), { y: 0, opacity: 1 }, {
-                    y: -10, opacity: 0, duration: 0.5, immediateRender: false,
                 }, 2);
             const headerOpening = gsap.to(headerMotion, {
                 time: 1, duration: fullMotion ? 1.25 : 0.8, ease: 'none', paused: true,
             });
             controllers.push(repeatAnimation(root.querySelector('.about-header'), headerMotion, scroller, {
                 readyRef, phased: true, opening: headerOpening,
-                restTargets: [...headline, ...select('.about-label')],
+                restTargets: headline,
             }));
 
             const stopProgress = trackScrollProgress(root, scroller);

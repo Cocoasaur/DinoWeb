@@ -63,3 +63,12 @@ custom scrollbar drags on both axes, nested PDF scrolling, and rail cleanup.
 The cursor suite keeps OS scrollbars visible to detect unintended native gutters. The renderer's inline cursor
 remains the source for picking assertions because CSS hides its visible cursor
 while the custom cursor is active.
+
+
+## Explicit hints for interactive surfaces
+
+Non-button interactions opt in with `data-cursor-label`; `data-cursor-pressed-label` can change the hint during a press or captured drag. The closest annotated surface or semantic control wins, so a gallery arrow keeps NEXT/PREV and a nested close button keeps CLOSE instead of inheriting its parent's hint. An empty explicit label opts static content out of a surrounding interactive surface.
+
+TiltCard supplies TILT for the About portrait and all skill tiles. The Skills layer stack also advertises TILT. Screenshot galleries display VIEW / DRAG and retain DRAG during pointer capture on the wrapper. Clickable lightbox backdrops display CLOSE while static images inside them have no action label. Labels remain visible during presses. Ordinary buttons, links, fields, range/selection/toggle controls, disabled controls, download links, and document zoom controls retain appropriate semantic hints; native media and iframe controls keep their native cursor fallback.
+
+Validation: ten cursor browser checks pass, including real portrait hover/press, all 25 skill tiles, the layer stack, captured gallery dragging, nested arrows, disabled controls, static content, exact cursor tracking, scrollbars, keyboard/accessibility preferences, and touch exclusion. Two targeted checks also pass after adding both lightbox backdrops. Build and focused lint pass; ProjectModal's one existing lint error is unchanged from HEAD. Artifacts: `/tmp/dinoweb-cursor-hints-final` and `/tmp/dinoweb-cursor-hints-lightboxes`.

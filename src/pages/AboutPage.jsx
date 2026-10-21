@@ -191,10 +191,6 @@ export default function AboutPage({ motionReady = true }) {
                 <span className="about-scroll-progress-fill" />
             </div>
             <header className="about-header">
-                <div className="about-masthead">
-                    <p className="about-label">01 / Profile</p>
-                    <span className="about-masthead-note">John Jessienel M. Arquesola</span>
-                </div>
                 <div className="about-heading-cell">
                     <h2 className="about-title" aria-label="About">
                         <span className="about-title-mask" aria-hidden="true">
@@ -354,6 +350,7 @@ export default function AboutPage({ motionReady = true }) {
             {lightboxCertificate !== null && createPortal(
                 <div
                     className="cert-lightbox fixed inset-0 z-[150] flex items-center justify-center"
+                    data-cursor-label="CLOSE"
                     style={{
                         backgroundColor: 'rgba(0, 0, 0, 0.7)',
                         backdropFilter: 'blur(6px)',
@@ -362,6 +359,7 @@ export default function AboutPage({ motionReady = true }) {
                 >
                     <div
                         className="cert-lightbox-in relative flex items-center justify-center max-w-[92vw] max-h-[88vh] border"
+                        data-cursor-label=""
                         style={{ borderColor: 'var(--void-border)', boxShadow: '0 16px 64px rgba(0,0,0,0.5)' }}
                         onClick={e => e.stopPropagation()}
                     >

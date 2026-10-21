@@ -84,8 +84,7 @@
     transform-origin: left top;
 }
 
-.portfolio-cursor__label:empty,
-.portfolio-cursor[data-pressed='true'] .portfolio-cursor__label {
+.portfolio-cursor__label:empty {
     display: none;
 }
 

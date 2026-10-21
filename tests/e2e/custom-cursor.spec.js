@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test'
 import { existsSync } from 'node:fs'
+import { openAbout, openSkills, openProjects } from './helpers/skills.js'
 
 async function loadHome(page, low = false) {
   await page.addInitScript(low => {
@@ -226,4 +227,135 @@ test.describe('touch', () => {
     await expect(page.locator('.portfolio-cursor')).toHaveCount(0)
     await expect(page.locator('html')).not.toHaveAttribute('data-custom-cursor')
   })
+})
+
+
+test('labels tilt/drag surfaces and lets nested controls keep their own actions', async ({ page }) => {
+  await loadHome(page)
+  await page.evaluate(() => {
+    const fixture = document.createElement('div')
+    fixture.id = 'cursor-semantics'
+    fixture.style.cssText = 'position:fixed;left:40px;top:40px;width:500px;padding:20px;background:white;z-index:500;display:grid;gap:12px'
+    fixture.innerHTML = `
+      <div data-cursor-label="TILT"><span id="tilt-hint">Portrait surface</span><button aria-label="Close example">×</button></div>
+      <div id="drag-hint" data-cursor-label="VIEW / DRAG" data-cursor-pressed-label="DRAG">Image gallery</div>
+      <input aria-label="Adjust value" type="range"><input aria-label="Toggle value" type="checkbox">
+      <select aria-label="Choose value"><option>Example</option></select>
+      <button disabled>Unavailable action</button><button title="Copy to clipboard">Copy</button>
+      <button aria-label="Zoom in">+</button><a href="#example" download>Download</a>
+      <div id="plain-copy">Plain text</div>`
+    document.body.appendChild(fixture)
+  })
+  const label = page.locator('.portfolio-cursor__label')
+  for (const [selector, text] of [
+    ['#tilt-hint', 'TILT'], ['[aria-label="Close example"]', 'CLOSE'],
+    ['#drag-hint', 'VIEW / DRAG'], ['input[type="range"]', 'ADJUST'],
+    ['input[type="checkbox"]', 'TOGGLE'], ['select', 'SELECT'],
+    ['button:disabled', 'UNAVAILABLE'], ['button[title]', 'COPY'],
+    ['button[aria-label="Zoom in"]', 'ZOOM IN'], ['a[download]', 'SAVE'],
+    ['#plain-copy', ''],
+  ]) {
+    await page.locator('#cursor-semantics').locator(selector).hover()
+    await expect(label).toHaveText(text)
+  }
+  await page.locator('#drag-hint').hover()
+  await page.mouse.down()
+  await expect(label).toHaveText('DRAG')
+  await expect(label).toBeVisible()
+  await expect(page.locator('.portfolio-cursor')).toHaveAttribute('data-mode', 'drag')
+  await page.mouse.up()
+  await expect(label).toHaveText('VIEW / DRAG')
+})
+
+for (const name of ['about', 'skills']) {
+  test(`shows real ${name} interaction hints without labelling static content`, async ({ page }, testInfo) => {
+    test.setTimeout(60000)
+    await page.addInitScript(dark => {
+      Object.defineProperty(navigator, 'hardwareConcurrency', { get: () => 8 })
+      Object.defineProperty(navigator, 'deviceMemory', { get: () => 8 })
+      if (dark) localStorage.setItem('dinoweb-theme-v2', 'demain-soir-bleu')
+    }, name === 'skills')
+    await (name === 'about' ? openAbout : openSkills)(page, { width: 1440, height: 900 })
+    const label = page.locator('.portfolio-cursor__label')
+    const panel = page.locator('.portfolio-overlay-panel')
+    if (name === 'about') {
+      const portrait = page.locator('.about-profile-image')
+      await portrait.evaluate(el => el.scrollIntoView({ block: 'center', behavior: 'instant' }))
+      await expect(page.locator('.about-profile-wrap')).toHaveCSS('opacity', '1')
+      await portrait.hover({ position: { x: 30, y: 30 } })
+      await expect(label).toHaveText('TILT')
+      await expect(label).toBeVisible()
+      await page.mouse.down()
+      await expect(label).toHaveText('TILT')
+      await expect(label).toBeVisible()
+      await page.mouse.up()
+      await page.screenshot({ path: testInfo.outputPath('portrait-tilt-hint.png') })
+      const certificate = page.locator('.about-cert-cell').first()
+      await certificate.evaluate(el => el.scrollIntoView({ block: 'center', behavior: 'instant' }))
+      await expect(certificate).toHaveCSS('opacity', '1')
+      await certificate.hover()
+      await expect(label).toHaveText('VIEW')
+      await certificate.click()
+      await page.locator('.cert-lightbox-in img').hover()
+      await expect(label).toHaveText('')
+      await page.mouse.move(5, 5)
+      await expect(label).toHaveText('CLOSE')
+      await page.mouse.click(5, 5)
+      await expect(page.locator('.cert-lightbox')).toHaveCount(0)
+    } else {
+      await page.locator('.skills-stack-stage').hover()
+      await expect(label).toHaveText('TILT')
+      for (const tile of await page.locator('.skills-tool-face').all()) {
+        await tile.evaluate(el => el.scrollIntoView({ block: 'center', behavior: 'instant' }))
+        await expect(tile).toHaveCSS('opacity', '1')
+        await expect(tile).toHaveCSS('transform', 'none')
+        await tile.locator('.skills-tool-content').hover()
+        await expect(label).toHaveText('TILT')
+      }
+    }
+    await panel.evaluate(el => { el.scrollTop = 0 })
+    await page.locator('.portfolio-overlay-masthead-copy').hover()
+    await expect(label).toHaveText('')
+    await page.getByRole('button', { name: `Close ${name} details` }).hover()
+    await expect(label).toHaveText('CLOSE')
+  })
+}
+
+
+test('keeps gallery hints through pointer capture and labels its nested arrows', async ({ page }) => {
+  test.setTimeout(45000)
+  await openProjects(page, { width: 1440, height: 900 })
+  const label = page.locator('.portfolio-cursor__label')
+  const card = page.locator('.projects-card').first()
+  await card.hover()
+  await expect(label).toHaveText('OPEN')
+  await card.click()
+  const gallery = page.locator('.image-carousel')
+  await expect(gallery).toBeVisible()
+  const viewport = gallery.locator('.image-carousel__viewport')
+  await viewport.scrollIntoViewIfNeeded()
+  const box = await viewport.boundingBox()
+  await page.mouse.move(box.x + box.width * .6, box.y + box.height * .4)
+  await expect(label).toHaveText('VIEW / DRAG')
+  await page.mouse.down()
+  await page.mouse.move(box.x + box.width * .6 - 75, box.y + box.height * .4, { steps: 8 })
+  await expect(label).toHaveText('DRAG')
+  await expect(label).toBeVisible()
+  await page.mouse.up()
+  await expect(label).toHaveText('VIEW / DRAG')
+  const previous = gallery.getByRole('button', { name: 'Previous screenshot' })
+  await previous.hover()
+  await expect(label).toHaveText('PREV')
+  await previous.click()
+  await previous.hover()
+  await expect(label).toHaveText('UNAVAILABLE')
+  await gallery.locator('.image-carousel__counter').hover()
+  await expect(label).toHaveText('')
+  await viewport.click({ position: { x: box.width * .6, y: box.height * .4 } })
+  await page.locator('.cert-lightbox-in img').hover()
+  await expect(label).toHaveText('')
+  await page.mouse.move(5, 5)
+  await expect(label).toHaveText('CLOSE')
+  await page.mouse.click(5, 5)
+  await expect(page.locator('.cert-lightbox')).toHaveCount(0)
 })

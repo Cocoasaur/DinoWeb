@@ -1,3 +1,4 @@
+import { assertPinnedHeader } from './helpers/pinned-header.js'
 import { expect, test } from '@playwright/test'
 import * as THREE from 'three'
 import { getHomeViewportLayout } from '../../src/hooks/useHomeViewportLayout.js'
@@ -114,7 +115,9 @@ for (const profile of profiles) {
         // screen, then restore its readable state when scrolling back up.
         await panel.evaluate(el => {
           const header = el.querySelector('.about-header')
-          el.scrollTop = Math.max(header.offsetHeight * .25, header.offsetHeight - el.clientHeight * .26)
+          let top = 0
+          for (let node = header; node && node !== el; node = node.offsetParent) top += node.offsetTop
+          el.scrollTop = Math.max(header.offsetHeight * .25, top + header.offsetHeight - el.clientHeight * .21)
         })
         const titleLetter = root.locator('.about-title-char').first()
         await expect.poll(() => titleLetter.evaluate(el => Number(getComputedStyle(el).opacity))).toBeGreaterThan(.2)
@@ -437,6 +440,7 @@ for (const profile of profiles) {
         await expect(root.locator('.about-profile-parallax')).toHaveCSS('transform', 'none')
         await page.emulateMedia({ reducedMotion: 'no-preference' })
       }
+      await assertPinnedHeader(page, panel, testInfo)
       await page.getByRole('button', { name: 'Close about details' }).click()
       await expect(root).toHaveCount(0, { timeout: 10000 })
       await expect(page.locator('[role="scrollbar"]')).toHaveCount(0)

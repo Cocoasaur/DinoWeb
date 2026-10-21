@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback, Suspense, lazy } from 'react';
 import OverlayNavIcon from './OverlayNavIcon';
+import '../../styles/overlay-frame.css';
 import { PAGE_LOADERS } from '../../utils/prefetchPages';
 import { getCubeTransition } from '../../utils/cubeTransition';
 
@@ -76,6 +77,56 @@ export default function Overlay({
         ? <SkillsPage motionReady={phase === 'open'} />
         : (PAGE_MAP[faceName] ?? <p style={{ fontFamily: "'Inter', sans-serif", color: 'var(--void-text-dim)' }}>No data found.</p>);
 
+    const editorial = faceName === 'about' || faceName === 'skills';
+    const closeButton = renderCloseButton ? renderCloseButton({ onClose }) : (
+        <button
+            type="button"
+            aria-label={`Close ${faceName || 'portfolio'} details`}
+            onClick={onClose}
+            className="portfolio-overlay-close sticky top-5 right-5 z-20 ml-auto text-xl leading-none w-10 h-10 flex items-center justify-center border transition-all duration-300 cursor-pointer"
+            style={{
+                fontFamily: "'Space Grotesk', monospace",
+                color: 'var(--void-text-full)',
+                backgroundColor: 'var(--void-btn-bg)',
+                borderColor: 'var(--void-btn-border)',
+            }}
+            onMouseEnter={e => {
+                e.currentTarget.style.backgroundColor = 'var(--void-surface-80)';
+                e.currentTarget.style.borderColor = 'var(--void-text-dim)';
+            }}
+            onMouseLeave={e => {
+                e.currentTarget.style.backgroundColor = 'var(--void-btn-bg)';
+                e.currentTarget.style.borderColor = 'var(--void-btn-border)';
+            }}
+        >
+            <OverlayNavIcon variant="close" />
+        </button>
+    );
+    const panel = (
+        <div
+            ref={scrollPanelRef}
+            data-page={faceName}
+            className="portfolio-overlay-panel relative w-[90vw] max-w-5xl max-h-[85vh] border overlay-scroll"
+            style={{
+                backgroundColor: 'var(--void-surface)',
+                borderColor: 'var(--void-border)',
+                maxHeight: '85dvh',
+                overflowY: 'auto',
+                overflowX: 'hidden',
+            }}
+            onClick={e => e.stopPropagation()}
+        >
+            {!editorial && closeButton}
+            <div className="portfolio-overlay-content p-12 pt-8">
+                <Suspense fallback={
+                    <div className="animate-pulse h-32 rounded" style={{ backgroundColor: 'var(--void-border)' }} />
+                }>
+                    <ReadyContent onReady={pageReady}>{pageContent}</ReadyContent>
+                </Suspense>
+            </div>
+        </div>
+    );
+
     return (
         <div
             className="fixed inset-0 z-[100] flex items-center justify-center overflow-clip"
@@ -111,51 +162,18 @@ export default function Overlay({
                     opacity: 0.6,
                 }}
             />
-            <div
-                ref={scrollPanelRef}
-                data-page={faceName}
-                className="portfolio-overlay-panel relative w-[90vw] max-w-5xl max-h-[85vh] border overlay-scroll"
-                style={{
-                    backgroundColor: 'var(--void-surface)',
-                    borderColor: 'var(--void-border)',
-                    maxHeight: '85dvh',
-                    overflowY: 'auto',
-                    overflowX: 'hidden',
-                }}
-                onClick={e => e.stopPropagation()}
-            >
-                {renderCloseButton ? renderCloseButton({ onClose }) : (
-                    <button
-                        type="button"
-                        aria-label={`Close ${faceName || 'portfolio'} details`}
-                        onClick={onClose}
-                        className="portfolio-overlay-close sticky top-5 right-5 z-20 ml-auto text-xl leading-none w-10 h-10 flex items-center justify-center border transition-all duration-300 cursor-pointer"
-                        style={{
-                            fontFamily: "'Space Grotesk', monospace",
-                            color: 'var(--void-text-full)',
-                            backgroundColor: 'var(--void-btn-bg)',
-                            borderColor: 'var(--void-btn-border)',
-                        }}
-                        onMouseEnter={e => {
-                            e.currentTarget.style.backgroundColor = 'var(--void-surface-80)';
-                            e.currentTarget.style.borderColor = 'var(--void-text-dim)';
-                        }}
-                        onMouseLeave={e => {
-                            e.currentTarget.style.backgroundColor = 'var(--void-btn-bg)';
-                            e.currentTarget.style.borderColor = 'var(--void-btn-border)';
-                        }}
-                    >
-                        <OverlayNavIcon variant="close" />
-                    </button>
-                )}
-                <div className="portfolio-overlay-content p-12 pt-8">
-                    <Suspense fallback={
-                        <div className="animate-pulse h-32 rounded" style={{ backgroundColor: 'var(--void-border)' }} />
-                    }>
-                        <ReadyContent onReady={pageReady}>{pageContent}</ReadyContent>
-                    </Suspense>
+            {editorial ? (
+                <div className="portfolio-overlay-frame" data-page={faceName}>
+                    <header className="portfolio-overlay-masthead">
+                        <div className="portfolio-overlay-masthead-copy">
+                            <span>{faceName === 'about' ? '01 / Profile' : '02 / Capabilities'}</span>
+                            <span className="portfolio-overlay-masthead-note">{faceName === 'about' ? 'John Jessienel M. Arquesola' : 'Built layer by layer'}</span>
+                        </div>
+                        {closeButton}
+                    </header>
+                    {panel}
                 </div>
-            </div>
+            ) : panel}
         </div>
     );
 }

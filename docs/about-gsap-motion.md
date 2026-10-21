@@ -114,3 +114,8 @@ lint also contains pre-existing errors outside the new motion implementation.
 
 For additional About sections, add stable targets within the existing scopes,
 keep lazy content in its own mount lifecycle, and extend these interaction checks.
+
+
+## Fixed masthead frame
+
+The About masthead and close control now live in Overlay's fixed frame, outside the native scrolling body. This keeps the header visible and puts both desktop custom scrollbars and native phone/tablet scrollbars below it. The reading-progress line remains at the top of the body under the header. The About title and content keep their entry/exit timelines; the fixed profile label is no longer part of the title timeline. Skills uses the same frame. Header geometry, close-button hit testing, and desktop rail range are checked at the top, middle, and bottom of each page.

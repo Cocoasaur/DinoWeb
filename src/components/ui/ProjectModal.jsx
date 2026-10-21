@@ -243,6 +243,7 @@ export default function ProjectModal({ project }) {
             {lightboxIndex !== null && createPortal(
                 <div
                     className="cert-lightbox fixed inset-0 z-[150] flex items-center justify-center"
+                    data-cursor-label="CLOSE"
                     style={{
                         backgroundColor: 'rgba(0, 0, 0, 0.7)',
                         backdropFilter: 'blur(6px)',
@@ -251,6 +252,7 @@ export default function ProjectModal({ project }) {
                 >
                     <div
                         className="cert-lightbox-in relative flex items-center justify-center max-w-[92vw] max-h-[88vh] border"
+                        data-cursor-label=""
                         style={{ borderColor: 'var(--void-border)', boxShadow: '0 16px 64px rgba(0,0,0,0.5)' }}
                         onClick={e => e.stopPropagation()}
                     >

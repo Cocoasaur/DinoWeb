@@ -1,37 +1,6 @@
+import { assertPinnedHeader } from './helpers/pinned-header.js'
 import { expect, test } from '@playwright/test'
-import * as THREE from 'three'
-import { getHomeViewportLayout } from '../../src/hooks/useHomeViewportLayout.js'
-
-function cubePoint(width, height, local, rx = -20, ry = -45) {
-  const layout = getHomeViewportLayout(width, height)
-  const camera = new THREE.PerspectiveCamera(45, width / height, .1, 100)
-  camera.position.z = 5
-  camera.updateMatrixWorld()
-  const point = new THREE.Vector3(...local)
-    .applyEuler(new THREE.Euler(rx * Math.PI / 180, ry * Math.PI / 180, 0))
-    .multiplyScalar(layout.cubeScale)
-    .add(new THREE.Vector3(layout.restingX, layout.restingY, 0)).project(camera)
-  return { x: (point.x + 1) * width / 2, y: (1 - point.y) * height / 2 }
-}
-
-async function openSkills(page, profile) {
-  await page.goto('./')
-  await expect(page.locator('.boot-screen')).toHaveCount(0, { timeout: 30000 })
-  await page.locator('.cube-breath').evaluate(el => el.getAnimations().forEach(animation => animation.pause()))
-  const origin = cubePoint(profile.width, profile.height, [0, 0, 0])
-  await page.mouse.move(origin.x, origin.y)
-  await page.mouse.down()
-  await page.mouse.move(origin.x + (135 * Math.PI / 180) / .008, origin.y + (20 * Math.PI / 180) / .008, { steps: 30 })
-  await page.mouse.up()
-  await expect.poll(async () => {
-    const coords = (await page.locator('.home-coordinate').textContent()).match(/X:\s*([\d.-]+),?\s*Y:\s*([\d.-]+)/)
-    return !!coords && Math.abs(Number(coords[1])) < 2 && Math.abs(Number(coords[2]) - 90) < 2
-  }).toBe(true)
-  const face = cubePoint(profile.width, profile.height, [-1.01, 0, 0], 0, 90)
-  await page.mouse.click(face.x, face.y)
-  await expect(page.getByRole('dialog', { name: 'skills details' })).toHaveAttribute('data-phase', 'open', { timeout: 15000 })
-  return face
-}
+import { openSkills } from './helpers/skills.js'
 
 const profiles = [
   { name: 'desktop', width: 1440, height: 900 },
@@ -64,11 +33,12 @@ for (const profile of profiles) {
       const panel = page.locator('.portfolio-overlay-panel[data-page="skills"]')
       const panelTop = await panel.evaluate(el => el.getBoundingClientRect().top)
       expect(panelTop).toBeGreaterThan(0)
-      const centered = () => panel.evaluate(el => ({
-        top: el.getBoundingClientRect().top,
-        bottomGap: innerHeight - el.getBoundingClientRect().bottom,
-        outerScroll: el.parentElement.scrollTop,
-      }))
+      const centered = () => panel.evaluate(el => {
+        const frame = el.closest('.portfolio-overlay-frame')
+        return { top: frame.getBoundingClientRect().top,
+          bottomGap: innerHeight - frame.getBoundingClientRect().bottom,
+          outerScroll: frame.parentElement.scrollTop }
+      })
       const assertCentered = async () => {
         await expect.poll(async () => {
           const box = await centered()
@@ -187,16 +157,61 @@ for (const profile of profiles) {
         await expect(lowerCard).toHaveCSS('opacity', '1')
         await expect(lowerCard).toHaveCSS('transform', 'none')
       }
-      // Traverse every tool and load its local icon; no lower row may stay hidden.
+      // Every tile has real X/Y/depth motion, including compact touch profiles.
+      // Use stationary cell geometry; a transformed face must not move its trigger.
       for (let index = 0; index < 25; index++) {
         const tool = root.locator('.skills-tool-face').nth(index)
+        const is3D = () => tool.evaluate(el => {
+          const style = getComputedStyle(el)
+          const matrix = new DOMMatrixReadOnly(style.transform)
+          return Number(style.opacity) > .05 && Number(style.opacity) < .99
+            && Math.abs(matrix.m23) > .01 && Math.abs(matrix.m13) > .005 && matrix.m43 < -.1
+        })
+        if (!profile.reduced) {
+          const entryReachable = await tool.evaluate(el => {
+            const cell = el.closest('.skills-tool-cell')
+            const panel = el.closest('.portfolio-overlay-panel')
+            let top = 0
+            for (let node = cell; node && node !== panel; node = node.offsetParent) top += node.offsetTop
+            const max = panel.scrollHeight - panel.clientHeight
+            const start = Math.min(max - 1, top - panel.clientHeight * .96)
+            const end = Math.max(start + 1, Math.min(max, top - panel.clientHeight * .84))
+            const middle = (start + end) / 2
+            panel.scrollTop = middle
+            return middle >= 0 && middle <= max
+          })
+          if (entryReachable) {
+            await expect.poll(is3D, { message: `tile ${index + 1} enters in 3D` }).toBe(true)
+            if (index === 9) await panel.screenshot({ path: testInfo.outputPath('tile-entry.png') })
+          }
+        }
         await tool.evaluate(el => el.scrollIntoView({ block: 'center', behavior: 'instant' }))
         await expect(tool).toHaveCSS('opacity', '1')
+        await expect(tool).toHaveCSS('transform', 'none')
+        if (!profile.reduced) {
+          const exitReachable = await tool.evaluate(el => {
+            const cell = el.closest('.skills-tool-cell')
+            const panel = el.closest('.portfolio-overlay-panel')
+            let top = 0
+            for (let node = cell; node && node !== panel; node = node.offsetParent) top += node.offsetTop
+            const middle = top + cell.offsetHeight - panel.clientHeight * .21
+            panel.scrollTop = middle
+            return middle >= 0 && middle <= panel.scrollHeight - panel.clientHeight
+          })
+          if (exitReachable) {
+            await expect.poll(is3D, { message: `tile ${index + 1} exits in 3D` }).toBe(true)
+            if (index === 9) await panel.screenshot({ path: testInfo.outputPath('tile-exit.png') })
+          }
+          await tool.evaluate(el => el.scrollIntoView({ block: 'center', behavior: 'instant' }))
+          await expect(tool).toHaveCSS('opacity', '1')
+          await expect(tool).toHaveCSS('transform', 'none')
+        }
       }
       await expect.poll(() => root.locator('.skills-tool-content img').evaluateAll(images =>
         images.every(img => img.complete && img.naturalWidth > 0))).toBe(true)
       await expect.poll(() => panel.evaluate(el => el.scrollWidth - el.clientWidth)).toBeLessThanOrEqual(1)
       await assertCentered()
+      await assertPinnedHeader(page, panel, testInfo)
       await page.getByRole('button', { name: 'Close skills details' }).click()
       await expect(page.getByRole('dialog')).toHaveCount(0)
       await expect(async () => {
