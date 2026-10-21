@@ -73,7 +73,12 @@ export default function TiltCard({
 
     useEffect(() => {
         reset(true);
-        const end = () => reset();
+        const end = () => {
+            // A grid can contain many cards; native scrolling only needs to
+            // settle the one that is being touched, rather than rewrite them all.
+            const current = interaction.current;
+            if (current.active || current.pointerId !== null || current.timer) reset();
+        };
         const onVisibility = () => { if (document.hidden) reset(true); };
         // Capturing scroll also catches scrolling within the About overlay.
         window.addEventListener('scroll', end, { capture: true, passive: true });

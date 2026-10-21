@@ -4,6 +4,7 @@ import { useReducedMotion } from '../hooks/useReducedMotion';
 import { useSkillsMotion } from '../hooks/useSkillsMotion';
 import { SKILL_CATEGORIES, SKILL_COUNT } from '../data/skills';
 import { layoutTop } from '../utils/scrollRevealBounds';
+import TiltCard from '../components/ui/TiltCard';
 import '../styles/skills-layout.css';
 
 function Arrow() {
@@ -82,12 +83,14 @@ function SkillSection({ category, isDark }) {
         <ul className="skills-tool-grid" aria-label={`${category.title} technologies`}>
             {category.skills.map((skill, index) => <li key={skill.name} className="skills-tool-cell" data-skills-anchor>
                 <div className="skills-tool-face" data-skills-reveal>
-                    <div className="skills-tool-content">
-                        <span className="skills-tool-number" aria-hidden="true">{category.number}.{String(index + 1).padStart(2, '0')}</span>
-                        <img src={isDark && skill.darkIcon ? skill.darkIcon : skill.icon} alt="" width="36" height="36" loading="lazy" decoding="async" draggable="false" />
-                        <span className="skills-tool-name">{skill.name}</span>
-                        <span className="skills-tool-kind">{skill.kind}</span>
-                    </div>
+                    <TiltCard className="skills-tool-tilt" style={{ display: 'block', width: '100%', height: '100%' }} tiltAmount={6} scale={1} glare={false}>
+                        <div className="skills-tool-content">
+                            <span className="skills-tool-number" aria-hidden="true">{category.number}.{String(index + 1).padStart(2, '0')}</span>
+                            <img src={isDark && skill.darkIcon ? skill.darkIcon : skill.icon} alt="" width="36" height="36" loading="lazy" decoding="async" draggable="false" />
+                            <span className="skills-tool-name">{skill.name}</span>
+                            <span className="skills-tool-kind">{skill.kind}</span>
+                        </div>
+                    </TiltCard>
                 </div>
             </li>)}
         </ul>
