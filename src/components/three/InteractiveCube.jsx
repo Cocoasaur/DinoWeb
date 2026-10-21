@@ -1,4 +1,4 @@
-import { useRef, useEffect, useLayoutEffect, useMemo, useCallback } from 'react';
+import { useRef, useEffect, useLayoutEffect, useMemo, useCallback, useState } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import * as THREE from 'three';
@@ -84,7 +84,7 @@ export default function InteractiveCube({
     const idleDriftRef = useRef({ active: false, x: 0, y: 0, reRollIn: 0 });
     const lastInteractTimeRef = useRef(0);
     const idleFrameTimeRef = useRef(0);
-    const { camera, invalidate } = useThree();
+    const { camera, invalidate, size } = useThree();
     const reducedMotion = useReducedMotion();
     const transition = getCubeTransition(reduceEffects, reducedMotion);
 
@@ -95,6 +95,9 @@ export default function InteractiveCube({
     const edgeColor = cssVars['--cube-edge-color'] || '#ffffff';
     const edgeOpacity = parseFloat(cssVars['--cube-edge-opacity']) || 0.35;
     const { breakpoint, restingX, restingY, cubeScale } = useHomeViewportLayout();
+    // Animation owns the live pose. Responsive renders must not reapply the
+    // resting position over a camera pose held behind an open page.
+    const [initialPosition] = useState(() => [restingX, restingY, 0]);
 
     const pressRef = useRef({
         active: false,
@@ -144,6 +147,14 @@ export default function InteractiveCube({
         hasNotifiedOutRef.current = false;
         invalidate();
     }, [isZoomingOut, camera, invalidate]);
+
+    // A covered page can cross responsive breakpoints without running frames.
+    // Refit only a completed approach; an interrupted approach keeps its pose.
+    useLayoutEffect(() => {
+        if (!isZoomed || isZoomingOut || !hasNotifiedRef.current || !groupRef.current) return;
+        groupRef.current.scale.setScalar(cubeScale);
+        camera.position.set(0, 0, getZoomedCameraZ(camera, cubeScale, breakpoint));
+    }, [isZoomed, isZoomingOut, cubeScale, breakpoint, camera, size.width, size.height]);
 
     const clearSuppressFaceClickTimer = useCallback(() => {
         if (!suppressFaceClickTimerRef.current) return;
@@ -517,7 +528,7 @@ export default function InteractiveCube({
     return (
         <group
             ref={groupRef}
-            position={[restingX, restingY, 0]}
+            position={initialPosition}
             rotation={[
                 THREE.MathUtils.degToRad(DEFAULT_ROTATION.x),
                 THREE.MathUtils.degToRad(DEFAULT_ROTATION.y),
