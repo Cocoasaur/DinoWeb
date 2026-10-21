@@ -1,4 +1,4 @@
-import { Suspense, useEffect, useRef, useSyncExternalStore, useState } from 'react';
+import { Suspense, useEffect, useLayoutEffect, useRef, useSyncExternalStore, useState } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { useCubePalette } from '../../hooks/useCubePalette';
 import Scene from './Scene';
@@ -47,13 +47,13 @@ function updateFallbackTargets(objects, next, labelScale) {
     }
 }
 
-function SceneRenderer({ onReady, complete }) {
-    const { gl, scene, camera, invalidate } = useThree();
+function SceneRenderer({ onReady, complete, paused }) {
+    const { gl, scene, camera, invalidate, size, viewport } = useThree();
     const preparedRef = useRef(false);
     const notifiedRef = useRef(false);
     const frameRef = useRef(0);
     const palette = useCubePalette();
-    const { labelScale } = useRenderProfile();
+    const { labelScale, reduceEffects } = useRenderProfile();
     const wipeUniformsRef = useRef(null);
     if (wipeUniformsRef.current === null) { wipeUniformsRef.current = createCubeWipeUniforms(); }
     const wipeRef = useRef(null);
@@ -170,6 +170,16 @@ function SceneRenderer({ onReady, complete }) {
         };
     }, [gl, scene, camera, invalidate, complete]);
 
+    // Canvas resize/profile changes clear the buffer even in frameloop="never".
+    // Repaint once after React/R3F commit the new viewport and held cube pose.
+    useLayoutEffect(() => {
+        if (!paused) return;
+        const frame = requestAnimationFrame(() => {
+            if (preparedRef.current) gl.render(scene, camera);
+        });
+        return () => cancelAnimationFrame(frame);
+    }, [paused, gl, scene, camera, size.width, size.height, viewport.dpr, reduceEffects]);
+
     // Taking over rendering prevents the default loop from drawing before
     // shaders finish. Subsequent frames still follow Canvas's demand/never mode.
     useFrame(() => {
@@ -279,7 +289,7 @@ export default function MainThreadCubeStage({
                         screenPosRef={screenPosRef}
                         faceDownPosRef={faceDownPosRef}
                     />
-                    <SceneRenderer onReady={onReady} complete={faceCount === FACE_CONFIG.length} />
+                    <SceneRenderer onReady={onReady} complete={faceCount === FACE_CONFIG.length} paused={paused} />
                 </Suspense>
             </Canvas>
             </div>
