@@ -8,7 +8,7 @@ import '../../styles/custom-cursor.css';
 gsap.registerPlugin(useGSAP);
 
 const NATIVE = 'iframe, video[controls], audio[controls], .boot-screen, [inert], [data-cursor="native"]';
-const ACTION = 'a[href], button, summary, [role="button"], [role="tab"], [role="option"]';
+const ACTION = 'a[href], button, summary, [role="button"], [role="tab"], [role="option"], [role="menuitem"], [role="checkbox"], [role="radio"], [role="switch"], [role="slider"], [data-cursor-label]';
 
 function isNativeScrollbar(target, point) {
     const html = document.documentElement;
@@ -32,7 +32,16 @@ function interactionFor(target, pressed) {
     if (!(target instanceof Element) || target.closest(NATIVE)) return null;
     const control = target.closest(ACTION);
     if (target.closest('[role="scrollbar"]')) return { mode: pressed ? 'drag' : 'action', label: 'SCROLL' };
-    if (target.closest('input, textarea, select, [contenteditable="true"], [role="textbox"]')) return { mode: 'text', label: 'TYPE' };
+    if (target.closest(':disabled, [aria-disabled="true"]')) return { mode: 'default', label: 'UNAVAILABLE' };
+    const field = target.closest('input, textarea, select, [contenteditable="true"], [role="textbox"]');
+    if (field) {
+        const type = field.getAttribute('type')?.toLowerCase();
+        if (type === 'range') return { mode: 'action', label: 'ADJUST' };
+        if (type === 'checkbox') return { mode: 'action', label: 'TOGGLE' };
+        if (field.tagName === 'SELECT' || type === 'radio') return { mode: 'action', label: 'SELECT' };
+        if (['button', 'submit', 'reset'].includes(type)) return { mode: 'action', label: type === 'button' ? 'SELECT' : type.toUpperCase() };
+        return { mode: 'text', label: 'TYPE' };
+    }
     const canvas = target.closest('canvas');
     if (canvas?.closest('.cube-entrance')) {
         // The worker updates the canvas cursor asynchronously after raycasting.
@@ -45,11 +54,24 @@ function interactionFor(target, pressed) {
         return { mode: 'rotate', label: 'ROTATE', canvas };
     }
     if (!control) return { mode: 'default', label: '' };
-    const name = control.getAttribute('aria-label') || '';
+    // closest() lets a nested button override a parent's tilt/drag hint.
+    if (control.hasAttribute('data-cursor-label')) {
+        const label = pressed && control.dataset.cursorPressedLabel || control.dataset.cursorLabel;
+        return { mode: label ? pressed && label === 'DRAG' ? 'drag' : 'action' : 'default', label };
+    }
+    const role = control.getAttribute('role');
+    if (['checkbox', 'switch'].includes(role)) return { mode: 'action', label: 'TOGGLE' };
+    if (role === 'slider') return { mode: 'action', label: 'ADJUST' };
+    if (control.tagName === 'SUMMARY') return { mode: 'action', label: control.parentElement?.open ? 'COLLAPSE' : 'EXPAND' };
+    const name = control.getAttribute('aria-label') || control.getAttribute('title') || '';
     let label = control.tagName === 'A' ? 'OPEN' : 'SELECT';
     if (/close/i.test(name)) label = 'CLOSE';
     else if (/back/i.test(name)) label = 'BACK';
+    else if (/^open /i.test(name)) label = 'OPEN';
     else if (/^view /i.test(name)) label = 'VIEW';
+    else if (/^copy/i.test(name)) label = 'COPY';
+    else if (/^zoom in/i.test(name)) label = 'ZOOM IN';
+    else if (/^zoom out/i.test(name)) label = 'ZOOM OUT';
     else if (/^next /i.test(name)) label = 'NEXT';
     else if (/^previous /i.test(name)) label = 'PREV';
     else if (control.hasAttribute('download') || /^download/i.test(name)) label = 'SAVE';
