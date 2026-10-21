@@ -4,6 +4,7 @@ import { openSkills } from './helpers/skills.js'
 const profiles = [
   { name: 'phone', width: 390, height: 844 },
   { name: 'tablet', width: 820, height: 1180 },
+  { name: 'blue theme phone', width: 390, height: 844, dark: true },
   { name: 'landscape phone', width: 844, height: 390 },
   { name: 'low-end phone', width: 430, height: 800, low: true },
   { name: 'reduced motion', width: 430, height: 800, reduced: true },
@@ -32,6 +33,7 @@ for (const profile of profiles) {
         Object.defineProperty(navigator, 'hardwareConcurrency', { get: () => low ? 2 : 8 })
         Object.defineProperty(navigator, 'deviceMemory', { get: () => low ? 2 : 8 })
       }, !!profile.low)
+      if (profile.dark) await page.addInitScript(() => localStorage.setItem('dinoweb-theme-v2', 'demain-soir-bleu'))
       await openSkills(page, profile)
       const root = page.locator('.skills-page')
       const panel = page.locator('.portfolio-overlay-panel[data-page="skills"]')
@@ -94,17 +96,47 @@ for (const profile of profiles) {
 
       const cell = root.locator('.skills-tool-cell').first()
       const tilt = cell.locator('.skills-tool-tilt')
-      point = await center(cell)
+      await center(cell)
       await expect(cell.locator('.skills-tool-face')).toHaveCSS('opacity', '1')
       const cardRest = await matrix(tilt)
+      const content = cell.locator('.skills-tool-content')
+      const icon = content.locator('img')
+      const idleFilter = profile.dark ? 'brightness(0) invert(1)' : 'grayscale(1)'
+      const restingBackground = await content.evaluate(el => getComputedStyle(el).backgroundColor)
+      await expect(icon).toHaveCSS('filter', idleFilter)
+      point = await center(cell)
       await touch('touchStart', [point])
+      await expect(tilt).toHaveAttribute('data-touch-active', 'true')
+      await expect(icon).toHaveCSS('filter', 'none')
+      await expect.poll(() => content.evaluate(el => getComputedStyle(el).backgroundColor)).not.toBe(restingBackground)
       if (!profile.reduced) await expect.poll(() => difference(tilt, cardRest)).toBeGreaterThan(.003)
       else expect(await difference(tilt, cardRest)).toBeLessThan(.001)
       await touch('touchMove', [{ x: point.x + 35, y: point.y }])
+      await touch('touchEnd')
+      // A quick tap remains visible briefly, then clears without sticky hover.
+      await expect(tilt).toHaveAttribute('data-touch-active', 'true')
+      await panel.screenshot({ path: testInfo.outputPath('touch-highlight.png') })
+      await expect(tilt).not.toHaveAttribute('data-touch-active')
+      await expect(icon).toHaveCSS('filter', idleFilter)
+      point = await center(cell)
+      await touch('touchStart', [point])
+      await expect(tilt).toHaveAttribute('data-touch-active', 'true')
       await touch('touchCancel')
+      await expect(tilt).not.toHaveAttribute('data-touch-active')
       await expect.poll(() => difference(tilt, cardRest)).toBeLessThan(.001)
       await swipeUp(cell)
+      await expect(tilt).not.toHaveAttribute('data-touch-active')
       await expect.poll(() => difference(tilt, cardRest)).toBeLessThan(.001)
+      if (profile.name === 'phone') {
+        for (const tile of await root.locator('.skills-tool-cell').all()) {
+          const position = await center(tile)
+          await expect(tile.locator('.skills-tool-face')).toHaveCSS('opacity', '1')
+          await touch('touchStart', [position])
+          await expect(tile.locator('.skills-tool-tilt')).toHaveAttribute('data-touch-active', 'true')
+          await expect(tile.locator('img')).toHaveCSS('filter', 'none')
+          await touch('touchEnd')
+        }
+      }
       expect(await panel.evaluate(el => el.scrollWidth - el.clientWidth)).toBeLessThanOrEqual(1)
       expect(await panel.evaluate(el => el.parentElement.scrollTop)).toBe(0)
       await page.getByRole('button', { name: 'Close skills details' }).tap()
@@ -116,6 +148,7 @@ for (const profile of profiles) {
 
 test('Skills mouse hover still settles and respects a reduced-motion change', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 })
+  await page.addInitScript(() => localStorage.setItem('dinoweb-theme-v2', 'demain-soir-bleu'))
   await openSkills(page, { width: 1440, height: 900 })
   const stage = page.locator('.skills-stack-stage')
   const rig = page.locator('.skills-stack-rig')
@@ -131,8 +164,10 @@ test('Skills mouse hover still settles and respects a reduced-motion change', as
   await expect(cell.locator('.skills-tool-face')).toHaveCSS('transform', 'none')
   await expect(cell.locator('.skills-tool-face')).toHaveCSS('opacity', '1')
   const cardRest = await matrix(tilt)
+  await expect.poll(() => page.locator('.skills-tool-content img').evaluateAll(images => images.every(img => getComputedStyle(img).filter === 'brightness(0) invert(1)'))).toBe(true)
   await page.mouse.move(cardPoint.x + 20, cardPoint.y - 20)
   await expect.poll(() => difference(tilt, cardRest)).toBeGreaterThan(.003)
+  await expect(cell.locator('img')).toHaveCSS('filter', 'none')
   await page.emulateMedia({ reducedMotion: 'reduce' })
   await expect(tilt).toHaveCSS('transform', 'none')
   const reducedPoint = await center(stage)
