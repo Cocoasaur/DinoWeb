@@ -37,7 +37,7 @@ function LayerDrawing({ type }) {
 function StackSculpture({ active, expanded, onExpand }) {
     return <div className="skills-specimen">
         <div className="skills-specimen-label"><span data-skills-reveal>Four layers. One toolkit.</span><span aria-hidden="true" data-skills-reveal>FIG. 02</span></div>
-        <div className="skills-stack-stage" aria-hidden="true" data-skills-anchor>
+        <div className="skills-stack-stage" aria-hidden="true" data-cursor-label="TILT" data-skills-anchor>
             <div className="skills-stack-visual" data-skills-reveal>
                 <div className="skills-stack-grid" />
                 <span className="skills-axis skills-axis--x">X</span>
@@ -83,7 +83,7 @@ function SkillSection({ category, isDark }) {
         <ul className="skills-tool-grid" aria-label={`${category.title} technologies`}>
             {category.skills.map((skill, index) => <li key={skill.name} className="skills-tool-cell" data-skills-anchor>
                 <div className="skills-tool-face" data-skills-reveal>
-                    <TiltCard className="skills-tool-tilt" style={{ display: 'block', width: '100%', height: '100%' }} tiltAmount={6} scale={1} glare={false}>
+                    <TiltCard className="skills-tool-tilt" style={{ display: 'block', width: '100%', height: '100%' }} tiltAmount={6} scale={1} glare={false} highlightOnTouch>
                         <div className="skills-tool-content">
                             <span className="skills-tool-number" aria-hidden="true">{category.number}.{String(index + 1).padStart(2, '0')}</span>
                             <img src={isDark && skill.darkIcon ? skill.darkIcon : skill.icon} alt="" width="36" height="36" loading="lazy" decoding="async" draggable="false" />
@@ -117,7 +117,6 @@ export default function SkillsPage({ motionReady = true }) {
 
     return <div className="skills-page" ref={pageRef}>
         <div className="skills-scroll-progress" aria-hidden="true"><span className="skills-scroll-progress-fill" /></div>
-        <div className="skills-masthead"><span data-skills-reveal>02 / Capabilities</span><span data-skills-reveal>Built layer by layer</span></div>
         <header className="skills-hero">
             <div className="skills-hero-copy">
                 <p className="skills-kicker" data-skills-reveal>The things I build with</p>
