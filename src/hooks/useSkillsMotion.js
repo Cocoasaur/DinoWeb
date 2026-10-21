@@ -10,14 +10,25 @@ gsap.registerPlugin(ScrollTrigger, useGSAP);
 // Stationary cells supply layout bounds. Only the content inside them moves.
 function revealWithScroll(element, scroller, compact, openAtRest) {
     const anchor = element.closest('[data-skills-anchor]') || element;
+    const tile = element.classList.contains('skills-tool-face');
+    // Scroll owns the outer tile; pointer tilt stays on its independent child.
+    // Keep a real depth/rotation cue on touch profiles, at a gentler amplitude.
+    const enter = tile
+        ? { y: compact ? 30 : 48, z: compact ? -32 : -64, rotationX: compact ? -32 : -52,
+            rotationY: compact ? -6 : -12, scale: compact ? .94 : .9, opacity: 0 }
+        : { y: compact ? 30 : 58, rotationX: compact ? 0 : -18, opacity: 0 };
+    const exit = tile
+        ? { y: -28, z: compact ? -28 : -56, rotationX: compact ? 26 : 40,
+            rotationY: compact ? 5 : 10, scale: compact ? .96 : .92, opacity: 0 }
+        : { y: -28, rotationX: compact ? 0 : 8, scale: .98, opacity: 0 };
     const timeline = gsap.timeline({ paused: true });
-    timeline.fromTo(element, { y: compact ? 30 : 58, rotationX: compact ? 0 : -18, opacity: 0 }, {
-        y: 0, rotationX: 0, opacity: 1, duration: 1, ease: 'power2.out', onComplete: () => {
+    timeline.fromTo(element, enter, {
+        y: 0, z: 0, rotationX: 0, rotationY: 0, scale: 1, opacity: 1, duration: 1, ease: 'power2.out', onComplete: () => {
             element.style.removeProperty('transform');
             element.style.removeProperty('opacity');
         },
     }).to({}, { duration: 1 }).to(element, {
-        y: -28, rotationX: compact ? 0 : 8, scale: .98, opacity: 0, duration: 1, ease: 'power1.inOut',
+        ...exit, duration: 1, ease: 'power1.inOut',
     });
     const opening = gsap.to(timeline, { time: 1, duration: compact ? .45 : .7, ease: 'none', paused: true });
     let enterStart, enterEnd, exitStart, exitEnd, previous;
