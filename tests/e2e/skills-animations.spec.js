@@ -1,3 +1,4 @@
+import { assertPinnedHeader } from './helpers/pinned-header.js'
 import { expect, test } from '@playwright/test'
 import { openSkills } from './helpers/skills.js'
 
@@ -32,11 +33,12 @@ for (const profile of profiles) {
       const panel = page.locator('.portfolio-overlay-panel[data-page="skills"]')
       const panelTop = await panel.evaluate(el => el.getBoundingClientRect().top)
       expect(panelTop).toBeGreaterThan(0)
-      const centered = () => panel.evaluate(el => ({
-        top: el.getBoundingClientRect().top,
-        bottomGap: innerHeight - el.getBoundingClientRect().bottom,
-        outerScroll: el.parentElement.scrollTop,
-      }))
+      const centered = () => panel.evaluate(el => {
+        const frame = el.closest('.portfolio-overlay-frame')
+        return { top: frame.getBoundingClientRect().top,
+          bottomGap: innerHeight - frame.getBoundingClientRect().bottom,
+          outerScroll: frame.parentElement.scrollTop }
+      })
       const assertCentered = async () => {
         await expect.poll(async () => {
           const box = await centered()
@@ -155,16 +157,61 @@ for (const profile of profiles) {
         await expect(lowerCard).toHaveCSS('opacity', '1')
         await expect(lowerCard).toHaveCSS('transform', 'none')
       }
-      // Traverse every tool and load its local icon; no lower row may stay hidden.
+      // Every tile has real X/Y/depth motion, including compact touch profiles.
+      // Use stationary cell geometry; a transformed face must not move its trigger.
       for (let index = 0; index < 25; index++) {
         const tool = root.locator('.skills-tool-face').nth(index)
+        const is3D = () => tool.evaluate(el => {
+          const style = getComputedStyle(el)
+          const matrix = new DOMMatrixReadOnly(style.transform)
+          return Number(style.opacity) > .05 && Number(style.opacity) < .99
+            && Math.abs(matrix.m23) > .01 && Math.abs(matrix.m13) > .005 && matrix.m43 < -.1
+        })
+        if (!profile.reduced) {
+          const entryReachable = await tool.evaluate(el => {
+            const cell = el.closest('.skills-tool-cell')
+            const panel = el.closest('.portfolio-overlay-panel')
+            let top = 0
+            for (let node = cell; node && node !== panel; node = node.offsetParent) top += node.offsetTop
+            const max = panel.scrollHeight - panel.clientHeight
+            const start = Math.min(max - 1, top - panel.clientHeight * .96)
+            const end = Math.max(start + 1, Math.min(max, top - panel.clientHeight * .84))
+            const middle = (start + end) / 2
+            panel.scrollTop = middle
+            return middle >= 0 && middle <= max
+          })
+          if (entryReachable) {
+            await expect.poll(is3D, { message: `tile ${index + 1} enters in 3D` }).toBe(true)
+            if (index === 9) await panel.screenshot({ path: testInfo.outputPath('tile-entry.png') })
+          }
+        }
         await tool.evaluate(el => el.scrollIntoView({ block: 'center', behavior: 'instant' }))
         await expect(tool).toHaveCSS('opacity', '1')
+        await expect(tool).toHaveCSS('transform', 'none')
+        if (!profile.reduced) {
+          const exitReachable = await tool.evaluate(el => {
+            const cell = el.closest('.skills-tool-cell')
+            const panel = el.closest('.portfolio-overlay-panel')
+            let top = 0
+            for (let node = cell; node && node !== panel; node = node.offsetParent) top += node.offsetTop
+            const middle = top + cell.offsetHeight - panel.clientHeight * .21
+            panel.scrollTop = middle
+            return middle >= 0 && middle <= panel.scrollHeight - panel.clientHeight
+          })
+          if (exitReachable) {
+            await expect.poll(is3D, { message: `tile ${index + 1} exits in 3D` }).toBe(true)
+            if (index === 9) await panel.screenshot({ path: testInfo.outputPath('tile-exit.png') })
+          }
+          await tool.evaluate(el => el.scrollIntoView({ block: 'center', behavior: 'instant' }))
+          await expect(tool).toHaveCSS('opacity', '1')
+          await expect(tool).toHaveCSS('transform', 'none')
+        }
       }
       await expect.poll(() => root.locator('.skills-tool-content img').evaluateAll(images =>
         images.every(img => img.complete && img.naturalWidth > 0))).toBe(true)
       await expect.poll(() => panel.evaluate(el => el.scrollWidth - el.clientWidth)).toBeLessThanOrEqual(1)
       await assertCentered()
+      await assertPinnedHeader(page, panel, testInfo)
       await page.getByRole('button', { name: 'Close skills details' }).click()
       await expect(page.getByRole('dialog')).toHaveCount(0)
       await expect(async () => {
