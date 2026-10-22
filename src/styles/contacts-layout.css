@@ -1,0 +1,87 @@
+/* A correspondence desk: the paper and envelope belong to Contact. */
+.portfolio-overlay-panel[data-page='contacts'] .portfolio-overlay-content { padding: 0 !important; }
+.contacts-page { --contact-ink: var(--void-text-full); --contact-inset: clamp(22px, 4.5vw, 56px); color: var(--void-text); background: var(--void-surface); font-family: 'Inter', sans-serif; overflow-x: clip; }
+.contacts-page :is(button, a):focus-visible { outline: 2px solid var(--contact-ink); outline-offset: 4px; }
+.contacts-page button { -webkit-tap-highlight-color: transparent; }
+.contact-anchor { min-width: 0; perspective: 1200px; }
+.contact-kicker { margin: 0; color: var(--void-text-dim); font: 9px/1.7 'Space Grotesk', monospace; letter-spacing: .13em; text-transform: uppercase; }
+.contact-introduction { padding: 48px var(--contact-inset) 44px; }
+.contact-introduction h2 { margin: 21px 0; font: 400 clamp(48px, 6vw, 76px)/1.02 'Space Grotesk', sans-serif; letter-spacing: -.06em; color: var(--contact-ink); }
+.contact-introduction h2 em { font: italic 1.16em/.9 Georgia, serif; letter-spacing: -.065em; }
+.contact-intro-copy { margin: 0; color: var(--void-text-dim); font-size: 12px; line-height: 1.9; }
+.contact-desk { position: relative; padding: 46px clamp(26px, 7vw, 92px) 20px; background: var(--void-bg); border-block: 1px solid var(--void-border); isolation: isolate; }
+.contact-envelope { position: absolute; inset: 20px clamp(15px, 5vw, 70px) 58px; z-index: -1; border: 1px solid var(--void-border); background: var(--void-surface); transform: rotate(-2deg); display: flex; justify-content: space-between; align-items: flex-end; padding: 15px 22px; color: var(--void-text-dim); font: 8px 'Space Grotesk', monospace; letter-spacing: .1em; }
+.contact-envelope::before { content: ''; position: absolute; inset: 0; background: linear-gradient(32deg, transparent 49.85%, var(--void-border) 50%, transparent 50.15%), linear-gradient(-32deg, transparent 49.85%, var(--void-border) 50%, transparent 50.15%); opacity: .5; }
+.contact-letter { position: relative; padding: clamp(24px, 4vw, 42px); border: 1px solid var(--void-border); background: var(--void-surface); box-shadow: 0 12px 25px rgba(0,0,0,.06); }
+.contact-letter-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; padding-bottom: 26px; border-bottom: 1px solid var(--void-border); }
+.contact-letter-top > div { min-width: 0; }
+.contact-recipient { font: 400 22px/1.3 'Space Grotesk', sans-serif; letter-spacing: -.03em; color: var(--contact-ink); margin: 6px 0 8px; }
+.contact-letter-mark { flex-shrink: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 70px; min-height: 80px; border: 1px dashed var(--void-text-dim); outline: 1px solid var(--void-border); outline-offset: -5px; font: italic 32px Georgia, serif; color: var(--contact-ink); }
+.contact-letter-mark span { font: 7px/2 'Space Grotesk', monospace; letter-spacing: .1em; }
+.contact-direct { padding: 30px 0; border-bottom: 1px solid var(--void-border); }
+.contact-email-link { display: inline; color: var(--contact-ink); font: 400 clamp(24px, 3.2vw, 38px)/1.5 'Space Grotesk', sans-serif; letter-spacing: -.045em; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 7px; overflow-wrap: anywhere; user-select: text; -webkit-user-select: text; }
+.contact-email-link svg { display: inline-block; vertical-align: baseline; margin-left: 8px; }
+.contact-direct > p:last-child { margin: 18px 0 0; font-size: 12px; line-height: 1.85; color: var(--void-text-dim); }
+.contact-letter-bottom { display: flex; justify-content: space-between; align-items: center; gap: 24px; padding-top: 26px; }
+.contact-letter-bottom p { margin: 0; font-size: 10px; line-height: 1.8; color: var(--void-text-dim); }
+.contact-copy { display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; gap: 28px; min-height: 48px; padding: 14px 20px; border: 0; background: var(--contact-ink); color: var(--void-surface); font-size: 12px; text-align: left; }
+.contact-copy:hover { text-decoration: underline; text-underline-offset: 4px; }
+.contact-desk-caption { display: flex; justify-content: space-between; gap: 20px; padding-top: 34px; color: var(--void-text-dim); font: 8px/1.6 'Space Grotesk', monospace; letter-spacing: .05em; }
+.contact-desk-caption > span:first-child { font: italic 18px/1.2 Georgia, serif; letter-spacing: -.02em; }
+.contact-availability { padding: 32px var(--contact-inset); }
+.contact-availability > div { display: flex; align-items: center; justify-content: space-between; gap: 40px; }
+.contact-availability-copy { max-width: 43ch; }
+.contact-availability-copy p { margin: 8px 0 0; font-size: 12px; line-height: 1.85; color: var(--void-text-dim); }
+.contact-availability dl { flex-shrink: 0; display: grid; gap: 14px; margin: 0; }
+.contact-availability dt { font: 8px/1.5 'Space Grotesk', monospace; text-transform: uppercase; letter-spacing: .1em; color: var(--void-text-dim); }
+.contact-availability dd { margin: 4px 0 0; font-size: 11px; color: var(--contact-ink); }
+.contact-socials { padding: 0 var(--contact-inset); display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.contact-socials a { display: flex; align-items: center; gap: 14px; min-height: 100px; padding: 22px 18px; border-block: 1px solid var(--void-border); color: var(--contact-ink); text-decoration: none; }
+.contact-socials .contact-anchor + .contact-anchor a { border-left: 1px solid var(--void-border); }
+.contact-socials a:hover, .contact-socials a:active { background: var(--void-bg); }
+.contact-social-number { align-self: flex-start; font: 8px/1.6 'Space Grotesk', monospace; color: var(--void-text-dim); }
+.contact-socials a > span:nth-child(2) { flex: 1; min-width: 0; }
+.contact-socials strong { display: block; font: 400 16px/1.4 'Space Grotesk', sans-serif; }
+.contact-socials small { display: block; margin-top: 6px; font-size: 9px; color: var(--void-text-dim); }
+.contact-socials svg { flex-shrink: 0; width: 18px; }
+.contact-signoff { padding: 40px var(--contact-inset); }
+.contact-signoff p { font: 400 36px/1.12 'Space Grotesk', sans-serif; letter-spacing: -.04em; margin: 0 0 18px; color: var(--contact-ink); }
+.contact-signoff em { font-family: Georgia, serif; }
+.contact-signoff span { font: 8px/1.6 'Space Grotesk', monospace; letter-spacing: .06em; text-transform: uppercase; color: var(--void-text-dim); }
+.contact-copy-status { position: sticky; display: block; bottom: 12px; z-index: 5; width: fit-content; max-width: calc(100% - 32px); margin: 0 auto; font-size: 11px; background: var(--contact-ink); color: var(--void-surface); box-shadow: 0 4px 18px rgba(0,0,0,.12); }
+.contact-copy-status:not(:empty) { padding: 12px 18px; }
+@media (max-width: 760px) {
+    .contact-introduction { padding-top: 32px; }
+    .contact-availability > div { gap: 24px; }
+    .contact-socials { grid-template-columns: 1fr; }
+    .contact-socials a { min-height: 85px; padding-inline: 0; }
+    .contact-socials .contact-anchor + .contact-anchor a { border-left: 0; border-top: 0; }
+}
+@media (max-width: 520px) {
+    .contact-introduction { padding-bottom: 30px; }
+    .contact-introduction h2 { font-size: clamp(43px, 11.6vw, 60px); }
+    .contact-introduction .contact-kicker { max-width: 24ch; font-size: 8px; }
+    .contact-intro-copy { font-size: 11px; }
+    .contact-desk { padding: 28px 18px 18px; }
+    .contact-envelope { inset: 15px 10px 54px; padding: 14px; }
+    .contact-envelope > span { font-size: 6px; }
+    .contact-letter { padding: 22px 20px; }
+    .contact-letter-top { gap: 12px; }
+    .contact-recipient { font-size: 18px; }
+    .contact-letter-mark { width: 48px; min-height: 62px; font-size: 26px; }
+    .contact-letter-mark span { font-size: 5px; }
+    .contact-letter-bottom { flex-direction: column; align-items: stretch; gap: 20px; }
+    .contact-copy { flex-shrink: 1; }
+    .contact-desk-caption { font-size: 6px; gap: 10px; }
+    .contact-desk-caption > span:first-child { font-size: 15px; }
+    .contact-availability > div { flex-direction: column; align-items: stretch; }
+    .contact-availability dl { grid-template-columns: 1fr 1fr; gap: 16px; }
+    .contact-availability dd { font-size: 10px; }
+}
+@media (max-width: 360px) {
+    .contact-letter { padding-inline: 16px; }
+    .contact-letter-mark { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .contacts-page *, .contacts-page *::before, .contacts-page *::after { transition: none !important; }
+}
