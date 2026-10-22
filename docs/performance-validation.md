@@ -951,3 +951,19 @@ Both renderers now repaint a held frame after viewport/profile changes without a
 The new covered-resize regression reproduced the missing pixels before the fix in both renderers. It checks the actual canvas image repeatedly after desktop-to-phone, phone-to-tablet, and tablet-to-desktop changes, verifies a painted zoomed face survives compositing, checks worker draws settle, and closes cleanly. It covers About in Demain Soir Bleu and Skills in Clair Obscur with both worker and fallback rendering.
 
 Sixteen distinct browser checks are verified: four covered-page resize cases, six home-resize profiles, and six transition profiles. One initial desktop-fallback timing check missed an overlapping opacity sample under parallel load and passed in the final targeted run. Build, focused ESLint, and whitespace checks pass. No new Lighthouse score is claimed for this update. Evidence: `/tmp/dinoweb-covered-resize-repro`, `/tmp/dinoweb-covered-resize-final`, and `/tmp/dinoweb-covered-resize-confirmed`.
+
+
+## Skills single-surface tile audit — October 22, 2026
+
+The Skills tile-outline fix retains a Lighthouse Performance score of **100/100 in all three desktop and all three mobile runs**. Stationary layout cells keep transparent border space, leaving the animated face as the only visible tile outline. Tile dimensions, native scrolling, and the shared About/Skills reveal bounds are preserved.
+
+| Profile | Performance (3 runs) | FCP median | LCP median | Blocking time median | CLS median |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Desktop | 100 / 100 / 100 | 0.33 s | 0.53 s | 0 ms | 0.00016 |
+| Mobile | 100 / 100 / 100 | 0.76 s | 0.98 s | 0 ms | 0.00027 |
+
+Lighthouse 13.4.1 ran sequentially against the local production preview with its standard desktop preset and default mobile settings, fresh Chrome profiles, and unchanged CPU/network throttling. All six reports have no run warnings. These scores measure homepage navigation on this local build; they do not measure GSAP scrolling frame rate or guarantee deployed-site performance on every device.
+
+The production build and whitespace checks pass. All 16 existing Skills motion and touch browser checks pass, covering all tool tiles, scroll reversal, filtering/reopening, pinned headers, desktop/phone/tablet/portrait/landscape layouts, both themes, reduced motion, and touch highlight/gesture cleanup. Phone and desktop entry/exit screenshots confirm the duplicate stationary outline is gone. No JavaScript animation or input-handler changes were needed.
+
+Audited production index SHA-256: `23fa2ccaf0cea6ca1c1cc033ff219d0bed3f9be37b1cb72f70c4c6ce41ed0944`. Tile stylesheet SHA-256: `c62e647dde08662b9e37ef38ad2c5e0fa51cc18c13f33904442db810ad399387`. Lighthouse JSON/HTML reports, settings, metrics, and build metadata are saved outside the bundle in `/tmp/dinoweb-single-tile-lighthouse/`; browser artifacts are in `/tmp/dinoweb-single-tile-checks/` and comparison screenshots in `/tmp/dinoweb-single-tile/`.
