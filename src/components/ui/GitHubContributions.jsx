@@ -422,63 +422,65 @@ export default function GitHubContributions({ username = 'Cocoasaur' }) {
         }
 
         body = (
-            <div className="about-contributions-calendar">
-                <div
-                    className="about-contributions-grid"
-                    style={{ '--weeks': columns.length }}
-                >
-                    {/* Month labels — each spans its month's week columns */}
-                    {groups.map((g, i) => (
-                        <span
-                            key={`m-${i}`}
-                            className={`about-contributions-month-label${g.label ? '' : ' about-contributions-month-label--empty'}`}
-                            style={{ gridColumn: `${g.start} / span ${g.span}`, gridRow: 1 }}
-                        >
-                            {g.label || '\u00A0'}
-                        </span>
-                    ))}
+            <div className="about-contributions-frame">
+                <div className="about-contributions-calendar">
+                    <div
+                        className="about-contributions-grid"
+                        style={{ '--weeks': columns.length }}
+                    >
+                        {/* Month labels — each spans its month's week columns */}
+                        {groups.map((g, i) => (
+                            <span
+                                key={`m-${i}`}
+                                className={`about-contributions-month-label${g.label ? '' : ' about-contributions-month-label--empty'}`}
+                                style={{ gridColumn: `${g.start} / span ${g.span}`, gridRow: 1 }}
+                            >
+                                {g.label || '\u00A0'}
+                            </span>
+                        ))}
 
-                    {/* Weekday labels */}
-                    {WEEKDAYS.map((dayName, row) => (
-                        <span
-                            key={`w-${dayName}`}
-                            className="about-contributions-weekday"
-                            style={{ gridColumn: 1, gridRow: row + 2 }}
-                        >
-                            {dayName}
-                        </span>
-                    ))}
+                        {/* Weekday labels */}
+                        {WEEKDAYS.map((dayName, row) => (
+                            <span
+                                key={`w-${dayName}`}
+                                className="about-contributions-weekday"
+                                style={{ gridColumn: 1, gridRow: row + 2 }}
+                            >
+                                {dayName}
+                            </span>
+                        ))}
 
-                    {/* Day cells — one 11px column per week */}
-                    {columns.map((col, c) =>
-                        col.week.map((cell, row) => {
-                            const text = cell.dateStr ? (data.titles.get(cell.dateStr) || cell.dateStr) : null;
-                            if (cell.dateStr === null) {
+                        {/* Day cells — one 11px column per week */}
+                        {columns.map((col, c) =>
+                            col.week.map((cell, row) => {
+                                const text = cell.dateStr ? (data.titles.get(cell.dateStr) || cell.dateStr) : null;
+                                if (cell.dateStr === null) {
+                                    return (
+                                        <span
+                                            key={`d-${c}-${row}`}
+                                            className="about-contributions-day about-contributions-day--pad"
+                                            style={{ gridColumn: c + 2, gridRow: row + 2 }}
+                                        />
+                                    );
+                                }
                                 return (
                                     <span
                                         key={`d-${c}-${row}`}
-                                        className="about-contributions-day about-contributions-day--pad"
+                                        className={`about-contributions-day about-contributions-day--l${cell.level}`}
                                         style={{ gridColumn: c + 2, gridRow: row + 2 }}
+                                        onPointerEnter={(e) => {
+                                            if (e.pointerType === 'mouse') showDayTooltip(e, text);
+                                        }}
+                                        onPointerLeave={(e) => {
+                                            if (e.pointerType === 'mouse') hideDayTooltip();
+                                        }}
+                                        onTouchStart={(e) => showDayTooltip(e, text)}
+                                        onBlur={hideDayTooltip}
                                     />
                                 );
-                            }
-                            return (
-                                <span
-                                    key={`d-${c}-${row}`}
-                                    className={`about-contributions-day about-contributions-day--l${cell.level}`}
-                                    style={{ gridColumn: c + 2, gridRow: row + 2 }}
-                                    onPointerEnter={(e) => {
-                                        if (e.pointerType === 'mouse') showDayTooltip(e, text);
-                                    }}
-                                    onPointerLeave={(e) => {
-                                        if (e.pointerType === 'mouse') hideDayTooltip();
-                                    }}
-                                    onTouchStart={(e) => showDayTooltip(e, text)}
-                                    onBlur={hideDayTooltip}
-                                />
-                            );
-                        })
-                    )}
+                            })
+                        )}
+                    </div>
                 </div>
                 <div className="about-contributions-legend">
                     <span>Less</span>

@@ -1093,15 +1093,17 @@
     min-width: 0;
 }
 
+.about-contributions-frame {
+    --contributions-legend-height: 14px;
+    --contributions-rail-space: 20px;
+    position: relative;
+    min-width: 0;
+}
+
 .about-contributions-calendar {
     overflow-x: auto;
-    /* Leave room for the custom 12px rail below the legend on narrow views. */
-    padding-bottom: 20px;
-    /* Grid scrollport: a single max-content track so the legend's grid
-       area spans the full graph width — its static right edge then sits
-       past the scrollport edge, which is what makes sticky right bind. */
-    display: grid;
-    grid-template-columns: minmax(100%, max-content);
+    /* Reserve a footer above the native/custom rail for the unscrolled legend. */
+    padding-bottom: calc(10px + var(--contributions-legend-height) + var(--contributions-rail-space));
 }
 
 /* Equal week tracks set each day's square size. Small screens scroll the
@@ -1183,17 +1185,16 @@
 }
 
 .about-contributions-legend {
-    grid-column: 1;
-    grid-row: 2;
-    position: sticky;
+    /* Pin to the visible card width, independently of the scrolling year. */
+    position: absolute;
     right: 0;
+    bottom: var(--contributions-rail-space);
+    height: var(--contributions-legend-height);
     width: max-content;
-    margin-left: auto;
     display: flex;
     align-items: center;
     justify-content: flex-end;
     gap: 4px;
-    margin-top: 10px;
     font-family: 'Space Grotesk', monospace;
     font-size: 9px;
     letter-spacing: 0.08em;
