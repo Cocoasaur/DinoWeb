@@ -119,3 +119,12 @@ keep lazy content in its own mount lifecycle, and extend these interaction check
 ## Fixed masthead frame
 
 The About masthead and close control now live in Overlay's fixed frame, outside the native scrolling body. This keeps the header visible and puts both desktop custom scrollbars and native phone/tablet scrollbars below it. The reading-progress line remains at the top of the body under the header. The About title and content keep their entry/exit timelines; the fixed profile label is no longer part of the title timeline. Skills uses the same frame. Header geometry, close-button hit testing, and desktop rail range are checked at the top, middle, and bottom of each page.
+
+
+## Calendar legend alignment
+
+The Less–More legend is anchored to the contribution card’s visible right edge, outside the horizontally scrolling year. A shared frame reserves a footer above both the native scrollbar and the desktop custom rail, so horizontal swipes move only the months and day cells. The frame stays inside the contributions body and inherits its existing GSAP fade and page clipping. No scroll listener or per-frame legend positioning is needed.
+
+`tests/e2e/calendar-legend.spec.js` checks alignment at the start, quarter points, middle, and end of the horizontal range in both directions, plus native Chrome finger swipes. Profiles include phone, blue-theme phone, tablet, narrow desktop, desktop, and reduced motion. Existing About checks cover year selection, square day cells, calendar rail clearance/dragging, page scrolling, and opening/closing.
+
+Hotfix validation: all 10 existing About checks and all six legend profiles pass on the production preview. The baseline phone regression reproduced an 82-pixel alignment drift before the fix. New checks wait for the deferred PDF above the calendar to finish before measuring viewport visibility. Production build and whitespace checks pass; the regression test passes ESLint. The calendar component’s five pre-existing unused-variable lint errors are unchanged. Artifacts: `/tmp/dinoweb-calendar-legend-before`, `/tmp/dinoweb-calendar-legend-final`, and `/tmp/dinoweb-calendar-legend-confirmed`.
