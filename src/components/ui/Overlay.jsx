@@ -15,10 +15,6 @@ function ReadyContent({ onReady, children }) {
     return children;
 }
 
-const PAGE_MAP = {
-    contacts: <ContactsPage />,
-};
-
 export default function Overlay({
     phase,
     faceName,
@@ -70,14 +66,16 @@ export default function Overlay({
     const ease = 'cubic-bezier(0.4, 0, 0.2, 1)';
 
     const pageContent = faceName === 'projects'
-        ? <ProjectsPage selectedProject={selectedProject} onSelectProject={onSelectProject} />
+        ? <ProjectsPage selectedProject={selectedProject} onSelectProject={onSelectProject} motionReady={phase === 'open'} />
         : faceName === 'about'
         ? <AboutPage motionReady={phase === 'open'} />
         : faceName === 'skills'
         ? <SkillsPage motionReady={phase === 'open'} />
-        : (PAGE_MAP[faceName] ?? <p style={{ fontFamily: "'Inter', sans-serif", color: 'var(--void-text-dim)' }}>No data found.</p>);
+        : faceName === 'contacts'
+        ? <ContactsPage motionReady={phase === 'open'} />
+        : <p style={{ fontFamily: "'Inter', sans-serif", color: 'var(--void-text-dim)' }}>No data found.</p>;
 
-    const editorial = faceName === 'about' || faceName === 'skills';
+    const editorial = ['about', 'skills', 'projects', 'contacts'].includes(faceName);
     const closeButton = renderCloseButton ? renderCloseButton({ onClose }) : (
         <button
             type="button"
@@ -166,8 +164,8 @@ export default function Overlay({
                 <div className="portfolio-overlay-frame" data-page={faceName}>
                     <header className="portfolio-overlay-masthead">
                         <div className="portfolio-overlay-masthead-copy">
-                            <span>{faceName === 'about' ? '01 / Profile' : '02 / Capabilities'}</span>
-                            <span className="portfolio-overlay-masthead-note">{faceName === 'about' ? 'John Jessienel M. Arquesola' : 'Built layer by layer'}</span>
+                            <span>{faceName === 'about' ? '01 / Profile' : faceName === 'skills' ? '02 / Capabilities' : faceName === 'contacts' ? '04 / Correspondence' : '03 / Selected work'}</span>
+                            <span className="portfolio-overlay-masthead-note">{faceName === 'about' ? 'John Jessienel M. Arquesola' : faceName === 'skills' ? 'Built layer by layer' : faceName === 'contacts' ? 'A note away' : selectedProject ? selectedProject.title : 'From concept to screen'}</span>
                         </div>
                         {closeButton}
                     </header>
