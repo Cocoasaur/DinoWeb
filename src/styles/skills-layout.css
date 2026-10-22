@@ -106,13 +106,14 @@
 .skills-category-arrow { display: inline-block; font-size: 35px; line-height: 1; font-weight: 300; color: var(--skills-muted); }
 .skills-category-arrow .skills-arrow { width: 35px; height: 35px; transform: none; }
 .skills-tool-grid { min-width: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); align-content: start; margin: 0; padding: 0; list-style: none; }
-.skills-tool-cell { position: relative; min-width: 0; overflow: hidden; border-right: 1px solid var(--void-border); border-bottom: 1px solid var(--void-border); perspective: 650px; }
+/* Keep trigger geometry and grid spacing, without painting a second tile behind the moving face. */
+.skills-tool-cell { position: relative; min-width: 0; overflow: hidden; border-right: 1px solid transparent; border-bottom: 1px solid transparent; perspective: 650px; }
 .skills-tool-cell:nth-child(3n) { border-right: 0; }
 .skills-tool-face {
     height: 100%; background: var(--void-surface); transform-origin: 50% 50%;
     /* Flatten the pointer-tilt child above this surface to avoid plane intersections. */
     transform-style: flat; backface-visibility: hidden;
-    /* The inset rim belongs to the moving tile; the cell's grid rules stay put. */
+    /* This rim is the only tile outline, so it enters and exits with the surface. */
     box-shadow: inset 0 0 0 1px var(--void-border);
 }
 .skills-tool-content { position: relative; display: flex; flex-direction: column; align-items: flex-start; height: 100%; min-height: 156px; padding: 24px 18px 20px; transition: background-color .25s; }
@@ -143,7 +144,7 @@
     .skills-layer-drawing { width: 86px; height: 76px; }
     .skills-category { grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr); }
     .skills-tool-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    .skills-tool-cell:nth-child(3n) { border-right: 1px solid var(--void-border); }
+    .skills-tool-cell:nth-child(3n) { border-right: 1px solid transparent; }
     .skills-tool-cell:nth-child(2n) { border-right: 0; }
 }
 @media (max-width: 600px) {
