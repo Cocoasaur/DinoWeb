@@ -61,4 +61,37 @@ export async function openProjects(page, profile) {
   const face = cubePoint(profile.width, profile.height, [1.01, 0, 0])
   await page.mouse.click(face.x, face.y)
   await expect(page.getByRole('dialog', { name: 'projects details' })).toHaveAttribute('data-phase', 'open', { timeout: 15000 })
+  return face
+}
+
+
+export async function openContacts(page, profile) {
+  await page.goto('./')
+  await expect(page.locator('.boot-screen')).toHaveCount(0, { timeout: 30000 })
+  await page.locator('.cube-breath').evaluate(el => el.getAnimations().forEach(animation => animation.pause()))
+  const readRotation = async () => {
+    const coords = (await page.locator('.home-coordinate').textContent()).match(/X:\s*([\d.-]+),?\s*Y:\s*([\d.-]+)/)
+    return { x: Number(coords[1]), y: Number(coords[2]) }
+  }
+  const origin = cubePoint(profile.width, profile.height, [0, 0, 0])
+  // Short drags fit narrow viewports; read the rendered pose before each one.
+  for (let step = 0; step < 5; step++) {
+    const before = await readRotation()
+    const dx = Math.max(-120, Math.min(120, (-180 - before.y) * Math.PI / 180 / .008))
+    const dy = -before.x * Math.PI / 180 / .008
+    if (Math.abs(before.x) < 2 && Math.abs(before.y + 180) < 2) break
+    await page.mouse.move(origin.x, origin.y)
+    await page.mouse.down()
+    await page.mouse.move(origin.x + dx, origin.y + dy, { steps: 20 })
+    await page.mouse.up()
+    const target = { x: 0, y: before.y + dx * .008 * 180 / Math.PI }
+    await expect.poll(async () => {
+      const current = await readRotation()
+      return Math.abs(current.x - target.x) < 2 && Math.abs(current.y - target.y) < 2
+    }).toBe(true)
+  }
+  const face = cubePoint(profile.width, profile.height, [0, 0, -1.01], 0, 180)
+  await page.mouse.click(face.x, face.y)
+  await expect(page.getByRole('dialog', { name: 'contacts details' })).toHaveAttribute('data-phase', 'open', { timeout: 15000 })
+  return face
 }
