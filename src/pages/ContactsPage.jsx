@@ -1,231 +1,67 @@
-import React, { useState, useCallback, useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { useContactsMotion } from '../hooks/useContactsMotion';
+import '../styles/contacts-layout.css';
 
-// ── Copy icon (inline SVG) ────────────────────────────────────────────────
-function CopyIcon({ copied }) {
-    return (
-        <svg
-            width="14"
-            height="14"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            style={{
-                color: copied ? 'var(--void-accent, #4ade80)' : 'var(--void-text-muted)',
-                transition: 'color 0.2s ease',
-            }}
-        >
-            {copied ? (
-                <polyline points="20 6 9 17 4 12" />
-            ) : (
-                <>
-                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
-                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
-                </>
-            )}
-        </svg>
-    );
+const EMAIL = 'cocoasaurjl@gmail.com';
+const SOCIALS = [
+    { label: 'GitHub', detail: 'Code & experiments', href: 'https://github.com/Cocoasaur' },
+    { label: 'LinkedIn', detail: 'Work & connections', href: 'https://linkedin.com/in/dinoweb' },
+    { label: 'Stack Overflow', detail: 'Questions & answers', href: 'https://stackoverflow.com/users/24706411/jlkoko' },
+];
+function Arrow({ diagonal = false }) {
+    return <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true" style={diagonal ? { transform: 'rotate(-45deg)' } : undefined}><path d="M4 12h16m-6-6 6 6-6 6" stroke="currentColor" strokeWidth="1.4" /></svg>;
+}
+function Reveal({ children, className = '', paper = false }) {
+    return <div className={`contact-anchor ${className}`} data-contact-anchor><div data-contact-reveal data-contact-paper={paper || undefined}>{children}</div></div>;
 }
 
-// ── Single channel row with copy + click ──────────────────────────────────
-function ChannelRow({ label, value, href }) {
-    const [copied, setCopied] = useState(false);
-    const copyResetTimerRef = useRef(0);
-
-    const flashCopied = useCallback(() => {
-        setCopied(true);
-        window.clearTimeout(copyResetTimerRef.current);
-        copyResetTimerRef.current = window.setTimeout(() => setCopied(false), 1500);
-    }, []);
-
+export default function ContactsPage({ motionReady = true }) {
+    const root = useRef(null);
+    const timer = useRef(0);
+    const mounted = useRef(false);
+    const [copyStatus, setCopyStatus] = useState('');
+    useContactsMotion(root, motionReady);
     useEffect(() => {
-        return () => window.clearTimeout(copyResetTimerRef.current);
+        mounted.current = true;
+        return () => { mounted.current = false; window.clearTimeout(timer.current); };
     }, []);
-
-    const handleCopy = useCallback(async (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        try {
-            await navigator.clipboard.writeText(value);
-            flashCopied();
-        } catch (err) {
-            const textarea = document.createElement('textarea');
-            textarea.value = value;
-            textarea.style.position = 'fixed';
-            textarea.style.opacity = '0';
-            document.body.appendChild(textarea);
-            textarea.select();
-            document.execCommand('copy');
-            document.body.removeChild(textarea);
-            flashCopied();
+    const copyEmail = async () => {
+        let copied;
+        try { await navigator.clipboard.writeText(EMAIL); copied = true; }
+        catch {
+            const active = document.activeElement;
+            const input = document.createElement('textarea');
+            input.value = EMAIL;
+            input.setAttribute('readonly', '');
+            Object.assign(input.style, { position: 'fixed', opacity: '0', left: '-9999px' });
+            document.body.appendChild(input);
+            try { input.select(); copied = document.execCommand('copy'); }
+            catch { copied = false; }
+            finally { input.remove(); active?.focus({ preventScroll: true }); }
         }
-    }, [value, flashCopied]);
-
-    const content = (
-        <div className="flex items-center justify-between">
-            <div className="min-w-0">
-                <p
-                    className="uppercase mb-1"
-                    style={{
-                        fontFamily: "'Space Grotesk', monospace",
-                        color: 'var(--void-text-muted)',
-                        fontSize: '9px',
-                        letterSpacing: '0.25em',
-                    }}
-                >
-                    {label}
-                </p>
-                <p
-                    className="text-sm transition-colors duration-300"
-                    style={{
-                        fontFamily: "'Inter', sans-serif",
-                        color: 'var(--void-text)',
-                        wordBreak: 'break-all',
-                    }}
-                >
-                    {value}
-                </p>
-            </div>
-
-            <button
-                onClick={handleCopy}
-                className="ml-3 flex-shrink-0 w-8 h-8 flex items-center justify-center border rounded transition-all duration-200"
-                style={{
-                    borderColor: copied ? 'var(--void-accent, #4ade80)' : 'var(--void-border)',
-                    backgroundColor: 'var(--void-surface-80)',
-                }}
-                onMouseEnter={(e) => {
-                    if (!copied) e.currentTarget.style.borderColor = 'var(--void-text-dim)';
-                }}
-                onMouseLeave={(e) => {
-                    if (!copied) e.currentTarget.style.borderColor = 'var(--void-border)';
-                }}
-                title={copied ? 'Copied!' : 'Copy to clipboard'}
-            >
-                <CopyIcon copied={copied} />
-            </button>
+        if (!mounted.current) return;
+        setCopyStatus(copied ? 'Email address copied.' : 'Couldn’t copy. You can select the email address.');
+        window.clearTimeout(timer.current);
+        timer.current = window.setTimeout(() => { if (mounted.current) setCopyStatus(''); }, 4000);
+    };
+    return <div className="contacts-page" ref={root}>
+        <div className="contact-introduction">
+            <Reveal><p className="contact-kicker">Good things begin with a conversation.</p><h2>Have something<br />in <em>mind?</em></h2><p className="contact-intro-copy">A project, a question, or a simple hello.<br />There’s a place for it here.</p></Reveal>
         </div>
-    );
-
-    return (
-        <div className="border-b pb-4" style={{ borderColor: 'var(--void-border-dim)' }}>
-            {href ? (
-                <a
-                    href={href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="block transition-colors duration-300"
-                    onMouseEnter={(e) => {
-                        const val = e.currentTarget.querySelector('.channel-value');
-                        if (val) val.style.color = 'var(--void-text-full)';
-                    }}
-                    onMouseLeave={(e) => {
-                        const val = e.currentTarget.querySelector('.channel-value');
-                        if (val) val.style.color = 'var(--void-text)';
-                    }}
-                >
-                    {content}
-                </a>
-            ) : (
-                content
-            )}
+        <div className="contact-desk">
+            <div className="contact-envelope" aria-hidden="true"><span>PERSONAL CORRESPONDENCE</span><span>04</span></div>
+            <Reveal className="contact-letter-anchor" paper>
+                <section className="contact-letter" aria-label="Contact details">
+                    <div className="contact-letter-top"><div><p className="contact-kicker">To</p><p className="contact-recipient">John Jessienel Arquesola</p></div><span className="contact-letter-mark" aria-hidden="true">JL<span>LET’S TALK</span></span></div>
+                    <div className="contact-direct"><p className="contact-kicker">My inbox is a good place to start</p><a className="contact-email-link" href={`mailto:${EMAIL}`} data-cursor-label="EMAIL">cocoasaurjl@<wbr />gmail.com <Arrow diagonal /></a><p>For project inquiries, collaborations, or a simple hello.<br />Copy my address and reach out whenever you’re ready.</p></div>
+                    <div className="contact-letter-bottom"><p>Prefer to write in your own time?<br />Keep my email address handy.</p><button type="button" className="contact-copy" onClick={copyEmail} aria-label="Copy email address" data-cursor-label="COPY">{copyStatus === 'Email address copied.' ? 'Email copied' : 'Copy email address'}<svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="9" y="9" width="11" height="11" stroke="currentColor" strokeWidth="1.4" /><path d="M15 5V4H4v11h1" stroke="currentColor" strokeWidth="1.4" /></svg></button></div>
+                </section>
+            </Reveal>
+            <div className="contact-desk-caption"><span>A note is all it takes.</span><span>NO. 004 / CONTACT</span></div>
         </div>
-    );
-}
-
-export default function ContactsPage() {
-    const channels = [
-        {
-            label: 'EMAIL',
-            value: 'cocoasaurjl@gmail.com',
-            href: 'mailto:cocoasaurjl@gmail.com',
-        },
-        {
-            label: 'GITHUB',
-            value: 'Cocoasaur',
-            href: 'https://github.com/Cocoasaur',
-        },
-        {
-            label: 'LINKEDIN',
-            value: 'John Jessienel Arquesola',
-            href: 'https://linkedin.com/in/dinoweb',
-        },
-        {
-            label: 'STACK_OVERFLOW',
-            value: 'JLKOKO',
-            href: 'https://stackoverflow.com/users/24706411/jlkoko',
-        },
-    ];
-
-    return (
-        <div>
-            <div className="mb-10 pb-6 border-b" style={{ borderColor: 'var(--void-border)' }}>
-                <p className="uppercase mb-2" style={{ fontFamily: "'Space Grotesk', monospace", color: 'var(--void-text-dim)', fontSize: '10px', letterSpacing: '0.3em' }}>
-                    FACE_04 / SIGNAL_RELAY
-                </p>
-                <h2 className="text-4xl font-bold tracking-[0.15em] uppercase"
-                    style={{ fontFamily: "'Space Grotesk', monospace", color: 'var(--void-text-full)' }}>
-                    Contacts
-                </h2>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-                {/* ── Left: Channels ── */}
-                <div>
-                    <h3 className="uppercase mb-6" style={{ fontFamily: "'Space Grotesk', monospace", color: 'var(--void-text-dim)', fontSize: '10px', letterSpacing: '0.3em' }}>
-                        CHANNELS
-                    </h3>
-                    <div className="space-y-4">
-                        {channels.map((ch) => (
-                            <ChannelRow
-                                key={ch.label}
-                                label={ch.label}
-                                value={ch.value}
-                                href={ch.href}
-                            />
-                        ))}
-                    </div>
-                </div>
-
-                {/* ── Right: Availability & Protocol ── */}
-                <div>
-                    <h3 className="uppercase mb-6" style={{ fontFamily: "'Space Grotesk', monospace", color: 'var(--void-text-dim)', fontSize: '10px', letterSpacing: '0.3em' }}>
-                        AVAILABILITY & PROTOCOL
-                    </h3>
-                    <div className="space-y-0 border" style={{ borderColor: 'var(--void-border)' }}>
-                        {[
-                            ['STATUS', 'Busy academics and projects, but open to offers and collaborations!'],
-                            ['RESPONSE_TIME', 'Within 24–48 hours'],
-                            ['TIMEZONE', 'UTC+8  (Philippines)'],
-                            ['LANGUAGES', 'English, Filipino'],
-                            ['PREFERRED_CHANNEL', 'Email for inquiries'],
-                        ].map(([label, value], i, arr) => (
-                            <div
-                                key={label}
-                                className="flex flex-col sm:flex-row sm:items-center sm:justify-between px-4 py-3 gap-1 sm:gap-4"
-                                style={{
-                                    borderBottom: i < arr.length - 1 ? '1px solid var(--void-border-dim)' : 'none',
-                                }}
-                            >
-                                <span
-                                    className="uppercase text-[10px] tracking-[0.2em] flex-shrink-0"
-                                    style={{ fontFamily: "'Space Grotesk', monospace", color: 'var(--void-text-muted)' }}
-                                >
-                                    {label}
-                                </span>
-                                <span
-                                    className="text-[13px] text-left sm:text-right"
-                                    style={{ fontFamily: "'Inter', sans-serif", color: 'var(--void-text-full)' }}
-                                >
-                                    {value}
-                                </span>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            </div>
-        </div>
-    );
+        <Reveal className="contact-availability"><div className="contact-availability-copy"><span className="contact-kicker">Between classes & creating</span><p>Busy with academics and projects, but open to offers and collaborations.</p></div><dl><div><dt>Replies</dt><dd>Usually within 24–48 hours</dd></div><div><dt>Languages</dt><dd>English & Filipino</dd></div></dl></Reveal>
+        <nav className="contact-socials" aria-label="Find me elsewhere">{SOCIALS.map((social, index) => <Reveal key={social.label}><a href={social.href} target="_blank" rel="noopener noreferrer"><span className="contact-social-number">0{index + 1}</span><span><strong>{social.label}</strong><small>{social.detail}</small></span><Arrow diagonal /></a></Reveal>)}</nav>
+        <footer className="contact-signoff"><Reveal><p>See you on the<br /><em>other side.</em></p><span>John Jessienel M. Arquesola / Philippines</span></Reveal></footer>
+        <span className="contact-copy-status" role="status" aria-live="polite">{copyStatus}</span>
+    </div>;
 }

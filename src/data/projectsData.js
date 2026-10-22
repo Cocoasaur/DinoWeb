@@ -11,7 +11,6 @@ import tkinterIcon from '../assets/icons/skills/frontend/Tkinter.svg';
 import reactIcon from '../assets/icons/skills/frontend/React.svg';
 import tailwindcssIcon from '../assets/icons/skills/frontend/TailwindCSS.svg';
 import threejsBlackIcon from '../assets/icons/skills/frontend/Three.js_black.svg';
-import threejsWhiteIcon from '../assets/icons/skills/frontend/Three.js_white.svg';
 
 // Backend
 import pythonIcon from '../assets/icons/skills/backend/Python.svg';
@@ -66,6 +65,9 @@ export const STATUS_COLORS = {
 export const PROJECTS = [
     {
         id: '01',
+        title: 'TIP Airlines',
+        category: 'desktop',
+        categoryLabel: 'Desktop application',
         name: 'TIP_AIRLINES',
         status: 'Complete',
         shortDesc:
@@ -108,6 +110,9 @@ export const PROJECTS = [
     },
     {
         id: '02',
+        title: 'Pastry Shop Management System',
+        category: 'desktop',
+        categoryLabel: 'Desktop application',
         name: 'PASTRY_SHOP_MANAGEMENT_SYSTEM',
         status: 'Complete',
         shortDesc:
@@ -147,6 +152,9 @@ export const PROJECTS = [
     },
     {
         id: '03',
+        title: 'Earth Arcade',
+        category: 'game',
+        categoryLabel: 'Game development',
         name: 'EARTH_ARCADE',
         status: 'Complete',
         shortDesc:
@@ -180,6 +188,9 @@ export const PROJECTS = [
     },
     {
         id: '04',
+        title: 'Quarto',
+        category: 'web',
+        categoryLabel: 'Web application',
         name: 'QUARTO',
         status: 'Complete',
         shortDesc:
@@ -219,6 +230,9 @@ export const PROJECTS = [
     },
     {
         id: '05',
+        title: 'DinoWeb',
+        category: 'web',
+        categoryLabel: 'Web portfolio',
         name: 'DINOWEB',
         status: 'In_Progress',
         shortDesc:

@@ -1,199 +1,103 @@
-import { useState } from 'react';
+import { useLayoutEffect, useRef, useState } from 'react';
 import { PROJECTS, STATUS_COLORS } from '../data/projectsData';
 import ProjectModal from '../components/ui/ProjectModal';
+import ProjectShowcase from '../components/ui/ProjectShowcase';
+import TiltCard from '../components/ui/TiltCard';
+import { useReducedMotion } from '../hooks/useReducedMotion';
+import { useProjectsMotion } from '../hooks/useProjectsMotion';
+import { layoutTop } from '../utils/scrollRevealBounds';
+import '../styles/projects-layout.css';
 
-const S = {
-    label: {
-        fontFamily: "'Space Grotesk', monospace",
-        color: 'var(--void-text-dim)',
-        fontSize: '10px',
-        letterSpacing: '0.3em',
-    },
-    h2: {
-        fontFamily: "'Space Grotesk', monospace",
-        color: 'var(--void-text-full)',
-    },
-    projectName: {
-        fontFamily: "'Space Grotesk', monospace",
-        color: 'var(--void-text-full)',
-    },
-    body: {
-        fontFamily: "'Inter', sans-serif",
-        color: 'var(--void-text)',
-    },
-    muted: {
-        fontFamily: "'Space Grotesk', monospace",
-        color: 'var(--void-text-muted)',
-    },
-    stack: {
-        fontFamily: "'Space Grotesk', monospace",
-        color: 'var(--void-text-muted)',
-        fontSize: '10px',
-        letterSpacing: '0.15em',
-    },
-};
+const DISCIPLINES = [{ id: 'all', label: 'All work' }, { id: 'web', label: 'Web' }, { id: 'desktop', label: 'Desktop' }, { id: 'game', label: 'Games' }];
 
-function StatusBadge({ status }) {
-    const color = STATUS_COLORS[status] || '#888';
-    return (
-        <span
-            className="project-status-badge inline-flex items-center gap-2 px-3 py-1.5 border text-[11px] tracking-[0.15em] uppercase"
-            style={{
-                fontFamily: "'Space Grotesk', monospace",
-                color: 'var(--void-text-full)',
-                borderColor: 'var(--void-border)',
-                backgroundColor: 'transparent',
-            }}
-        >
-            <span
-                className="w-2.5 h-2.5 rounded-full inline-block"
-                style={{
-                    backgroundColor: color,
-                    boxShadow: `0 0 8px ${color}`,
-                }}
-            />
-            {status}
-        </span>
-    );
+export function ProjectArrow() {
+    return <svg className="projects-arrow" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 19 19 5M5 5h14v14" stroke="currentColor" strokeWidth="1.3" /></svg>;
 }
 
-function ProjectCard({ project, onClick }) {
-    const { id, name, status, shortDesc, stack } = project;
-
-    return (
-        <button
-            type="button"
-            onClick={onClick}
-            className="projects-card w-full text-left border p-6 md:p-8 transition-all duration-300 cursor-pointer group"
-            aria-label={`Open ${name.replace(/_/g, ' ')} project`}
-            style={{
-                borderColor: 'var(--void-border)',
-                backgroundColor: 'transparent',
-            }}
-            onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = 'var(--void-surface-80)';
-                e.currentTarget.style.borderColor = 'var(--void-text-dim)';
-            }}
-            onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = 'transparent';
-                e.currentTarget.style.borderColor = 'var(--void-border)';
-            }}
-        >
-            <div className="projects-card-header flex justify-between items-start mb-4">
-                <div className="projects-card-title-group flex items-baseline gap-4">
-                    <span className="projects-card-id" style={{ ...S.muted, fontSize: '10px' }}>
-                        {id}_
-                    </span>
-                    <h3
-                        className="projects-card-name text-lg md:text-xl tracking-[0.15em] uppercase"
-                        style={S.projectName}
-                    >
-                        {name.replace(/_/g, '_\u200B')}
-                    </h3>
-                </div>
-                <StatusBadge status={status} />
-            </div>
-
-            <p className="projects-card-copy text-sm leading-relaxed mb-5" style={S.body}>
-                {shortDesc}
-            </p>
-
-            <div className="projects-card-stack flex gap-4 flex-wrap">
-                {stack.map((s) => (
-                    <span key={s} style={S.stack}>
-                        {s}
-                    </span>
-                ))}
-            </div>
-        </button>
-    );
+function Reveal({ children, className = '' }) {
+    return <div className={`projects-reveal-anchor ${className}`} data-projects-anchor><div data-projects-reveal>{children}</div></div>;
 }
 
-/**
- * ProjectsPage
- *
- * `selectedProject` and `onSelectProject` are controlled by App.jsx so the
- * sticky close/back button in the overlay header can read and update the same
- * state without any ref-callback indirection.
- */
-export default function ProjectsPage({ selectedProject, onSelectProject }) {
-    const [searchQuery, setSearchQuery] = useState('');
-
-    // If a project is selected, render its detail modal.
-    if (selectedProject) {
-        return (
-            <div className="h-full">
-                <ProjectModal
-                    project={selectedProject}
-                // onBack is intentionally omitted here — the sticky button
-                // in the overlay header handles navigation back to the list
-                // by calling onSelectProject(null) directly.
-                />
-            </div>
-        );
-    }
-
-    const filteredProjects = PROJECTS.filter(project => {
-        if (!searchQuery) return true;
-
-        const queryLower = searchQuery.toLowerCase();
-        return (
-            project.name.toLowerCase().includes(queryLower) ||
-            project.role.toLowerCase().includes(queryLower) ||
-            project.status.toLowerCase().includes(queryLower) ||
-            project.stack.some(skill => skill.toLowerCase().includes(queryLower))
-        );
-    });
-
-    return (
-        <div className="projects-page">
-            {/* Header */}
-            <div
-                className="projects-list-header mb-10 pb-6 border-b"
-                style={{ borderColor: 'var(--void-border)' }}
-            >
-                <p className="projects-list-label uppercase mb-2" style={S.label}>
-                    FACE_03 / PROJECTS_LIST
-                </p>
-                <h2
-                    className="projects-list-title text-4xl font-bold tracking-[0.15em] uppercase"
-                    style={S.h2}
-                >
-                    PROJECTS
-                </h2>
-                {/* Search Bar */}
-                <div className="projects-search relative mt-4">
-                    <input
-                        type="text"
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        placeholder="Search projects by name, tech stack, status, or role..."
-                        className="w-full px-4 py-2 border focus:outline-none focus:ring-2 focus:ring-[var(--void-text-full)] bg-transparent text-[var(--void-text)]"
-                        style={{
-                            borderColor: 'var(--void-border)',
-                            color: 'var(--void-text)',
-                            fontFamily: "'Inter', sans-serif",
-                        }}
-                    />
-                </div>
-            </div>
-
-            {/* Project list */}
-            <div className="projects-list space-y-5">
-                {filteredProjects.length === 0 ? (
-                    <p className="text-center text-[var(--void-text-muted)]">
-                        No projects found matching your search.
-                    </p>
-                ) : (
-                    filteredProjects.map((project) => (
-                        <ProjectCard
-                            key={project.id}
-                            project={project}
-                            onClick={() => onSelectProject(project)}
-                        />
-                    ))
-                )}
-            </div>
+function ProjectCard({ project, onOpen }) {
+    const gesture = useRef({ x: 0, y: 0, moved: false });
+    const begin = event => { if (event.isPrimary) gesture.current = { x: event.clientX, y: event.clientY, moved: false }; };
+    const move = event => {
+        if (event.pointerType !== 'mouse' && Math.hypot(event.clientX - gesture.current.x, event.clientY - gesture.current.y) > 8) gesture.current.moved = true;
+    };
+    const activate = event => { if (event.detail === 0 || !gesture.current.moved) onOpen(); };
+    return <article className="projects-entry" data-projects-anchor>
+        <div className="projects-card-face" data-projects-reveal data-projects-3d>
+            <TiltCard className="projects-card-tilt" style={{ display: 'block' }} tiltAmount={4} scale={1} glare={false} highlightOnTouch>
+                <button type="button" className="projects-card" aria-label={`Open ${project.title} project`} onPointerDown={begin} onPointerMove={move} onPointerCancel={() => { gesture.current.moved = true; }} onClick={activate}>
+                    <div className="projects-card-info">
+                        <div className="projects-card-topline"><span>{project.id} / {project.categoryLabel}</span><span className="projects-status" style={{ '--project-status': STATUS_COLORS[project.status] }}>{project.status.replace(/_/g, ' ')}</span></div>
+                        <h3 className="projects-card-name">{project.title}</h3>
+                        <p className="projects-card-copy">{project.shortDesc}</p>
+                        <div className="projects-card-stack">{project.stack.map(tool => <span key={tool}>{tool}</span>)}</div>
+                        <span className="projects-card-open">View project <ProjectArrow /></span>
+                    </div>
+                    <div className="projects-card-visual" aria-hidden="true">
+                        <div className="projects-preview-window">
+                            <div className="projects-window-bar"><span><i /><i /><i /></span><span>{project.categoryLabel}</span><span>{project.id}</span></div>
+                            <img src={project.images[0]} alt="" width="800" height="500" loading="lazy" decoding="async" draggable="false" />
+                        </div>
+                        <span className="projects-preview-caption">{String(project.images.length).padStart(2, '0')} views / {project.role}</span>
+                    </div>
+                </button>
+            </TiltCard>
         </div>
-    );
+    </article>;
+}
+
+export default function ProjectsPage({ selectedProject, onSelectProject, motionReady = true }) {
+    const [searchQuery, setSearchQuery] = useState('');
+    const [discipline, setDiscipline] = useState('all');
+    const pageRef = useRef(null);
+    const listScroll = useRef(0);
+    const reducedMotion = useReducedMotion();
+    const query = searchQuery.trim().toLowerCase();
+    const filteredProjects = PROJECTS.filter(project => (discipline === 'all' || project.category === discipline)
+        && (!query || [project.name, project.title, project.role, project.status, project.categoryLabel, ...project.stack].some(value => value.toLowerCase().includes(query))));
+    const revision = selectedProject ? `detail:${selectedProject.id}` : `list:${filteredProjects.map(project => project.id).join(',')}`;
+
+    useLayoutEffect(() => {
+        const panel = pageRef.current?.closest('.portfolio-overlay-panel');
+        if (panel) panel.scrollTop = selectedProject ? 0 : listScroll.current;
+    }, [selectedProject]);
+    useProjectsMotion(pageRef, motionReady, revision, reducedMotion);
+
+    const openProject = project => {
+        listScroll.current = pageRef.current.closest('.portfolio-overlay-panel').scrollTop;
+        onSelectProject(project);
+    };
+    const explore = () => {
+        const panel = pageRef.current.closest('.portfolio-overlay-panel');
+        panel.scrollTo({ top: layoutTop(pageRef.current.querySelector('.projects-controls-anchor'), panel), behavior: reducedMotion ? 'instant' : 'smooth' });
+    };
+
+    return <div className={`projects-page${selectedProject ? ' projects-page--detail' : ''}`} ref={pageRef}>
+        <div className="projects-scroll-progress" aria-hidden="true"><span className="projects-scroll-progress-fill" /></div>
+        {selectedProject ? <ProjectModal key={selectedProject.id} project={selectedProject} /> : <>
+            <header className="projects-hero">
+                <div className="projects-hero-copy">
+                    <Reveal><p className="projects-eyebrow">A selection of things I’ve made</p></Reveal>
+                    <Reveal><h2 className="projects-title">Ideas, made<br /><em>real.</em></h2></Reveal>
+                    <Reveal><p className="projects-intro">From the first sketch to the final build. A collection of interfaces, applications, and small experiments in making things work.</p></Reveal>
+                    <Reveal><div className="projects-hero-bottom"><div className="projects-totals"><strong>{String(PROJECTS.length).padStart(2, '0')}<span>Projects</span></strong><span className="projects-stat-rule" /><strong>03<span>Disciplines</span></strong></div><button type="button" className="projects-explore" onClick={explore}>Explore work <ProjectArrow /></button></div></Reveal>
+                </div>
+                <ProjectShowcase onOpen={openProject} />
+            </header>
+            <div className="projects-controls-anchor" data-projects-anchor>
+                <section className="projects-controls" aria-label="Browse projects" data-projects-reveal>
+                    <div className="projects-index-row"><span className="projects-eyebrow">Explore the collection</span><span role="status" aria-live="polite">{String(filteredProjects.length).padStart(2, '0')} / {String(PROJECTS.length).padStart(2, '0')} projects</span></div>
+                    <div className="projects-search"><label className="sr-only" htmlFor="projects-search">Search projects</label><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.5" stroke="currentColor" /><path d="m13 13 4 4" stroke="currentColor" /></svg><input id="projects-search" type="search" autoComplete="off" value={searchQuery} onChange={event => setSearchQuery(event.target.value)} placeholder="Search by name, stack, status, or role…" />{searchQuery && <button type="button" aria-label="Clear project search" onClick={() => setSearchQuery('')}>Clear</button>}</div>
+                    <div className="projects-filters" role="group" aria-label="Filter projects by discipline">{DISCIPLINES.map(item => <button type="button" key={item.id} aria-pressed={discipline === item.id} onClick={() => setDiscipline(item.id)}><span>{item.label}</span><span>{String(PROJECTS.filter(project => item.id === 'all' || project.category === item.id).length).padStart(2, '0')}</span></button>)}</div>
+                </section>
+            </div>
+            <div className="projects-list">
+                {filteredProjects.length ? filteredProjects.map(project => <ProjectCard key={project.id} project={project} onOpen={() => openProject(project)} />) : <Reveal className="projects-empty"><p className="projects-eyebrow">No matching projects</p><h3>Try a different angle.</h3><p>Search another name, tool, status, or role.</p><button type="button" onClick={() => { setSearchQuery(''); setDiscipline('all'); }}>Reset filters <ProjectArrow /></button></Reveal>}
+            </div>
+            <footer className="projects-footer" data-projects-anchor><div data-projects-reveal><span className="projects-eyebrow">Always a work in progress</span><p>Built with curiosity.<br /><em>Refined with practice.</em></p></div><span aria-hidden="true" data-projects-reveal><ProjectArrow /></span></footer>
+        </>}
+    </div>;
 }
