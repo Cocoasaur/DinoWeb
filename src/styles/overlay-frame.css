@@ -5,6 +5,7 @@
     border: 1px solid var(--void-border); background: var(--void-surface);
 }
 .portfolio-overlay-masthead {
+    position: relative; z-index: 2;
     display: flex; flex: 0 0 49px; min-height: 49px;
     border-bottom: 1px solid var(--void-border); background: var(--void-surface);
 }
@@ -16,16 +17,37 @@
 }
 .portfolio-overlay-masthead-note { text-align: right; letter-spacing: .1em; }
 .portfolio-overlay-frame .portfolio-overlay-close {
-    position: relative !important; top: auto !important; right: auto !important;
+    position: relative !important; z-index: 1; isolation: isolate;
+    top: auto !important; right: auto !important;
     width: 48px !important; height: 48px !important; margin: 0 !important;
     border: 0; border-left: 1px solid var(--void-border);
     background: var(--void-surface) !important;
+    transition: background-color .2s, border-color .2s;
+}
+/* Paint all four edges inside the control, where the frame cannot clip them. */
+.portfolio-overlay-frame .portfolio-overlay-close::after {
+    content: ''; position: absolute; inset: 0; z-index: 1; pointer-events: none;
+    border: 1px solid transparent; transition: border-color .2s;
+}
+.portfolio-overlay-frame .portfolio-overlay-close:is(:hover, :focus-visible, :active) {
+    background: var(--void-bg) !important;
+}
+.portfolio-overlay-frame .portfolio-overlay-close:is(:hover, :focus-visible, :active)::after {
+    border-color: var(--void-text-dim);
+}
+.portfolio-overlay-frame .portfolio-overlay-close:focus-visible {
+    outline: 2px solid var(--void-text-full); outline-offset: -5px;
 }
 .portfolio-overlay-frame > .portfolio-overlay-panel[data-page] {
-    flex: 1 1 auto; min-height: 0; width: 100% !important; max-width: none !important;
+    z-index: 0; flex: 1 1 auto; min-height: 0; width: 100% !important; max-width: none !important;
     max-height: none !important; border: 0;
 }
 @media (max-width: 767px) {
     .portfolio-overlay-masthead-copy { padding-inline: 20px; font-size: 8px; }
     .portfolio-overlay-masthead-note { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .portfolio-overlay-frame .portfolio-overlay-close,
+    .portfolio-overlay-frame .portfolio-overlay-close::after { transition: none; }
 }
