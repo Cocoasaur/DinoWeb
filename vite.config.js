@@ -92,6 +92,10 @@ export default defineConfig({
     cssTarget: 'chrome61',
     rollupOptions: {
       output: {
+        chunkFileNames(chunk) {
+          const spline = chunk.moduleIds.some(id => id.includes('/@splinetool/runtime/') || id.includes('/src/prototype/'));
+          return spline ? 'assets/spline/[name]-[hash].js' : 'assets/[name]-[hash].js';
+        },
         manualChunks(id) {
           // Only React's core stays in the entry's cacheable vendor chunk.
           // PDF and Three.js dependencies follow their lazy import boundaries;
