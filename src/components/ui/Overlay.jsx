@@ -155,8 +155,8 @@ export default function Overlay({
                         linear-gradient(var(--void-overlay-grid) 1px, transparent 1px),
                         linear-gradient(90deg, var(--void-overlay-grid) 1px, transparent 1px)
                     `,
-                    backgroundSize: '40px 40px',
-                    inset: reduceEffects ? 0 : '-40px',
+                    backgroundSize: 'var(--overlay-grid-size) var(--overlay-grid-size)',
+                    inset: reduceEffects ? 0 : 'calc(-1 * var(--overlay-grid-size))',
                     opacity: 0.6,
                 }}
             />

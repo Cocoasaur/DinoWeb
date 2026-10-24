@@ -4,7 +4,10 @@ import { shadeCubeVertex } from './cubeLighting';
 export function createCubeWipeUniforms() {
     return {
         cubeWipeActive: { value: 0 }, cubeWipeOrigin: { value: new THREE.Vector2() },
-        cubeWipeRadius2: { value: 0 }, cubeWipeExpand: { value: 1 },
+        cubeWipeReverse: { value: 0 }, cubeWipeSeed: { value: 0 }, cubeWipeHeight: { value: 1 }, cubeWipeProgress: { value: 0 }, cubeWipeCell: { value: new THREE.Vector2(50,50) },
+        cubeFloorInverse: { value: new THREE.Matrix3() }, cubeFloorMatrix: { value: new THREE.Matrix3() }, cubeFloorGrid: { value: new THREE.Vector4() },
+        cubeFloorBounds: { value: new THREE.Vector3() },
+        cubeWipePhase: { value: new THREE.Vector2() }, cubeWipeExtent: { value: 1 },
         cubeWipeRect: { value: new THREE.Vector4() }, cubeWipeBuffer: { value: new THREE.Vector2(1, 1) },
     };
 }
@@ -23,7 +26,18 @@ export function bindCubeWipeMaterial(material, uniforms, geometry) {
         Object.assign(shader.uniforms, uniforms, { cubeNextDiffuse: target.color,
             cubeNextOpacity: target.opacity, cubeNextMap: target.map, cubeHasNextMap: target.hasMap });
         shader.fragmentShader = shader.fragmentShader.replace('#include <common>', `#include <common>
-            uniform float cubeWipeActive, cubeWipeRadius2, cubeWipeExpand;
+            uniform float cubeWipeActive, cubeWipeReverse, cubeWipeSeed, cubeWipeHeight, cubeWipeProgress;
+            uniform vec2 cubeWipePhase, cubeWipeCell;
+            uniform mat3 cubeFloorInverse, cubeFloorMatrix;
+            uniform vec4 cubeFloorGrid;
+            uniform vec3 cubeFloorBounds;
+            float pixelOrder(vec2 cell) {
+                vec2 p = mod(cell,128.0);
+                float n = mod(p.x*127.0+p.y*311.0+cubeWipeSeed*17.0,4093.0);
+                n = mod(n*(mod(n,19.0)+3.0)+97.0,4093.0);
+                n = mod(n*(mod(n,23.0)+5.0)+193.0,4093.0);
+                return (n+0.5)/4093.0;
+            }
             uniform vec2 cubeWipeOrigin, cubeWipeBuffer;
             uniform vec4 cubeWipeRect;
             uniform vec3 cubeNextDiffuse;
@@ -34,9 +48,27 @@ export function bindCubeWipeMaterial(material, uniforms, geometry) {
                 float cubeNew = 0.0;
                 if (cubeWipeActive > 0.5) {
                     vec2 pixel = vec2(gl_FragCoord.x / cubeWipeBuffer.x, 1.0 - gl_FragCoord.y / cubeWipeBuffer.y);
-                    vec2 delta = cubeWipeRect.xy + pixel * cubeWipeRect.zw - cubeWipeOrigin;
-                    float inside = 1.0 - step(cubeWipeRadius2, dot(delta, delta));
-                    cubeNew = mix(1.0 - inside, inside, cubeWipeExpand);
+                    vec2 screen = cubeWipeRect.xy + pixel * cubeWipeRect.zw;
+                    vec2 cell = floor((screen-cubeWipePhase)/cubeWipeCell);
+                    float onGround = 0.0;
+                    if (cubeFloorBounds.z > 0.5) {
+                        vec3 ground = cubeFloorInverse*vec3(screen,1.0);
+                        vec2 local = ground.xy/ground.z;
+                        if (local.x >= 0.0 && local.y >= 0.0 && local.x <= cubeFloorBounds.x && local.y <= cubeFloorBounds.y) {
+                            cell = floor((local-cubeFloorGrid.zw)/cubeFloorGrid.xy);
+                            onGround = 1.0;
+                        }
+                    }
+                    vec2 glitchCell = cell+vec2(37.0,71.0)*onGround;
+                    float start = 0.12+0.56*pixelOrder(glitchCell);
+                    float drop = start+0.035+0.02*pixelOrder(glitchCell+vec2(19.0,-7.0));
+                    float settle = drop+0.045+0.03*pixelOrder(glitchCell+vec2(-13.0,29.0));
+                    float first = mix(start,1.0-settle,cubeWipeReverse);
+                    float second = mix(drop,1.0-drop,cubeWipeReverse);
+                    float third = mix(settle,1.0-start,cubeWipeReverse);
+                    cubeNew = max(step(first,cubeWipeProgress)*(1.0-step(second,cubeWipeProgress)),step(third,cubeWipeProgress));
+                    if (cubeWipeProgress <= 0.0) cubeNew = 0.0;
+                    if (cubeWipeProgress >= 1.0) cubeNew = 1.0;
                 }
                 diffuseColor.rgb = mix(diffuseColor.rgb, cubeNextDiffuse, cubeNew);
                 diffuseColor.a = mix(diffuseColor.a, cubeNextOpacity, cubeNew);`)
@@ -57,38 +89,38 @@ export function bindCubeWipeMaterial(material, uniforms, geometry) {
                 'diffuseColor.rgb *= mix(vColor.rgb, vCubeNextColor, cubeNew);');
         }
     };
-    material.customProgramCacheKey = () => 'cube-circular-palette-v3';
+    material.customProgramCacheKey = () => 'cube-grid-glitch-v1';
     material.needsUpdate = true;
     return target;
 }
 
 export function updateCubeWipeUniforms(uniforms, frame, renderer) {
     uniforms.cubeWipeOrigin.value.set(frame.origin.x, frame.origin.y);
-    uniforms.cubeWipeRadius2.value = frame.radius ** 2;
-    uniforms.cubeWipeExpand.value = frame.expand ? 1 : 0;
+    uniforms.cubeWipeProgress.value = frame.progress;
+    uniforms.cubeWipeReverse.value = frame.reverse ? 1 : 0;
+    uniforms.cubeWipeCell.value.set(frame.cell,frame.cellHeight);
+    uniforms.cubeWipeSeed.value = frame.seed;
+    uniforms.cubeWipeHeight.value = frame.height;
+    const floor = frame.floor;
+    uniforms.cubeFloorBounds.value.set(floor?.width || 0,floor?.height || 0,floor?1:0);
+    if (floor) {
+        uniforms.cubeFloorInverse.value.set(...floor.inverse);
+        uniforms.cubeFloorMatrix.value.set(...floor.matrix);
+        uniforms.cubeFloorGrid.value.set(floor.cell,floor.cellHeight,floor.phase.x,floor.phase.y);
+    }
+    uniforms.cubeWipePhase.value.set(frame.phase.x, frame.phase.y);
+    uniforms.cubeWipeExtent.value = frame.extent;
     uniforms.cubeWipeRect.value.set(frame.rect.x, frame.rect.y, frame.rect.width, frame.rect.height);
     renderer.getDrawingBufferSize(uniforms.cubeWipeBuffer.value);
 }
 
-const point = new THREE.Vector3();
-// Conservative projected cube bounds avoid waking a settled low-end canvas
-// while the circle is still far away or has already passed the entire cube.
+// Keep settled low-end rendering asleep outside the bounded glitch window.
 export function cubeWipeRegion(body, camera, frame) {
-    body.updateWorldMatrix(true, false);
-    let left = Infinity, top = Infinity, right = -Infinity, bottom = -Infinity;
-    for (const x of [-1.08, 1.08]) for (const y of [-1.08, 1.08]) for (const z of [-1.08, 1.08]) {
-        point.set(x, y, z).applyMatrix4(body.matrixWorld).project(camera);
-        const px = frame.rect.x + (point.x + 1) / 2 * frame.rect.width;
-        const py = frame.rect.y + (1 - point.y) / 2 * frame.rect.height;
-        left = Math.min(left, px); right = Math.max(right, px);
-        top = Math.min(top, py); bottom = Math.max(bottom, py);
-    }
-    const { x, y } = frame.origin;
-    const near = Math.hypot(Math.max(left - x, 0, x - right), Math.max(top - y, 0, y - bottom));
-    const far = Math.hypot(Math.max(Math.abs(left - x), Math.abs(right - x)), Math.max(Math.abs(top - y), Math.abs(bottom - y)));
-    if (frame.radius > near && frame.radius < far) return 'split';
-    const inside = frame.radius >= far;
-    return inside === frame.expand ? 'new' : 'old';
+    const first = frame.reverse ? .18 : .12;
+    const last = frame.reverse ? .88 : .82;
+    if (frame.progress < first) return 'old';
+    if (frame.progress >= last) return 'new';
+    return 'split';
 }
 
 const normal = new THREE.Vector3(), rotation = new THREE.Quaternion(), color = new THREE.Color();

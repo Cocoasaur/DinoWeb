@@ -1,14 +1,20 @@
 /* Shared by the first-paint loader and home screen; loaded by main.jsx. */
+/* Match the wall to a foreground ground cell; keep floor depth unchanged. */
+:root {
+    --ground-grid-scale: 1.5;
+    --wall-grid-size: clamp(96px, calc(var(--portfolio-viewport-height, 100dvh) * .2), 320px);
+    --overlay-grid-size: var(--wall-grid-size);
+}
 .void-grid,
 .boot-screen__grid {
     background-image: linear-gradient(var(--void-grid) 1px, transparent 1px), linear-gradient(90deg, var(--void-grid) 1px, transparent 1px);
-    background-size: 50px 50px;
+    background-size: var(--wall-grid-size) var(--wall-grid-size);
     background-position: center center;
     transition: background-image 0.5s ease;
 }
 @media (max-width: 767px) {
     .void-grid,
-    .boot-screen__grid { background-size: 45px 75px; background-position: 0 0; }
+    .boot-screen__grid { background-size: var(--wall-grid-size) var(--wall-grid-size); background-position: 0 0; }
 }
 
 /* A compositor-transformed floor replaces full-screen transparent GL draws. */
@@ -20,11 +26,11 @@
     perspective-origin: 50% 50%;
 }
 .home-stage-backdrop__floor {
-    --floor-tile: calc(var(--portfolio-viewport-height, 100dvh) * .241421356);
+    --floor-tile: calc(var(--portfolio-viewport-height, 100dvh) * .241421356 * var(--ground-grid-scale));
     --floor-grid: var(--void-grid-drift);
     position: absolute; left: 50%; top: 50%; width: 250%; height: 150%;
     background-image: linear-gradient(var(--floor-grid) 1px, transparent 1px), linear-gradient(90deg, var(--floor-grid) 1px, transparent 1px);
-    background-size: calc(var(--portfolio-viewport-height, 100dvh) * .241421356) calc(var(--portfolio-viewport-height, 100dvh) * .241421356);
+    background-size: var(--floor-tile) var(--floor-tile);
     background-position: center top;
     /* Ground at world y=-2.35: depth changes convergence, not horizon roll. */
     transform: translate3d(calc(-50% + var(--floor-camera-x, 0px)), calc(var(--portfolio-viewport-height, 100dvh) * .567340187 + var(--floor-camera-y, 0px)), var(--floor-camera-z, 0px)) rotateX(-90deg);

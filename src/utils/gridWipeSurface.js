@@ -57,7 +57,7 @@ function paintGrid(context, grid, color, width, height) {
 
 // The transition has one opaque paint surface, rather than an animated CSS
 // mask around separately masked/composited grid children. Its backing store is
-// bounded to CSS pixels; it exists only while the two-second wipe is running.
+// bounded to CSS pixels; it exists only while the pixel dissolve is running.
 export function createGridWipeSurface(source, canvas, oldPalette, newPalette) {
     const context = canvas.getContext('2d', { alpha: false, desynchronized: false });
     if (!context) throw new Error('The theme grid paint surface is unavailable.');
@@ -79,20 +79,23 @@ export function createGridWipeSurface(source, canvas, oldPalette, newPalette) {
         read(rect, width, height) {
             return { width, height, grids: grids.map(({ element, paletteName }) => readGrid(element, rect, width, height, paletteName)) };
         },
-        paint({ geometry, x, y, radius, expand }) {
+        paint({ geometry, tiles }) {
             if (!(geometry.width > 0 && geometry.height > 0)) return;
             const width = Math.ceil(geometry.width), height = Math.ceil(geometry.height);
             if (canvas.width !== width) canvas.width = width;
             if (canvas.height !== height) canvas.height = height;
-            const light = expand ? oldPalette : newPalette;
-            const dark = expand ? newPalette : oldPalette;
-            paintPalette(light, geometry);
-            if (radius <= 0) return;
+            paintPalette(oldPalette, geometry);
+            if (!tiles.length) return;
             context.save();
             context.beginPath();
-            context.arc(x, y, radius, 0, Math.PI * 2);
+            for (const tile of tiles) {
+                if (tile.points) {
+                    tile.points.forEach((p,i) => i ? context.lineTo(p.x,p.y) : context.moveTo(p.x,p.y));
+                    context.closePath();
+                } else context.rect(tile.x,tile.y,tile.width,tile.height);
+            }
             context.clip();
-            paintPalette(dark, geometry);
+            paintPalette(newPalette, geometry);
             context.restore();
         },
     };

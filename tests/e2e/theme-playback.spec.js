@@ -1,3 +1,4 @@
+import { installPixelProbe, expectedPixelEvents, expectedPixelState } from './helpers/pixel-probe.js'
 import { expect, test } from '@playwright/test'
 import { Buffer } from 'node:buffer'
 import * as THREE from 'three'
@@ -41,12 +42,8 @@ const profiles = [
   { name: 'throttled low-end phone fallback', width: 430, height: 800, dpr: 3, mobile: true, fallback: true, low: true },
 ]
 
-async function circle(page) {
-  return page.evaluate(() => {
-    const frame = window.__liveCircle
-    return { radius: frame.radius, x: frame.origin.x, y: frame.origin.y }
-
-  })
+async function pixelFrame(page) {
+  return page.evaluate(() => window.__pixelFrame)
 }
 
 async function readImage(page, png) {
@@ -64,6 +61,7 @@ for (const profile of profiles) test.describe(profile.name, () => {
   test('keeps the background, grids and branding visible during unpaused wipes', async ({ page }, testInfo) => {
     test.setTimeout(90000)
     const errors = []; page.on('pageerror', e => errors.push(e.message))
+    await installPixelProbe(page)
     await page.addInitScript(profile => {
       Object.defineProperty(navigator, 'hardwareConcurrency', { get: () => profile.low ? 2 : 8 })
       Object.defineProperty(navigator, 'deviceMemory', { get: () => profile.low ? 2 : 8 })
@@ -91,19 +89,18 @@ for (const profile of profiles) test.describe(profile.name, () => {
       // Read a narrow, empty wallpaper strip rather than a full-screen capture
       // that can itself stall a large software-rendered desktop animation.
       const strip = { x: 0, y: profile.mobile ? 78 : 150, width: profile.width * (profile.mobile ? 1 : .43), height: 20 }
-      const before = await circle(page, expand)
+      const before = await pixelFrame(page)
       const shot = await session.send('Page.captureScreenshot', { format: 'png', fromSurface: true, captureBeyondViewport: false,
         clip: { ...strip, scale: 1 } })
       const png = Buffer.from(shot.data, 'base64')
-      const after = await circle(page, expand)
+      const after = await pixelFrame(page)
       const image = await readImage(page, png)
       let checked = 0, mismatches = 0, lines = 0
       for (let y = 0; y < image.height; y++) for (let x = 0; x < image.width; x++) {
-        const distance = Math.hypot(x + strip.x - before.x, y + strip.y - before.y)
-        if (Math.abs(distance - before.radius) < 30 || Math.abs(distance - after.radius) < 30 ||
-          (distance < before.radius) !== (distance < after.radius)) continue
-        const dark = (distance < before.radius) === expand ? expand : !expand
-        const base = dark ? [0, 36, 81] : [232, 230, 225]
+        const events=expectedPixelEvents(before,x+strip.x,y+strip.y)
+        if(events.some(t=>t>=before.progress-.03 && t<=after.progress+.03)) continue
+        const dark=expectedPixelState(before,x+strip.x,y+strip.y)===expand
+        const base = dark ? [0, 36, 81] : [242, 242, 242]
         const pixel = image.pixels.slice((y * image.width + x) * 4, (y * image.width + x) * 4 + 3)
         const error = Math.max(...pixel.map((value, i) => Math.abs(value - base[i])))
         checked++; if (error > 55) mismatches++; else if (error >= (dark ? 2 : 4)) lines++
@@ -111,7 +108,7 @@ for (const profile of profiles) test.describe(profile.name, () => {
       await testInfo.attach(`${expand ? 'dark' : 'light'} running wallpaper`, { body: png, contentType: 'image/png' })
       await testInfo.attach('playback pixel measurements', { body: JSON.stringify({ expand, before, after, checked, mismatches, lines }), contentType: 'application/json' })
       expect(checked).toBeGreaterThan(200)
-      expect(mismatches, 'old/new background must agree with the running circle, without blank rectangular patches').toBe(0)
+      expect(mismatches, 'old/new background must agree with the running pixel pattern, without blank rectangular patches').toBe(0)
       expect(lines, 'grid lines remain painted during the wipe').toBeGreaterThan(10)
       const mark = page.locator(profile.mobile ? '.mobile-branding__dino' : '.sidebar-home__logo').first()
       const box = await mark.boundingBox()

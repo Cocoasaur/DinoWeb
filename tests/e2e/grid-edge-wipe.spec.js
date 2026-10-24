@@ -1,3 +1,4 @@
+import { installPixelProbe, seekPixels } from './helpers/pixel-probe.js'
 import { expect, test } from '@playwright/test'
 import * as THREE from 'three'
 import { FACE_CONFIG } from '../../src/constants/cubeConfig.js'
@@ -31,29 +32,11 @@ async function themePoint(page) {
     y: info.rect.y + (1 - point.y) / 2 * info.rect.height }
 }
 
-async function seekRadius(page, radius, expand) {
-  return page.evaluate(async ({ radius, expand }) => {
-    const animation = window.__edgeAnimation
-    const maximum = 1.5 * Math.hypot(innerWidth, innerHeight) / Math.SQRT2
-    let low = 0, high = animation.effect.getTiming().duration
-    for (let i = 0; i < 28; i++) {
-      const middle = (low + high) / 2
-      animation.currentTime = middle
-      const progress = animation.effect.getComputedTiming().progress
-      const actual = maximum * (expand ? progress : 1 - progress)
-      if ((actual < radius) === expand) low = middle
-      else high = middle
-    }
-    // Seek the wipe clock alone. Original wallpaper/floor clocks and the
-    // copied floor clock keep advancing throughout the test.
-    await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))
-    return window.__edgeCircle
-  }, { radius, expand })
-}
-
-async function inspectWallpaper(page, clip, circle) {
+async function inspectWallpaper(page, clip, mask) {
+  const before = { ...await page.evaluate(() => window.__pixelFrame), progress:mask.progress, targetDark:mask.targetDark }
   const png = await page.screenshot({ clip, scale: 'css' })
-  const pixels = await page.evaluate(async ({ png, clip, circle }) => {
+  const after = { ...await page.evaluate(() => window.__pixelFrame), progress:mask.progress, targetDark:mask.targetDark }
+  const pixels = await page.evaluate(async ({ png, clip, mask, after }) => {
     const image = new Image(); image.src = 'data:image/png;base64,' + png; await image.decode()
     const canvas = document.createElement('canvas'); canvas.width = image.width; canvas.height = image.height
     const ctx = canvas.getContext('2d'); ctx.drawImage(image, 0, 0)
@@ -64,11 +47,18 @@ async function inspectWallpaper(page, clip, circle) {
     // animated tile happens to land on odd coordinates. Independent narrow
     // bands also catch the rectangular line dropout shown in the recording.
     for (let y = 0; y < image.height; y++) for (let x = 0; x < image.width; x++) {
-      const distance = Math.hypot(x + clip.x - circle.origin.x, y + clip.y - circle.origin.y)
-      if (Math.abs(distance - circle.radius) < 4) continue
-      // Dark is always the inside palette, in both expanding and shrinking
-      // directions. Grid pixels may add their normal translucent line tint.
-      const dark = distance < circle.radius, base = dark ? [0, 36, 81] : [232, 230, 225]
+      const px=x+clip.x, py=y+clip.y
+      if (Math.min(window.__pixelEdge(mask,px,py),window.__pixelEdge(after,px,py))<2) {
+        // Grid lines intentionally align with cell edges. Count their ink
+        // independently while excluding antialiased edges from palette checks.
+        const offset=(y*image.width+x)*4
+        const ink=Math.min(...[[0,36,81],[242,242,242]].map(base=>Math.max(...base.map((v,i)=>Math.abs(data[offset+i]-v)))))
+        if(ink>=2&&ink<=55){lines++;bands[Math.floor(y/16)].lines++}
+        continue
+      }
+      const switched=window.__pixelState(mask,px,py)
+      if(switched!==window.__pixelState(after,px,py)) continue
+      const dark=switched===mask.targetDark, base=dark?[0,36,81]:[242,242,242]
       const start = (y * image.width + x) * 4
       const error = Math.max(...base.map((value, i) => Math.abs(data[start + i] - value)))
       checked++
@@ -77,7 +67,7 @@ async function inspectWallpaper(page, clip, circle) {
       else if (error >= (dark ? 2 : 4)) { lines++; bands[Math.floor(y / 16)].lines++ }
     }
     return { checked, mismatches, lines, bands, width: image.width, height: image.height }
-  }, { png: png.toString('base64'), clip, circle })
+  }, { png: png.toString('base64'), clip, mask:before, after })
   return { png, pixels }
 }
 
@@ -87,6 +77,7 @@ for (const profile of profiles) test.describe(profile.name, () => {
   test('keeps the moving wallpaper continuous at every wipe edge and corner crossing', async ({ page }, testInfo) => {
     test.setTimeout(180000)
     const errors = []; page.on('pageerror', error => errors.push(error.message))
+    await installPixelProbe(page)
     await page.addInitScript(profile => {
       Object.defineProperty(navigator, 'hardwareConcurrency', { get: () => profile.low ? 2 : 8 })
       Object.defineProperty(navigator, 'deviceMemory', { get: () => profile.low ? 2 : 8 })
@@ -98,7 +89,7 @@ for (const profile of profiles) test.describe(profile.name, () => {
         event.detail.animation.pause(); event.detail.animation.currentTime = 1
       })
       window.addEventListener('cube-wipe-frame', event => {
-        window.__edgeCircle = event.detail
+        window.__edgeMask = event.detail
         const grids = [...document.querySelectorAll('.home-grid-wipe')]
         const surface = grids.find(element => element.classList.contains('home-grid-wipe__surface'))
         const source = grids.find(element => element !== surface)
@@ -140,18 +131,9 @@ for (const profile of profiles) test.describe(profile.name, () => {
       await expect(page.locator('[data-wipe-palette="new"]')).toHaveCount(4)
       await expect.poll(() => page.evaluate(() => window.__edgeAnimation?.playState)).toBe('paused')
       await foreground.evaluate(element => { element.media = 'all' })
-      const radii = await page.evaluate(() => {
-        const { x, y } = window.__edgeCircle.origin, width = innerWidth, height = innerHeight
-        const maximum = 1.5 * Math.hypot(width, height) / Math.SQRT2
-        const contacts = [x, width - x, y, height - y,
-          ...[0, width].flatMap(px => [0, height].map(py => Math.hypot(px - x, py - y)))]
-        return [...new Set([1, maximum - 1, ...contacts.flatMap(distance => [distance - 1, distance + 1])]
-          .filter(radius => radius > 0 && radius < maximum).map(radius => Math.round(radius * 1000) / 1000))].sort((a, b) => a - b)
-      })
-      if (!expand) radii.reverse()
-      for (const [index, radius] of radii.entries()) {
-        const circle = await seekRadius(page, radius, expand)
-        expect(Math.abs(circle.radius - radius)).toBeLessThan(.01)
+      const progresses = [0, .1, .25, .4, .55, .7, .9, 1]
+      for (const [index, progress] of progresses.entries()) {
+        const mask = { ...await seekPixels(page, '__edgeAnimation', progress), targetDark: expand }
         const state = await page.evaluate(() => {
           const original = window.__edgeSource.getAnimations({ subtree: true }).find(a => a.animationName === 'drift')
           const copiedFloor = document.querySelector('.home-stage-backdrop[data-wipe-palette="new"]')
@@ -176,21 +158,21 @@ for (const profile of profiles) test.describe(profile.name, () => {
         expect(state.floorMatrixDifference).toBeLessThan(.1)
         expect(state.coverage).toEqual({ count: 2, surfaceCount: 1, sourceClip: 'none', surfaceClip: 'none',
           sourceOpacity: '0', surfaceOpacity: '1', isCanvas: true, hasPixels: true, duplicateDrifts: 0 })
-        const { png, pixels } = await inspectWallpaper(page, clip, circle)
+        const { png, pixels } = await inspectWallpaper(page, clip, mask)
         expect(pixels.checked).toBeGreaterThan(500)
-        expect(pixels.mismatches, `palette gap at ${expand ? 'expanding' : 'shrinking'} radius ${radius}`).toBe(0)
+        expect(pixels.mismatches, `palette gap at ${expand ? 'expanding' : 'shrinking'} progress ${progress}`).toBe(0)
         expect(pixels.lines, 'moving grid lines stay visible at viewport mask boundaries').toBeGreaterThan(30)
         expect(pixels.bands.every(band => band.checked < 100 || band.lines > Math.max(2, Math.floor(clip.width / 150))),
           'each horizontal band retains its moving grid lines').toBe(true)
-        measurements.push({ expand, radius, ...pixels, ...state })
-        if (index === Math.floor(radii.length / 2)) await testInfo.attach(`${expand ? 'expanding' : 'shrinking'} edge-crossing wallpaper`, {
+        measurements.push({ expand, progress, ...pixels, ...state })
+        if (index === Math.floor(progresses.length / 2)) await testInfo.attach(`${expand ? 'expanding' : 'shrinking'} edge-crossing wallpaper`, {
           body: png, contentType: 'image/png',
         })
       }
       await page.evaluate(() => window.__edgeAnimation.finish())
       await expect(page.locator('[data-wipe-palette="new"]')).toHaveCount(0)
       await expect(page.locator('html')).not.toHaveClass(/theme-transitioning/)
-      const finalCircle = { origin: { x: 0, y: 0 }, radius: expand ? Math.hypot(profile.width, profile.height) + 10 : 0 }
+      const finalCircle = { ...await page.evaluate(() => window.__pixelFrame), progress: 1, targetDark: expand }
       const { pixels } = await inspectWallpaper(page, clip, finalCircle)
       expect(pixels.mismatches, 'committing the final palette must not expose a gap or reverse the reveal').toBe(0)
       expect(pixels.lines).toBeGreaterThan(30)

@@ -19,8 +19,8 @@
 .void-grid-drift {
     /* Oversize by one tile so the composited translate3d drift never reveals
        an edge; the background repeats every tile so the shift loops seamlessly. */
-    --drift-step-x: 100px;
-    --drift-step-y: 100px;
+    --drift-step-x: calc(2 * var(--wall-grid-size));
+    --drift-step-y: calc(2 * var(--wall-grid-size));
     position: absolute;
     background-image:
         linear-gradient(var(--void-grid-drift) 1px, transparent 1px),
@@ -368,8 +368,8 @@
 
 @media (max-width: 767px) {
     .void-grid-drift {
-        --drift-step-x: 90px;
-        --drift-step-y: 150px;
+        --drift-step-x: calc(2 * var(--wall-grid-size));
+        --drift-step-y: calc(2 * var(--wall-grid-size));
         background-size: var(--drift-step-x) var(--drift-step-y);
         background-position: 0 0;
     }

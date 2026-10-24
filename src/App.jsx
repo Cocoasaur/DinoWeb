@@ -137,8 +137,8 @@ export default function App() {
       finish();
     };
 
-    // No View Transition support, reduced motion, or hidden tab → snap.
-    if (!document.startViewTransition || reducedMotion || document.visibilityState === 'hidden') {
+    // Missing animation timing, reduced motion, or a hidden tab → snap.
+    if (typeof Animation === 'undefined' || typeof KeyframeEffect === 'undefined' || reducedMotion || document.visibilityState === 'hidden') {
       transitionInProgressRef.current = true;
       toggleFallback();
       return;
