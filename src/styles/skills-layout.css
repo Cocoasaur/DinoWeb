@@ -75,7 +75,6 @@
 .skills-layer-rule, .skills-layer-bottom { position: absolute; left: 0; right: 0; display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 11px 12px; font: 400 10px/1.4 'Space Grotesk', monospace; text-transform: uppercase; letter-spacing: .09em; }
 .skills-layer-rule { top: 0; border-bottom: 1px solid var(--void-border); }
 .skills-layer-rule span:nth-child(2) { margin-right: auto; }
-.skills-layer-rule .skills-arrow { width: 12px; height: 12px; transform: none; }
 .skills-layer-bottom { bottom: 0; border-top: 1px solid var(--void-border); font-size: 9px; }
 .skills-layer-drawing { position: absolute; width: 112px; height: 94px; left: 50%; top: 50%; transform: translate(-50%,-50%); stroke: currentColor; stroke-width: 1.2; }
 .skills-drawing-orbit { opacity: .3; stroke-dasharray: 3 4; }
@@ -103,8 +102,8 @@
 .skills-eyebrow { display: flex; justify-content: space-between; gap: 10px; margin-bottom: 34px; }
 .skills-section-copy h3 { white-space: pre-line; margin: 0 0 18px; color: var(--skills-ink); font: 400 clamp(23px, 2.5vw, 30px)/1.22 'Space Grotesk', sans-serif; letter-spacing: -.045em; }
 .skills-section-copy p { max-width: 29ch; margin: 0 0 30px; color: var(--skills-muted); font-size: 12px; line-height: 1.8; }
-.skills-category-arrow { display: inline-block; font-size: 35px; line-height: 1; font-weight: 300; color: var(--skills-muted); }
-.skills-category-arrow .skills-arrow { width: 35px; height: 35px; transform: none; }
+.skills-category-symbol { display: inline-block; color: var(--skills-muted); }
+.skills-category-symbol .skills-layer-drawing { position: static; width: 52px; height: 44px; transform: none; }
 .skills-tool-grid { min-width: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); align-content: start; margin: 0; padding: 0; list-style: none; }
 /* Keep trigger geometry and grid spacing, without painting a second tile behind the moving face. */
 .skills-tool-cell { position: relative; min-width: 0; overflow: hidden; border-right: 1px solid transparent; border-bottom: 1px solid transparent; perspective: 650px; }
@@ -173,7 +172,7 @@
     .skills-eyebrow { margin-bottom: 18px; }
     .skills-section-copy h3 { font-size: 27px; padding-right: 25px; }
     .skills-section-copy p { max-width: 34ch; margin-bottom: 0; }
-    .skills-category-arrow { position: absolute; right: 0; top: 44px; font-size: 28px; }
+    .skills-category-symbol { margin-top: 20px; }
     .skills-tool-content { min-height: 145px; padding: 23px var(--skills-inset) 20px; }
     .skills-footer-mark { font-size: 58px; }
     .skills-footer-mark .skills-arrow { width: 58px; height: 58px; }

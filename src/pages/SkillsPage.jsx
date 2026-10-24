@@ -52,7 +52,7 @@ function StackSculpture({ active, expanded, onExpand }) {
                             data-active={active === 'all' || active === category.id}
                             style={{ transform: `translateZ(${(3 - index) * 28}px)` }}
                         >
-                            <div className="skills-layer-rule"><span>{category.number}</span><span>{category.short}</span><Arrow /></div>
+                            <div className="skills-layer-rule"><span>{category.number}</span><span>{category.short}</span></div>
                             <LayerDrawing type={category.id} />
                             <div className="skills-layer-bottom"><span>{category.title}</span><span>{String(category.skills.length).padStart(2, '0')} tools</span></div>
                         </div>)}
@@ -77,7 +77,7 @@ function SkillSection({ category, isDark }) {
                 <div className="skills-eyebrow" data-skills-reveal><span>{category.number} / {category.title}</span><span>{String(category.skills.length).padStart(2, '0')}</span></div>
                 <h3 data-skills-reveal id={`skills-${category.id}-heading`}>{category.heading}</h3>
                 <p data-skills-reveal>{category.description}</p>
-                <span className="skills-category-arrow" data-skills-reveal aria-hidden="true"><Arrow /></span>
+                <span className="skills-category-symbol" data-skills-reveal aria-hidden="true"><LayerDrawing type={category.id} /></span>
             </div>
         </div>
         <ul className="skills-tool-grid" aria-label={`${category.title} technologies`}>
