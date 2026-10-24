@@ -139,9 +139,5 @@ export default function SkillsPage({ motionReady = true }) {
         <div className="skills-catalogue" id="skills-catalogue">
             {visible.map(category => <SkillSection key={category.id} category={category} isDark={isDark} />)}
         </div>
-        <footer className="skills-footer">
-            <div className="skills-footer-copy"><span className="skills-kicker" data-skills-reveal>The list keeps growing.</span><p data-skills-reveal>Always learning.<br /><em>Always building.</em></p></div>
-            <span className="skills-footer-mark" data-skills-reveal aria-hidden="true"><Arrow /></span>
-        </footer>
     </div>;
 }

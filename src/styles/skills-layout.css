@@ -38,7 +38,7 @@
     margin: 24px 0; color: var(--skills-ink); font-family: 'Space Grotesk', sans-serif;
     font-size: clamp(48px, 5.2vw, 74px); font-weight: 500; letter-spacing: -.065em; line-height: 1.04;
 }
-.skills-title em, .skills-footer em { font-family: Georgia, 'Times New Roman', serif; font-weight: 400; }
+.skills-title em { font-family: Georgia, 'Times New Roman', serif; font-weight: 400; }
 .skills-title em { letter-spacing: -.07em; }
 .skills-hero-description { margin: 0; max-width: 33ch; font-size: 13px; line-height: 1.85; color: var(--skills-muted); }
 .skills-hero-bottom { margin-top: 34px; }
@@ -125,10 +125,6 @@
 .skills-tool-tilt[data-touch-active='true'] .skills-tool-content img { filter: none; }
 .skills-tool-name { color: var(--skills-ink); font: 500 12px/1.5 'Inter', sans-serif; }
 .skills-tool-kind { margin-top: 5px; font-size: 8px; letter-spacing: .06em; }
-.skills-footer { overflow: hidden; display: flex; justify-content: space-between; align-items: flex-end; gap: 20px; padding: 38px var(--skills-inset) 42px; }
-.skills-footer p { margin: 18px 0 0; color: var(--skills-ink); font: 400 clamp(32px, 4vw, 50px)/1.1 'Space Grotesk', sans-serif; letter-spacing: -.05em; }
-.skills-footer-mark { font: 300 84px/1 'Inter', sans-serif; color: var(--skills-muted); }
-.skills-footer-mark .skills-arrow { width: 84px; height: 84px; transform: none; }
 
 @media (hover: hover) and (pointer: fine) {
     .skills-tool-content:hover { background: var(--void-bg); }
@@ -174,8 +170,6 @@
     .skills-section-copy p { max-width: 34ch; margin-bottom: 0; }
     .skills-category-symbol { margin-top: 20px; }
     .skills-tool-content { min-height: 145px; padding: 23px var(--skills-inset) 20px; }
-    .skills-footer-mark { font-size: 58px; }
-    .skills-footer-mark .skills-arrow { width: 58px; height: 58px; }
 }
 @media (max-width: 360px) {
     .skills-specimen-caption { font-size: 8px; }
