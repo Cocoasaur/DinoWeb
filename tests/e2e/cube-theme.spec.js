@@ -12,7 +12,7 @@ const profiles = [
   { name: 'throttled low-end fallback', width: 430, height: 800, touch: true, low: true, throttle: true, fallback: true },
   { name: 'phone fallback', width: 430, height: 800, touch: true, fallback: true },
   { name: 'desktop fallback', width: 1440, height: 900, fallback: true },
-  { name: 'no view transitions', width: 430, height: 800, touch: true, noWipe: true },
+  { name: 'no view transitions API', width: 430, height: 800, touch: true, noView: true },
   { name: 'reduced motion phone', width: 430, height: 800, touch: true, reduced: true },
 ]
 
@@ -52,10 +52,10 @@ for (const profile of profiles) {
         Object.defineProperty(navigator, 'deviceMemory', { get: () => profile.low ? 2 : 8 })
         Object.defineProperty(navigator, 'connection', { get: () => ({ effectiveType: '4g', saveData: false }) })
         if (profile.fallback) HTMLCanvasElement.prototype.transferControlToOffscreen = undefined
-        if (profile.noWipe) document.startViewTransition = undefined
+        if (profile.noView) document.startViewTransition = undefined
         window.__themeFrames = []
         window.__themeCaptures = []
-        window.addEventListener('cube-wipe-frame', e => { window.__liveCircle = e.detail })
+        window.addEventListener('cube-wipe-frame', e => { window.__liveMask = e.detail })
         window.addEventListener('theme-wipe-start', () => window.__themeCaptures.push({
           copies: document.querySelectorAll('[data-wipe-palette="new"]').length,
           canvases: document.querySelectorAll('.cube-entrance canvas').length,
@@ -81,9 +81,8 @@ for (const profile of profiles) {
           const viewport = document.querySelector('.portfolio-viewport')
           const root = document.documentElement
           const direction = root.dataset.themeDirection
-          const circle = direction && window.__liveCircle
-          const center = getComputedStyle(document.querySelector('.cube-breath')).transformOrigin.split(' ').map(Number.parseFloat)
-          const wipeOffset = circle ? circle.radius - Math.hypot(center[0] - circle.origin.x, center[1] - circle.origin.y) : null
+          const mask = direction && window.__liveMask
+          const wipeOffset = mask ? mask.progress : null
           window.__themeFrames.push({
             time: performance.now(), theme: document.documentElement.dataset.theme,
             cubeTheme: document.querySelector('.cube-entrance').dataset.cubeTheme,
@@ -125,11 +124,11 @@ for (const profile of profiles) {
           expect(new Set(motion.map(a => a.id)).size).toBe(1)
           expect(motion.every(a => a.state === 'running')).toBe(true)
           expect(motion.every((a, i) => i === 0 || a.time >= motion[i - 1].time)).toBe(true)
-          if (!profile.noWipe) expect(motion.at(-1).time - motion[0].time).toBeGreaterThan(6000)
+          expect(motion.at(-1).time - motion[0].time).toBeGreaterThan(3000)
         }
       }
       const captures = await page.evaluate(() => window.__themeCaptures)
-      if (!profile.reduced && !profile.noWipe) {
+      if (!profile.reduced) {
         expect(captures).toHaveLength(3)
         expect(captures.every(c => c.copies === 4 && c.canvases === 1)).toBe(true)
         expect(frames.some(f => f.transitioning)).toBe(true)
@@ -137,8 +136,8 @@ for (const profile of profiles) {
           const reveal = frames.filter(f => f.direction === direction && f.wipeOffset !== null)
           // The source palette stays stable during the pixel mask; only the
           // finished transition commits it. Sample both sides of the center.
-          const before = reveal.filter(f => direction === 'to-dark' ? f.wipeOffset < -8 : f.wipeOffset > 8)
-          const after = reveal.filter(f => direction === 'to-dark' ? f.wipeOffset > 40 : f.wipeOffset < -40)
+          const before = reveal.filter(f => f.wipeOffset < .15)
+          const after = reveal.filter(f => f.wipeOffset > .6)
           expect(before.length).toBeGreaterThan(0)
           expect(before.every(f => f.cubeTheme !== f.theme)).toBe(true)
           expect(after.length).toBeGreaterThan(0)

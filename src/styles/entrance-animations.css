@@ -23,7 +23,7 @@
 
 @keyframes overlay-grid-drift {
     from { transform: translate3d(0, 0, 0); }
-    to { transform: translate3d(40px, 40px, 0); }
+    to { transform: translate3d(var(--overlay-grid-size), var(--overlay-grid-size), 0); }
 }
 
 @media (prefers-reduced-motion: reduce), (max-width: 767px) {
@@ -32,8 +32,8 @@
 
 /* Theme transitions stay available after the immediate homepage paint. */
 :root {
-    --theme-transition-duration: 2.0s;
-    --theme-transition-easing: cubic-bezier(0.76, 0, 0.24, 1);
+    --theme-transition-duration: 1.2s;
+    --theme-transition-easing: linear;
 }
 
 /* Live palette masks own the reveal. Color transitions must not interpolate

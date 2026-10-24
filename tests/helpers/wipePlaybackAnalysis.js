@@ -1,7 +1,7 @@
 /** Analyze captured viewport frames after playback without changing its timing.
  * Keep this function self-contained so Playwright can serialize it into a page.
  */
-export async function analyzeWipePlayback({ captured, ticks, timeOrigin, viewport }) {
+export async function analyzeWipePlayback({ captured, ticks, timeOrigin, viewport, exclusions = [] }) {
   if (!Array.isArray(captured) || !Array.isArray(ticks) || !Number.isFinite(timeOrigin) ||
     !Number.isFinite(viewport?.width) || !Number.isFinite(viewport?.height) ||
     viewport.width <= 0 || viewport.height <= 0) {
@@ -9,9 +9,10 @@ export async function analyzeWipePlayback({ captured, ticks, timeOrigin, viewpor
   }
 
   const timeline = ticks.map(tick => {
-    if (!Number.isFinite(tick.timestamp) || !Number.isFinite(tick.radius) || tick.radius < 0 ||
+    if (!Number.isFinite(tick.timestamp) || !Number.isFinite(tick.progress) || !Number.isFinite(tick.cell) || tick.cell <= 0 ||
+      !Number.isFinite(tick.phase?.x) || !Number.isFinite(tick.phase?.y) || !Number.isFinite(tick.extent) || typeof tick.targetDark !== 'boolean' ||
       !Number.isFinite(tick.origin?.x) || !Number.isFinite(tick.origin?.y)) {
-      throw new TypeError('Each wipe tick requires timestamp, radius and origin.x/origin.y')
+      throw new TypeError('Each wipe tick requires timestamp, pixel progress, cell geometry, targetDark and origin')
     }
     return { ...tick, epoch: timeOrigin + tick.timestamp }
   }).sort((a, b) => a.epoch - b.epoch)
@@ -25,9 +26,37 @@ export async function analyzeWipePlayback({ captured, ticks, timeOrigin, viewpor
     return low - 1
   }
 
+  const fieldAt = (frame,x,y) => {
+    let grid=frame,px=x,py=y,ground=false
+    if(frame.floor) {
+      const m=frame.floor.inverse,w=m[6]*x+m[7]*y+m[8]
+      const u=(m[0]*x+m[1]*y+m[2])/w,v=(m[3]*x+m[4]*y+m[5])/w
+      if(u>=0&&v>=0&&u<=frame.floor.width&&v<=frame.floor.height) {grid=frame.floor;px=u;py=v;ground=true}
+    }
+    const column=Math.floor((px-grid.phase.x)/grid.cell),row=Math.floor((py-grid.phase.y)/grid.cellHeight)
+    const u=grid.phase.x+column*grid.cell,v=grid.phase.y+row*grid.cellHeight
+    const project=p=>{
+      if(!ground) return p
+      const m=grid.matrix,w=m[6]*p.x+m[7]*p.y+m[8]
+      return{x:(m[0]*p.x+m[1]*p.y+m[2])/w,y:(m[3]*p.x+m[4]*p.y+m[5])/w}
+    }
+    const points=[{x:u,y:v},{x:u+grid.cell,y:v},{x:u+grid.cell,y:v+grid.cellHeight},{x:u,y:v+grid.cellHeight}].map(project)
+    const edge=Math.min(...points.map((a,i)=>{const b=points[(i+1)%4];return Math.abs((b.x-a.x)*(y-a.y)-(b.y-a.y)*(x-a.x))/Math.hypot(b.x-a.x,b.y-a.y)}))
+    const wrap=(n,size)=>((n%size)+size)%size
+    const random=(c,r)=>{
+      let n=wrap(wrap(c,128)*127+wrap(r,128)*311+(frame.seed||0)*17,4093)
+      n=wrap(n*(n%19+3)+97,4093);n=wrap(n*(n%23+5)+193,4093)
+      return(n+.5)/4093
+    }
+    const c=column+(ground?37:0),r=row+(ground?71:0)
+    const start=.12+.56*random(c,r),drop=start+.035+.02*random(c+19,r-7)
+    const settle=drop+.045+.03*random(c-13,r+29)
+    return { edge,events:frame.reverse?[1-settle,1-drop,1-start]:[start,drop,settle] }
+  }
+
   const canvas = document.createElement('canvas')
   const context = canvas.getContext('2d', { willReadFrequently: true })
-  const blue = [0, 36, 81], light = [232, 230, 225]
+  const blue = [0, 36, 81], light = [242, 242, 242]
   const colorTolerance = 18, edgeMargin = 4, presentationLatency = 40
   const results = []
   let previousCaptureExtent = null
@@ -45,7 +74,7 @@ export async function analyzeWipePlayback({ captured, ticks, timeOrigin, viewpor
     // Headed Chromium may expose only the compositor surface that fits the
     // physical window, even when innerWidth describes a wider emulated page.
     // CDP dimensions describe that captured surface in DIP; DPR is already
-    // removed. Stretching a cropped JPEG to innerWidth invents circle errors.
+    // removed. Stretching a cropped JPEG to innerWidth invents cell alignment errors.
     const hasCaptureDimensions = Number.isFinite(metadata.deviceWidth) && metadata.deviceWidth > 0 &&
       Number.isFinite(metadata.deviceHeight) && metadata.deviceHeight > 0
     const pageScaleFactor = Number.isFinite(metadata.pageScaleFactor) && metadata.pageScaleFactor > 0
@@ -72,17 +101,14 @@ export async function analyzeWipePlayback({ captured, ticks, timeOrigin, viewpor
     previousCaptureExtent = captureExtent
 
     const currentIndex = latestTickAt(epoch), current = timeline[currentIndex]
-    let minRadius = null, maxRadius = null
+    let minProgress = null, maxProgress = null
     if (current) {
-      // Include the tick just before the 40 ms window to bracket its start.
-      // A frame may present any radius between this prior tick and the latest
-      // tick whose timestamp does not exceed the captured frame's timestamp.
       const priorIndex = Math.max(0, latestTickAt(epoch - presentationLatency))
-      minRadius = Infinity
-      maxRadius = -Infinity
+      minProgress = Infinity
+      maxProgress = -Infinity
       for (let index = priorIndex; index <= currentIndex; index++) {
-        minRadius = Math.min(minRadius, timeline[index].radius)
-        maxRadius = Math.max(maxRadius, timeline[index].radius)
+        minProgress = Math.min(minProgress, timeline[index].progress)
+        maxProgress = Math.max(maxProgress, timeline[index].progress)
       }
     }
 
@@ -97,6 +123,9 @@ export async function analyzeWipePlayback({ captured, ticks, timeOrigin, viewpor
     for (let y = 0; y < image.height; y += 4) for (let x = 0; x < image.width; x += 4) {
       const cssX = (x + .5) * scaleX, cssY = (y + .5) * scaleY
       if (cssX >= viewport.width || cssY >= viewport.height) continue
+      // White logo/foreground ink is deliberately part of the new blue theme.
+      // It must not be classified as an old light-background cell.
+      if (exclusions.some(rect => cssX >= rect.x-6 && cssX <= rect.x+rect.width+6 && cssY >= rect.y-6 && cssY <= rect.y+rect.height+6)) continue
       const offset = (y * image.width + x) * 4
       let blueError = 0, lightError = 0
       for (let channel = 0; channel < 3; channel++) {
@@ -110,69 +139,58 @@ export async function analyzeWipePlayback({ captured, ticks, timeOrigin, viewpor
       valid++
       if (isDark) dark++
       if (!current || !capture.consistent) continue
-      const distance = Math.hypot(cssX - current.origin.x, cssY - current.origin.y)
-      samples.push({ distance, isDark, band: Math.floor(y / 16) })
-      let expectedDark
-      if (distance < minRadius - edgeMargin) expectedDark = true
-      else if (distance > maxRadius + edgeMargin) expectedDark = false
-      else continue
+      const {edge,events}=fieldAt(current,cssX,cssY)
+      if(edge<edgeMargin) continue
+      samples.push({events,isDark,isNew:isDark===current.targetDark,band:Math.floor(y/16)})
+      if(events.some(t=>t>=minProgress-.01&&t<=maxProgress+.01)) continue
+      const expectedDark=(events.filter(t=>t<minProgress).length%2===1)===current.targetDark
       timingInspected++
       if (isDark !== expectedDark) timingMismatches++
     }
 
-    // JPEG presentation may lag the rAF clock by more than a fixed allowance.
-    // Fit the observed circle independently, retaining clock comparisons only
-    // as diagnostics. A rectangular missing band still violates this shape.
-    const bucketWidth = Math.max(scaleX, scaleY) * 4
-    let fittedRadius = null
+    // Fit a presented cell pattern independently of rAF/CDP delivery latency.
+    // A lost band or reversed cell still disagrees with the shared cell order.
+    const buckets=512, fittedMargin=.004
+    let fittedProgress=0
     if (samples.length) {
-      const histogram = []
-      let blueCount = 0
-      for (const sample of samples) {
-        const bucket = Math.floor(sample.distance / bucketWidth)
-        histogram[bucket] ??= { blue: 0, light: 0 }
-        if (sample.isDark) { histogram[bucket].blue++; blueCount++ }
-        else histogram[bucket].light++
+      const histogram=new Float64Array(buckets)
+      let errors=0
+      for(const sample of samples) {
+        if(sample.isNew) errors++
+        sample.events.forEach((threshold,index)=>{
+          const on=index%2===0,delta=sample.isNew===on?-1:1
+          histogram[Math.min(buckets-1,Math.floor(threshold*buckets))]+=delta
+        })
       }
-      let bestErrors = blueCount, insideBlue = 0, insideLight = 0
-      fittedRadius = 0
-      for (let bucket = 0; bucket < histogram.length; bucket++) {
-        insideBlue += histogram[bucket]?.blue ?? 0
-        insideLight += histogram[bucket]?.light ?? 0
-        const errors = insideLight + blueCount - insideBlue
-        if (errors < bestErrors) {
-          bestErrors = errors
-          fittedRadius = (bucket + 1) * bucketWidth
-        }
+      let bestErrors=errors
+      for(let bucket=0;bucket<buckets;bucket++){
+        errors+=histogram[bucket]
+        if(errors<bestErrors){bestErrors=errors;fittedProgress=(bucket+1)/buckets}
       }
     }
-    const fittedEdgeMargin = Math.max(edgeMargin, bucketWidth)
-    for (const sample of samples) {
-      if (Math.abs(sample.distance - fittedRadius) <= fittedEdgeMargin) {
-        ambiguous++
-        continue
-      }
-      const expectedDark = sample.distance < fittedRadius
-      const band = bands[sample.band]
-      inspected++
-      band.inspected++
-      if (sample.isDark !== expectedDark) { mismatches++; band.mismatches++ }
+    for(const sample of samples){
+      if(sample.events.some(t=>Math.abs(t-fittedProgress)<=fittedMargin)){ambiguous++;continue}
+      const expectedDark=(sample.events.filter(t=>t<fittedProgress).length%2===1)===current.targetDark
+      const band=bands[sample.band]
+      inspected++;band.inspected++
+      if(sample.isDark!==expectedDark){mismatches++;band.mismatches++}
     }
+
     for (const band of bands) band.fraction = band.inspected ? band.mismatches / band.inspected : 0
     results.push({
       frame, timestamp: metadata.timestamp, epoch, width: image.width, height: image.height,
       capture, captureExtent, captureExtentChanged,
       valid, dark: valid ? dark / valid : null,
       inspected, mismatches, fraction: inspected ? mismatches / inspected : 0, ambiguous, bands,
-      fittedRadius, fittedEdgeMargin, bucketWidth,
+      fittedProgress, fittedMargin,
       timingInspected, timingMismatches,
       timingFraction: timingInspected ? timingMismatches / timingInspected : 0,
-      radius: current?.radius ?? null, minRadius, maxRadius,
+      progress: current?.progress ?? null, minProgress, maxProgress,
       origin: current ? { x: current.origin.x, y: current.origin.y } : null,
       tickTimestamp: current?.timestamp ?? null, tickEpoch: current?.epoch ?? null,
       tickDelay: current ? epoch - current.epoch : null,
       skipped: !capture.consistent ? 'capture dimensions changed before JPEG presentation' :
-        current ? null : 'no preceding circle tick',
+        current ? null : 'no preceding pixel tick',
     })
   }
   return results

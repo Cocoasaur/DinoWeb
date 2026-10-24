@@ -32,7 +32,21 @@ async function points(page) {
       .add(new THREE.Vector3(layout.restingX, layout.restingY, 0)).project(camera)
     return { x: info.rect.x + (p.x + 1) / 2 * info.rect.width, y: info.rect.y + (1 - p.y) / 2 * info.rect.height }
   }
-  return { click: project('theme', .15, 0), body: [[-.25, .35], [.25, .35], [-.25, -.35], [.25, -.35]].map(([x,y]) => project('projects', x, y)) }
+  // Background playback classification must omit the projected 3D object:
+  // its face colors and lettering are not flat wallpaper palette samples.
+  const corners = [-1.08, 1.08].flatMap(x => [-1.08, 1.08].flatMap(y => [-1.08, 1.08].map(z => {
+    const p = new THREE.Vector3(x, y, z).applyEuler(rotation).multiplyScalar(layout.cubeScale)
+      .add(new THREE.Vector3(layout.restingX, layout.restingY, 0)).project(camera)
+    return { x: info.rect.x + (p.x + 1) / 2 * info.rect.width,
+      y: info.rect.y + (1 - p.y) / 2 * info.rect.height }
+  })))
+  // Include breathing and the small camera-parallax change after pressing.
+  const left = Math.min(...corners.map(p => p.x)) - 24
+  const top = Math.min(...corners.map(p => p.y)) - 24
+  const cubeBounds = { x: left, y: top,
+    width: Math.max(...corners.map(p => p.x)) + 24 - left,
+    height: Math.max(...corners.map(p => p.y)) + 24 - top }
+  return { cubeBounds, click: project('theme', .15, 0), body: [[-.25, .35], [.25, .35], [-.25, -.35], [.25, -.35]].map(([x,y]) => project('projects', x, y)) }
 }
 
 
@@ -50,7 +64,7 @@ const profiles = [
 for (const profile of profiles) test.describe(profile.name, () => {
   test.use({ viewport: { width: profile.width, height: profile.height }, deviceScaleFactor: profile.dpr,
     serviceWorkers: 'block', isMobile: !!profile.mobile, hasTouch: !!profile.mobile })
-  test('never reverses the background reveal during complete unpaused wipes', async ({ page }, testInfo) => {
+  test('keeps the per-cell glitch synchronized during unpaused theme changes', async ({ page }, testInfo) => {
     test.setTimeout(90000)
     const gpu = await (await page.context().browser().newBrowserCDPSession()).send('SystemInfo.getInfo')
     await testInfo.attach('renderer', { body: JSON.stringify(gpu.gpu), contentType: 'application/json' })
@@ -72,7 +86,7 @@ for (const profile of profiles) test.describe(profile.name, () => {
         window.__playbackTicks = []
       })
       window.addEventListener('cube-wipe-frame', e => {
-        window.__playbackTicks?.push({ timestamp: performance.now(), radius: e.detail.radius, origin: e.detail.origin })
+        window.__playbackTicks?.push({ ...e.detail, timestamp: performance.now(), targetDark: document.documentElement.dataset.themeDirection === 'to-dark' })
       })
     }, profile)
     const session = await page.context().newCDPSession(page)
@@ -92,7 +106,7 @@ for (const profile of profiles) test.describe(profile.name, () => {
     await page.evaluate(() => { window.__labelNodes = [...document.querySelector('.home-theme-label__value').childNodes] })
     // The large recorded viewport needs a background-only capture fixture:
     // software GL readback can otherwise undersample the short middle of the
-    // real two-second wipe. Keep its canvas/resources and all grid clocks;
+    // production pixel dissolve. Keep its canvas/resources and all grid clocks;
     // the other worker/fallback profiles still capture the complete scene.
     if (profile.backgroundOnly && gpu.gpu.featureStatus.gpu_compositing !== 'enabled') await page.addStyleTag({ content: '.cube-entrance canvas { opacity: 0 !important; }' })
     let frames = []
@@ -110,7 +124,7 @@ for (const profile of profiles) test.describe(profile.name, () => {
       for (const [index, expand] of [true, false, true].entries()) {
         frames = []
         await page.waitForTimeout(150)
-        const { click } = await points(page)
+        const { click, cubeBounds } = await points(page)
         if (profile.mobile) await page.touchscreen.tap(click.x, click.y)
         else await page.mouse.click(click.x, click.y)
         await expect(page.locator('html')).toHaveClass(/theme-transitioning/)
@@ -121,14 +135,24 @@ for (const profile of profiles) test.describe(profile.name, () => {
         // Include final asynchronous WebGL presentation in the stream.
         await page.waitForTimeout(profile.mobile ? 700 : 1800)
         const captured = frames.slice()
+        // A software/high-DPR screencast can lag the compositor by seconds.
+        // Add an explicit presentation fence for the committed endpoint;
+        // keep all unpaused stream frames for shape and reversal analysis.
+        const endpoint = await page.screenshot({ type: 'jpeg', quality: 75, scale: 'css' })
+        const endpointMetadata = await page.evaluate(() => ({ timestamp: (performance.timeOrigin+performance.now())/1000,
+          deviceWidth: innerWidth, deviceHeight: innerHeight, pageScaleFactor: 1 }))
+        captured.push({ data: endpoint.toString('base64'), metadata: endpointMetadata })
         const timing = await page.evaluate(() => ({ ticks: window.__playbackTicks, timeOrigin: performance.timeOrigin,
-          viewport: { width: innerWidth, height: innerHeight } }))
+          viewport: { width: innerWidth, height: innerHeight },
+          exclusions: [...document.querySelectorAll('.sidebar-home, .mobile-branding__lockup, .home-footer, .home-theme-label, .home-coordinate, .rotate-prompt, .scrubber-entrance')]
+            .map(el => { const r=el.getBoundingClientRect(); return {x:r.x,y:r.y,width:r.width,height:r.height} }) }))
+        timing.exclusions.push(cubeBounds, (await points(page)).cubeBounds)
         const measurements = await page.evaluate(analyzeWipePlayback, { captured, ...timing })
         const ticks = timing.ticks
         await testInfo.attach(`wipe-${index}-playback`, { body: JSON.stringify({ expand, measurements, ticks }), contentType: 'application/json' })
         await writeFile(testInfo.outputPath(`wipe-${index}-playback.json`), JSON.stringify({ expand, measurements, ticks }))
         for (let i = 0; i < measurements.length; i++) {
-          const reversal = i && (measurements[i].dark - measurements[i - 1].dark) * (expand ? 1 : -1) < -.02
+          const reversal = i && measurements[i].fittedProgress-measurements[i-1].fittedProgress < -.025
           if (reversal || measurements[i].fraction > .02) await writeFile(testInfo.outputPath(`wipe-${index}-drop-${i}.jpg`), Buffer.from(captured[i].data, 'base64'))
         }
         expect(measurements.length, 'capture the beginning, middle and end of the real wipe').toBeGreaterThan(3)
@@ -138,16 +162,18 @@ for (const profile of profiles) test.describe(profile.name, () => {
             m.capture.cssHeight >= profile.height * .98), 'hardware capture must include the complete emulated viewport').toBe(true)
         }
         for (const m of measurements.filter(m => m.inspected > 100)) {
-          expect(m.fraction, 'each presented background must retain its circular shape').toBeLessThan(.02)
+          expect(m.fraction, 'each presented background must retain its pixel pattern').toBeLessThan(.02)
           expect(m.bands.filter(b => b.inspected > 40).every(b => b.fraction < .08), 'no rectangular palette dropout in any horizontal band').toBe(true)
         }
         if (process.env.PLAYWRIGHT_REQUIRE_HARDWARE_GPU === '1') {
-          expect(measurements.filter(m => m.dark > .02 && m.dark < .98).length, 'hardware playback must capture the mixed circular reveal densely').toBeGreaterThan(10)
+          expect(measurements.filter(m => m.dark > .02 && m.dark < .98).length, 'hardware playback must capture the mixed pixel reveal densely').toBeGreaterThan(10)
         }
         for (let i = 1; i < measurements.length; i++) {
           if (measurements[i].captureExtentChanged) continue
-          const change = measurements[i].dark - measurements[i - 1].dark
-          expect(expand ? change : -change, 'the reveal must never revert to its previous palette mid-wipe').toBeGreaterThanOrEqual(-.02)
+          // Sparse local blinks are intentional. The fitted complete cell
+          // schedule must still move forward, without a full-field reset.
+          const change=measurements[i].fittedProgress-measurements[i-1].fittedProgress
+          expect(change,'the shared grid-cell timeline must not reset mid-wipe').toBeGreaterThanOrEqual(-.025)
         }
         expect(Math.abs(measurements.at(-1).dark - (expand ? 1 : 0)), 'final background palette').toBeLessThan(.02)
         expect(measurements.some(m => m.dark > .02 && m.dark < .98), 'capture a spatially mixed background').toBe(true)

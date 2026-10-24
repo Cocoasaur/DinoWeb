@@ -1,4 +1,4 @@
-import { boundedCirclePath } from './boundedCircle';
+import { localPixelRectangles, pixelRectanglesPath } from './pixelWipe';
 import { createGridWipeSurface } from './gridWipeSurface';
 
 const PALETTE = ['--void-bg', '--void-grid', '--void-grid-drift', '--floor-pool', '--floor-shadow',
@@ -112,7 +112,7 @@ export function prepareBackdropWipe() {
                 if (dot) layer.dot = { element: dot, target: copy.querySelector('.scrubber-entrance > :last-child') };
             }
         },
-        update({ origin, radius, expand }) {
+        update({ progress, tiles }) {
             // Read every live matrix/bound before changing a clip. Interleaved
             // reads and writes would force repeated style/layout work per frame.
             const measurements = layers.filter(layer => layer.copy).map(layer => {
@@ -126,9 +126,7 @@ export function prepareBackdropWipe() {
             for (const { source, copy, grid, gridGeometry, motion, text, dot, rect, width, height, transforms } of measurements) {
                 if (grid) {
                     if (rect.width && rect.height) {
-                        const scale = width / rect.width;
-                        grid.paint({ geometry: gridGeometry, x: (origin.x - rect.left) * scale,
-                            y: (origin.y - rect.top) * scale, radius: radius * scale, expand });
+                        grid.paint({ geometry: gridGeometry, tiles: localPixelRectangles(tiles, rect, width, height) });
                     }
                     continue;
                 }
@@ -146,24 +144,16 @@ export function prepareBackdropWipe() {
                 }
                 if (dot) setStyle(dot.target, 'top', dot.element.style.top);
                 if (!rect.width || !rect.height) continue;
-                const scale = width / rect.width;
-                const x = (origin.x - rect.left) * scale, y = (origin.y - rect.top) * scale, r = radius * scale;
-                // All masks are bounded to their viewport wrapper, including
-                // the forward circle. Overscanned tiles remain inside it.
-                const left = 0, top = 0, right = width, bottom = height;
-                const farthest = Math.max(...[left, right].flatMap(px => [top, bottom].map(py => Math.hypot(px - x, py - y))));
                 let inside, outside;
-                if (r >= farthest) { inside = 'none'; outside = 'inset(50%)'; }
-                else if (r <= 0) { inside = 'inset(50%)'; outside = 'none'; }
+                if (progress >= 1) { inside = 'none'; outside = 'inset(50%)'; }
+                else if (progress <= 0) { inside = 'inset(50%)'; outside = 'none'; }
                 else {
-                    const circle = boundedCirclePath(x, y, r, left, top, right, bottom);
-                    inside = circle ? `path("${circle}")` : 'inset(50%)';
-                    // Bound the complementary path to the same rectangle;
-                    // neither mask allocates several screen widths.
-                    outside = `path(evenodd, "M${left} ${top}H${right}V${bottom}H${left}Z ${circle}")`;
+                    const cells = pixelRectanglesPath(localPixelRectangles(tiles, rect, width, height));
+                    inside = cells ? `path("${cells}")` : 'inset(50%)';
+                    outside = `path(evenodd, "M0 0H${width}V${height}H0Z ${cells}")`;
                 }
-                setStyle(source, 'clip-path', expand ? outside : inside);
-                setStyle(copy, 'clip-path', expand ? inside : outside);
+                setStyle(source, 'clip-path', outside);
+                setStyle(copy, 'clip-path', inside);
             }
         },
         cleanup() {

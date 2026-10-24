@@ -1,3 +1,4 @@
+import { expectedPixelEvents, expectedPixelState, installPixelProbe, seekPixels } from './helpers/pixel-probe.js'
 import { expect, test } from '@playwright/test'
 import * as THREE from 'three'
 import { FACE_CONFIG } from '../../src/constants/cubeConfig.js'
@@ -62,6 +63,7 @@ for (const profile of profiles) test.describe(profile.name, () => {
       const session = await page.context().newCDPSession(page)
       await session.send('Emulation.setCPUThrottlingRate', { rate: 6 })
     }
+    await installPixelProbe(page)
     await page.addInitScript(profile => {
       Object.defineProperty(navigator, 'hardwareConcurrency', { get: () => profile.low ? 2 : 8 })
       Object.defineProperty(navigator, 'deviceMemory', { get: () => profile.low ? 2 : 8 })
@@ -87,10 +89,18 @@ for (const profile of profiles) test.describe(profile.name, () => {
       // idle return settle before choosing fixed pixels for palette comparisons.
       await page.waitForTimeout(profile.mobile ? 350 : 4000)
       await page.locator('.cube-breath').evaluate(el => el.getAnimations().forEach(a => a.pause()))
-      const { body } = await points(page)
+      const { body: projectedBody } = await points(page)
+      const mask = await page.evaluate(() => window.__pixelFrame)
+      // Sample inside cells, not antialiased boundaries of the CSS-scaled
+      // canvas. Slow devices can settle breathing at a subpixel scale.
+      const insetSample = (value, phase, size) => {
+        const pixel = Math.round(value), offset = ((pixel-phase)%size+size)%size
+        return offset < 3 ? pixel+3-offset : offset > size-3 ? pixel-(offset-size+3) : pixel
+      }
+      const body = projectedBody.map(p => ({ x: insetSample(p.x, mask.phase.x, mask.cell), y: insetSample(p.y, mask.phase.y, mask.cellHeight) }))
       const old = await pixels(page, body)
       await page.screenshot({ path: testInfo.outputPath(`${theme}-old.png`), scale: 'css' })
-      await page.evaluate(() => { window.__wipeAnimation.currentTime = 1999 })
+      await seekPixels(page, '__wipeAnimation', 1)
       // A native clip update and its asynchronous WebGL paint need not land
       // in the same frame, especially with desktop software WebGL. Wait for
       // the observable palette rather than treating 200 ms as a paint fence.
@@ -100,33 +110,28 @@ for (const profile of profiles) test.describe(profile.name, () => {
         return next.every((pixel, i) => Math.abs(pixel[0] - old[i][0]) > 65)
       }, { timeout: 5000 }).toBe(true)
       await page.screenshot({ path: testInfo.outputPath(`${theme}-new.png`), scale: 'css' })
-      const origin = await page.evaluate(() => ({
-        x: parseFloat(document.documentElement.style.getPropertyValue('--theme-origin-x')),
-        y: parseFloat(document.documentElement.style.getPropertyValue('--theme-origin-y')),
-      }))
-      const distances = body.map(p => Math.hypot(p.x-origin.x, p.y-origin.y))
-      const sorted = [...distances].sort((a,b) => a-b)
-      const radius = (sorted[1] + sorted[2]) / 2
-      const actualRadius = await page.evaluate(({ radius, expand }) => {
-        const root = document.documentElement
-        let low = 1, high = 1999, current
-        for (let i = 0; i < 20; i++) {
-          const mid = (low + high) / 2; window.__wipeAnimation.currentTime = mid
-          current = 1.5 * (expand ? window.__wipeAnimation.effect.getComputedTiming().progress : 1 - window.__wipeAnimation.effect.getComputedTiming().progress) * Math.hypot(root.clientWidth,root.clientHeight) / Math.SQRT2
-          if ((current < radius) === expand) low = mid; else high = mid
-        }
-        return current
-      }, { radius, expand: theme === 'demain-soir-bleu' })
-      const selections = distances.map(d => (d < actualRadius) === (theme === 'demain-soir-bleu'))
+      const frame = await page.evaluate(() => window.__pixelFrame)
+      // Glitches have three events; a median final threshold can land while
+      // every sampled cell is briefly on the same palette. Seek between actual
+      // events and require both palettes before comparing rendered pixels.
+      const events = [...new Set(body.flatMap(p => expectedPixelEvents(frame, Math.round(p.x), Math.round(p.y))))].sort((a, b) => a - b)
+      const progress = events.slice(1).map((time, i) => (events[i] + time) / 2).find(progress => {
+        const selected = body.filter(p => expectedPixelState({ ...frame, progress }, Math.round(p.x), Math.round(p.y))).length
+        return selected > 0 && selected < body.length
+      })
+      expect(progress, 'cube samples must cross independently scheduled grid cells').toBeDefined()
+      await seekPixels(page, '__wipeAnimation', progress)
+      const selections = body.map(p=>expectedPixelState({...frame,progress},Math.round(p.x),Math.round(p.y)))
       let mixed
       await expect.poll(async () => {
         mixed = await pixels(page, body)
         return mixed.every((pixel, i) => pixel.every((value, c) =>
           Math.abs(value - (selections[i] ? next[i] : old[i])[c]) < 25))
       }, { timeout: 5000 }).toBe(true)
-      await testInfo.attach(`${theme} pixel colors`, { body: JSON.stringify({ old, next, mixed, selections, radius: actualRadius, body }), contentType: 'application/json' })
+      await testInfo.attach(`${theme} pixel colors`, { body: JSON.stringify({ old, next, mixed, selections, progress, frame, body }), contentType: 'application/json' })
       await page.screenshot({ path: testInfo.outputPath(`${theme}-split-palette.png`), scale: 'css' })
-      expect(selections.filter(Boolean)).toHaveLength(2)
+      expect(selections.filter(Boolean).length).toBeGreaterThan(0)
+      expect(selections.filter(Boolean).length).toBeLessThan(body.length)
       for (let i = 0; i < body.length; i++) {
         for (const sample of [old[i], next[i]]) {
           expect(Math.max(...sample) - Math.min(...sample), 'sample stays on the neutral cube body').toBeLessThan(4)

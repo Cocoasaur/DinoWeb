@@ -1,3 +1,4 @@
+import { installPixelProbe, seekPixels } from './helpers/pixel-probe.js'
 import { expect, test } from '@playwright/test'
 import * as THREE from 'three'
 import { FACE_CONFIG } from '../../src/constants/cubeConfig.js'
@@ -12,7 +13,7 @@ async function themePoint(page) {
     rect: { x: canvas.getBoundingClientRect().x, y: canvas.getBoundingClientRect().y,
       width: canvas.getBoundingClientRect().width, height: canvas.getBoundingClientRect().height },
     center: getComputedStyle(document.querySelector('.cube-breath')).transformOrigin.split(' ').map(Number.parseFloat),
-    rotation: document.querySelector('.home-coordinate').textContent.match(/X: ([\d.-]+), Y: ([\d.-]+)/).slice(1).map(Number),
+    rotation: document.querySelector('.home-coordinate').textContent.match(/X:\s*([\d.-]+)[, ]+Y:\s*([\d.-]+)/).slice(1).map(Number),
   }))
   const layout = getHomeViewportLayout(info.width, info.height)
   const camera = new THREE.PerspectiveCamera(45, info.width / info.height, .1, 100)
@@ -30,6 +31,7 @@ async function themePoint(page) {
 }
 
 async function openPortfolio(page) {
+  await installPixelProbe(page)
   await page.addInitScript(() => {
     Object.defineProperty(navigator, 'hardwareConcurrency', { get: () => 2 })
     Object.defineProperty(navigator, 'deviceMemory', { get: () => 2 })
@@ -84,51 +86,31 @@ async function restState(page, theme) {
   }))
   expect(state).toEqual({ backingReleased: true, sameWallpaper: true, sameDrift: true,
     opacityRestored: true, paletteReleased: true,
-    color: theme === 'demain-soir-bleu' ? 'rgb(0, 36, 81)' : 'rgb(232, 230, 225)' })
+    color: theme === 'demain-soir-bleu' ? 'rgb(0, 36, 81)' : 'rgb(242, 242, 242)' })
 }
 
-async function seekCircle(page, radius) {
-  return page.evaluate(async radius => {
-    const animation = window.__surfaceAnimation
-    const maximum = 1.5 * Math.hypot(document.documentElement.clientWidth, document.documentElement.clientHeight) / Math.SQRT2
-    const expand = document.documentElement.dataset.themeDirection === 'to-dark'
-    let low = 0, high = animation.effect.getTiming().duration
-    for (let i = 0; i < 28; i++) {
-      animation.currentTime = (low + high) / 2
-      const progress = animation.effect.getComputedTiming().progress
-      const actual = maximum * (expand ? progress : 1 - progress)
-      if ((actual < radius) === expand) low = animation.currentTime
-      else high = animation.currentTime
-    }
-    await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))
-    return { radius: maximum * (expand ? animation.effect.getComputedTiming().progress : 1 - animation.effect.getComputedTiming().progress),
-      origin: { x: parseFloat(document.documentElement.style.getPropertyValue('--theme-origin-x')),
-        y: parseFloat(document.documentElement.style.getPropertyValue('--theme-origin-y')) } }
-  }, radius)
-}
-
-async function wallpaperPixels(page, clip, circle) {
+async function wallpaperPixels(page, clip, mask) {
   const screenshot = await page.screenshot({ clip, scale: 'css' })
-  const pixels = await page.evaluate(async ({ png, clip, circle }) => {
+  const pixels = await page.evaluate(async ({ png, clip, mask }) => {
     const image = new Image(); image.src = 'data:image/png;base64,' + png; await image.decode()
     const canvas = document.createElement('canvas'); canvas.width = image.width; canvas.height = image.height
     const ctx = canvas.getContext('2d'); ctx.drawImage(image, 0, 0)
     const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data
     let inside = 0, outside = 0, mismatches = 0
     for (let y = 0; y < image.height; y += 3) for (let x = 0; x < image.width; x += 3) {
-      const distance = Math.hypot(x + clip.x - circle.origin.x, y + clip.y - circle.origin.y)
-      if (Math.abs(distance - circle.radius) < 4) continue
-      const dark = distance < circle.radius, expected = dark ? [0, 36, 81] : [232, 230, 225]
+      const px = x + clip.x, py = y + clip.y
+      if (window.__pixelEdge(mask,px,py) < 2) continue
+      const dark = window.__pixelState(mask,px,py), expected = dark ? [0, 36, 81] : [242, 242, 242]
       if (dark) inside++; else outside++
       const start = (y * image.width + x) * 4
       if (Math.max(...expected.map((value, channel) => Math.abs(value - data[start + channel]))) > 55) mismatches++
     }
     return { inside, outside, mismatches }
-  }, { png: screenshot.toString('base64'), clip, circle })
+  }, { png: screenshot.toString('base64'), clip, mask })
   return { screenshot, pixels }
 }
 
-test('keeps the wallpaper circle painting while the existing cube canvas is temporarily detached', async ({ page }, testInfo) => {
+test('keeps the wallpaper cells painting while the existing cube canvas is temporarily detached', async ({ page }, testInfo) => {
   test.setTimeout(60000)
   const errors = []; page.on('pageerror', error => errors.push(error.message))
   await openPortfolio(page)
@@ -144,16 +126,11 @@ test('keeps the wallpaper circle painting while the existing cube canvas is temp
     canvas.remove()
   })
   try {
-    const before = await wallpaperPixels(page, clip, await seekCircle(page, 1))
+    const before = await wallpaperPixels(page, clip, await seekPixels(page, '__surfaceAnimation', 0))
     expect(before.pixels.mismatches).toBe(0)
     expect(before.pixels.inside).toBe(0)
-    const crossingRadius = await page.evaluate(clip => {
-      const x = parseFloat(document.documentElement.style.getPropertyValue('--theme-origin-x'))
-      const y = parseFloat(document.documentElement.style.getPropertyValue('--theme-origin-y'))
-      return Math.hypot(clip.x + clip.width / 2 - x, clip.y + clip.height / 2 - y)
-    }, clip)
-    const mixed = await wallpaperPixels(page, clip, await seekCircle(page, crossingRadius))
-    expect(mixed.pixels.mismatches, 'wallpaper keeps using the circle while there is no cube canvas').toBe(0)
+    const mixed = await wallpaperPixels(page, clip, await seekPixels(page, '__surfaceAnimation', .55))
+    expect(mixed.pixels.mismatches, 'wallpaper keeps switching square cells while there is no cube canvas').toBe(0)
     expect(mixed.pixels.inside).toBeGreaterThan(1000)
     expect(mixed.pixels.outside).toBeGreaterThan(1000)
     await testInfo.attach('wallpaper during cube canvas swap', { body: mixed.screenshot, contentType: 'image/png' })

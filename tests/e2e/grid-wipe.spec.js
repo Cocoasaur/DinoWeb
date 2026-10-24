@@ -1,3 +1,4 @@
+import { installPixelProbe, seekPixels } from './helpers/pixel-probe.js'
 import { expect, test } from '@playwright/test'
 import * as THREE from 'three'
 import { FACE_CONFIG } from '../../src/constants/cubeConfig.js'
@@ -55,10 +56,11 @@ async function capture(page, key) {
 for (const profile of profiles) test.describe(profile.name, () => {
   test.use({ viewport: { width: profile.width, height: profile.height }, isMobile: !!profile.mobile,
     hasTouch: !!profile.mobile, deviceScaleFactor: profile.dpr || 1, serviceWorkers: 'block' })
-  test('reveals background and ground line pixels with the actual circle in both directions', async ({ page }, testInfo) => {
+  test('reveals background and ground line pixels with the actual pixel mask in both directions', async ({ page }, testInfo) => {
     test.setTimeout(90000)
     const errors = []
     page.on('pageerror', error => errors.push(error.message))
+    await installPixelProbe(page)
     await page.addInitScript(profile => {
       Object.defineProperty(navigator, 'hardwareConcurrency', { get: () => profile.low ? 2 : 8 })
       Object.defineProperty(navigator, 'deviceMemory', { get: () => profile.low ? 2 : 8 })
@@ -94,69 +96,98 @@ for (const profile of profiles) test.describe(profile.name, () => {
       await expect(page.locator('.home-chrome[data-wipe-palette="new"] .home-theme-label__value')).toHaveText(
         theme === 'demain-soir-bleu' ? 'THEME: DEMAIN_SOIR_BLEU' : 'THEME: CLAIR_OBSCUR')
       expect(await page.locator('[data-wipe-palette="new"] [id]').evaluateAll(nodes => nodes.every(n => document.querySelectorAll(`[id="${n.id}"]`).length === 1))).toBe(true)
-      await page.waitForTimeout(profile.mobile ? 400 : 4000)
+      // Phone startup can attach the deferred drift stylesheet after the
+      // initial freeze. Let CSS/parallax settle, then pause those late clocks
+      // too so old/new/mixed screenshots compare the same grid phase.
+      await page.waitForTimeout(4000)
+      await page.evaluate(() => {
+        for (const a of document.getAnimations()) if (a.animationName === 'drift' || a.effect?.getTiming().iterations === Infinity) a.pause()
+      })
+      const alignment = await page.evaluate(() => {
+        const frame=window.__pixelFrame, floor=document.querySelector('.home-stage-backdrop:not([data-wipe-palette]) > .home-stage-backdrop__floor')
+        const projected=[]
+        for(const [u,v] of [[.2,.1],[.5,.5],[.8,.9]]) {
+          const x=u*floor.clientWidth,y=v*floor.clientHeight,m=frame.floor.matrix,w=m[6]*x+m[7]*y+m[8]
+          const point=document.createElement('i')
+          point.style.cssText=`position:absolute;left:${x}px;top:${y}px;width:0;height:0;pointer-events:none`
+          floor.append(point)
+          const rect=point.getBoundingClientRect()
+          projected.push(Math.hypot(rect.x-(m[0]*x+m[1]*y+m[2])/w,rect.y-(m[3]*x+m[4]*y+m[5])/w))
+          point.remove()
+        }
+        const grid=document.querySelector('.home-grid-parallax .void-grid'),style=getComputedStyle(grid)
+        const size=style.backgroundSize.split(',')[0].trim().split(/\s+/).map(parseFloat)
+        return { projected, cell:frame.cell,cellHeight:frame.cellHeight,size }
+      })
+      expect(Math.max(...alignment.projected),'ground masks match the actual CSS perspective plane').toBeLessThan(1)
+      expect([alignment.cell,alignment.cellHeight],'use whole wallpaper cells').toEqual(alignment.size)
       await capture(page, 'old')
-      await page.evaluate(() => { window.__gridAnimation.currentTime = 1999 })
+      await seekPixels(page, '__gridAnimation', 1)
       await page.waitForTimeout(200)
       await capture(page, 'next')
       const selection = await page.evaluate(theme => {
         const width = innerWidth, height = innerHeight
-        const origin = { x: parseFloat(document.documentElement.style.getPropertyValue('--theme-origin-x')),
-          y: parseFloat(document.documentElement.style.getPropertyValue('--theme-origin-y')) }
-        const oldBase = theme === 'demain-soir-bleu' ? [232,230,225] : [0,36,81]
-        const newBase = theme === 'demain-soir-bleu' ? [0,36,81] : [232,230,225]
+        const oldBase = theme === 'demain-soir-bleu' ? [242,242,242] : [0,36,81]
+        const newBase = theme === 'demain-soir-bleu' ? [0,36,81] : [242,242,242]
         const pixel = (data,x,y) => Array.from(data.slice((y*width+x)*4,(y*width+x)*4+3))
         const mark = document.querySelector(innerWidth > innerHeight ? '.sidebar-home__logo' : '.mobile-branding__lockup').getBoundingClientRect()
         const candidates = []
         for (const [kind,minY,maxY] of [['background',70,height*.42], ['ground',height*.75,height-82], ['branding',Math.max(0,mark.top),Math.min(height-3,mark.bottom)]]) {
           const samples = []
           for (let y = Math.ceil(minY); y < maxY; y++) for (let x = 20; x < width-20; x++) {
+            // Logo hatching/antialiasing can resemble thin grid ink on phones.
+            // Its palette is checked separately in the branding case below.
+            if (kind !== 'branding' && x >= mark.left-2 && x <= mark.right+2 && y >= mark.top-2 && y <= mark.bottom+2) continue
             const old = pixel(window.__gridPixels.old,x,y), next = pixel(window.__gridPixels.next,x,y)
             const distance = (a,b) => Math.max(...a.map((v,i)=>Math.abs(v-b[i])))
             const a=distance(old,oldBase), b=distance(next,newBase)
             if (kind === 'branding') {
               if (x < mark.left || x > mark.right || a < 60 || b < 60 || distance(old,next) < 65) continue
+              // Clip layers can rasterize SVG stroke fringes differently.
+              // Compare flat ink interiors, keeping the strict palette bound.
+              if ([-1,0,1].some(dx=>[-1,0,1].some(dy=>
+                distance(old,pixel(window.__gridPixels.old,x+dx,y+dy))>1 ||
+                distance(next,pixel(window.__gridPixels.next,x+dx,y+dy))>1))) continue
             } else {
               // Select thin grid lines; exclude lettering and broad glows.
               if (a<4 || a>55 || b<3 || b>55) continue
               if (distance(old,pixel(window.__gridPixels.old,x+2,y))<2 && distance(old,pixel(window.__gridPixels.old,x,y+2))<2) continue
             }
-            samples.push({ x,y,old,next,kind,d:Math.hypot(x-origin.x,y-origin.y) })
+            samples.push({ x,y,old,next,kind,events:window.__pixelEvents(window.__pixelFrame,x,y) })
           }
           candidates.push(samples)
         }
         return { counts:candidates.map(a=>a.length), cases:candidates.map(a=>{
           if (!a.length) return {samples:[]}
-          const distances=a.map(p=>p.d).sort((a,b)=>a-b)
-          const radius=distances[Math.floor(distances.length/2)]
-          const samples=[false,true].flatMap(inside=>{
-            const side=a.filter(p=>inside?p.d<radius-10:p.d>radius+10)
-            return Array.from({length:Math.min(side.length,10)},(_,i)=>side[Math.floor(i*side.length/Math.min(side.length,10))])
-          })
-          return {kind:a[0].kind,radius,samples,expand:theme==='demain-soir-bleu'}
+          // Seek a stable interval between all three cell events. The final
+          // threshold's median may sit inside a blink where both sides agree.
+          const events=[...new Set(a.flatMap(p=>p.events))].sort((a,b)=>a-b)
+          const intervals=events.slice(1).map((end,i)=>({progress:(events[i]+end)/2,gap:end-events[i]})).sort((a,b)=>b.gap-a.gap)
+          for(const {progress} of intervals) {
+            const frame={...window.__pixelFrame,progress}
+            const sides=[false,true].map(inside=>a.filter(p=>p.events.every(time=>Math.abs(time-progress)>.005) &&
+              // Exact colors only where neighboring cells agree; the edge
+              // fixtures independently check every antialiased grid boundary.
+              [-1.5,0,1.5].every(dx=>[-1.5,0,1.5].every(dy=>window.__pixelState(frame,p.x+dx,p.y+dy)===inside))))
+            if(sides.every(side=>side.length>=10)) return {kind:a[0].kind,progress,
+              samples:sides.flatMap(side=>Array.from({length:10},(_,i)=>side[Math.floor(i*side.length/10)]))}
+          }
+          return {kind:a[0].kind,samples:[]}
+
         }) }
       },theme)
       expect(selection.counts.every(n=>n>20), 'visible background, ground lines and branding').toBe(true)
       // A phone's floor and wallpaper can sit at disjoint distances from the
-      // face-click origin. Test each surface when the circle crosses it.
+      // face-click origin. Test each surface when its cells switch.
       for (const surface of selection.cases) {
         expect(surface.samples).toHaveLength(20)
-        surface.radius = await page.evaluate(({radius,expand}) => {
-          const width=innerWidth,height=innerHeight
-          let low=1,high=1999,actual
-          for (let i=0;i<20;i++) {
-            const mid=(low+high)/2;window.__gridAnimation.currentTime=mid
-            actual=1.5*(expand?window.__gridAnimation.effect.getComputedTiming().progress:1-window.__gridAnimation.effect.getComputedTiming().progress)*Math.hypot(width,height)/Math.SQRT2
-            if ((actual<radius)===expand) low=mid;else high=mid
-          }
-          return actual
-        },surface)
+        await seekPixels(page, '__gridAnimation', surface.progress)
         await page.waitForTimeout(200)
         await capture(page, 'mixed')
         const result = await page.evaluate(selection => {
           return selection.samples.map(p=>{
             const start=(p.y*innerWidth+p.x)*4, mixed=Array.from(window.__gridPixels.mixed.slice(start,start+3))
-            const expected=(p.d<selection.radius)===selection.expand?p.next:p.old
+            const expected=window.__pixelState({...window.__pixelFrame,progress:selection.progress},p.x,p.y)?p.next:p.old
             return { ...p,mixed,expected,error:Math.max(...mixed.map((v,i)=>Math.abs(v-expected[i]))) }
           })
         },surface)
@@ -164,7 +195,7 @@ for (const profile of profiles) test.describe(profile.name, () => {
         await isolateGrids.evaluate(el => { el.media = 'not all' })
         await page.screenshot({path:testInfo.outputPath(`${theme}-${surface.kind}-wipe.png`),scale:'css'})
         await isolateGrids.evaluate(el => { el.media = 'all' })
-        expect(Math.max(...result.map(p=>p.error)), 'each grid pixel uses the palette on its actual side of the circle').toBeLessThan(5)
+        expect(Math.max(...result.map(p=>p.error)), 'each grid pixel uses the palette on its actual cell of the mask').toBeLessThan(5)
       }
       await page.evaluate(() => { window.__gridAnimation.finish(); window.__gridAnimation=null })
       await expect(page.locator('html')).not.toHaveClass(/theme-transitioning/)
@@ -182,8 +213,8 @@ test('keeps original grid clocks live and removes temporary palette surfaces aft
   await page.setViewportSize({ width: 1440, height: 900 })
   await page.addInitScript(() => {
     window.addEventListener('theme-wipe-start', e => {
-      const circle = e.detail.animation; window.__gridAnimation = circle
-      circle.pause(); circle.currentTime = 500
+      const mask = e.detail.animation; window.__gridAnimation = mask
+      mask.pause(); mask.currentTime = 500
     })
   })
   await page.goto('./')
