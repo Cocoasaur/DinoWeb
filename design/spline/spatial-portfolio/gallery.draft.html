@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>DinoWeb — Spatial Portfolio</title>
+<style>
+:root{color-scheme:light;--ink:#14243a;--line:#bcc5ca;--paper:#f7f6f0;--blue:#00346e;font-family:Arial,sans-serif}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;color:var(--ink)}
+button,a{font:inherit}button{color:inherit;cursor:pointer}button:focus-visible,a:focus-visible{outline:3px solid #477cbd;outline-offset:4px}
+header{position:absolute;inset:24px 28px auto;display:flex;align-items:center;justify-content:space-between;gap:18px}
+.brand{border:0;background:transparent;padding:0;text-align:left;font-size:25px;font-weight:700;letter-spacing:-1px}
+.brand small{display:block;margin-top:7px;font-size:9px;font-weight:400;letter-spacing:2px}
+nav{display:flex;border:1px solid var(--line);background:#f7f6f0e8;flex-wrap:wrap}
+nav button{border:0;border-right:1px solid var(--line);padding:14px 18px;background:transparent;font-size:12px}
+nav button:last-child{border-right:0}nav button[aria-current="page"]{background:var(--blue);color:white}
+#story{position:absolute;top:120px;right:28px;width:min(325px,35vw);padding:25px;background:#f7f6f0f5;border:1px solid var(--line);max-height:calc(100% - 220px);overflow:auto}
+#story[hidden]{display:none}.eyebrow{font-size:10px;letter-spacing:2px;text-transform:uppercase}
+h1{font-size:32px;line-height:1.1;letter-spacing:-1.3px;margin:18px 0}p{font-size:14px;line-height:1.65}
+#body ul{padding-left:17px;font-size:13px;line-height:1.9}a{color:var(--blue);text-underline-offset:4px}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}.actions button{padding:10px 13px;border:1px solid var(--line);background:transparent}
+.actions button:hover{background:#e2e7ec}#close{position:absolute;right:12px;top:10px;background:none;border:0;font-size:22px}
+footer{position:absolute;bottom:22px;left:28px;right:28px;display:flex;justify-content:space-between;align-items:flex-end;gap:15px}
+footer p{font-size:10px;letter-spacing:1px;margin:0;line-height:1.8}
+#pause{background:#f7f6f0e8;border:1px solid var(--line);padding:10px 14px;font-size:11px}
+#notice{font-size:11px;min-height:15px;margin:15px 0 0}
+@media(max-width:650px){header{inset:17px 16px auto;display:block}.brand{font-size:22px}.brand small{font-size:8px}nav{margin-top:16px;justify-content:stretch}nav button{padding:11px 0;flex:1;font-size:10px}#story{top:auto;bottom:75px;right:16px;left:16px;width:auto;max-height:35%;padding:18px}h1{font-size:24px;margin:12px 0}p{font-size:12px}footer{left:16px;right:16px;bottom:16px}footer p{max-width:220px;font-size:8px}.actions{margin-top:10px}}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+<header>
+<button class="brand" data-view="overview" aria-label="Return to gallery">DinoWeb.<small>AN INTERACTIVE PORTFOLIO / PHILIPPINES</small></button>
+<nav aria-label="Gallery destinations">
+<button data-view="overview" aria-current="page">Gallery</button><button data-view="about">01 Profile</button><button data-view="skills">02 Skills</button><button data-view="projects">03 Projects</button><button data-view="contact">04 Contact</button>
+</nav>
+</header>
+<aside id="story" aria-labelledby="title" hidden>
+<button id="close" aria-label="Return to gallery">&#215;</button>
+<span class="eyebrow" id="index"></span><h1 id="title"></h1><div id="body"></div><div class="actions" id="actions"></div><p id="notice" role="status"></p>
+</aside>
+<footer><p id="hint">DRAG TO LOOK AROUND<br>SELECT AN EXHIBIT OR USE THE NAVIGATION</p><button id="pause" aria-pressed="false">Pause motion</button></footer>
+<script type="module">
+const projects=[
+ {title:'TIP Airlines',type:'Desktop application',stack:'Python / Tkinter / SQLite',description:'Airline reservations, flight scheduling and passenger booking.'},
+ {title:'Pastry Shop Management System',type:'Desktop application',stack:'Java / MySQL',description:'An academic retail management system. My role: front-end development.'},
+ {title:'Earth Arcade',type:'Game development',stack:'Godot / Git',description:'A 2D arcade game connecting mini-games with environmental awareness.',url:'https://github.com/FlimsyOwl12/GAME-ON-Hackathon-Earth-Arcade'},
+ {title:'Quarto',type:'Web application',stack:'HTML / CSS / JavaScript / Python',description:'Boarding-house management for rooms, payments, tenants and maintenance.',url:'https://quarto-4d613.web.app'},
+ {title:'DinoWeb',type:'Web portfolio / in progress',stack:'React / JavaScript / Three.js',description:'My personal portfolio and this ongoing experiment in spatial interaction.',url:'https://github.com/Cocoasaur/DinoWeb'}
+];
+const content={
+ about:{index:'01 / Profile',title:'John Jessienel M. Arquesola',html:'<p>Computer science student at the University of San Agustin, Philippines.</p><p>I build applications, explore interaction design and bring different tools together through projects.</p>'},
+ skills:{index:'02 / Skills',title:'Built layer by layer.',html:'<p>25 tools across four disciplines.</p><ul><li>Frontend: HTML5, CSS3, JavaScript, TypeScript, Tailwind CSS, Tkinter, React, Three.js, Vite</li><li>Backend: Python, Java, Node.js, Firebase</li><li>Database: SQLite, MySQL, Firestore</li><li>Tools: Figma, Canva, Postman, VS Code, Kimi, Claude, Godot, Git, GitHub</li></ul>'},
+ contact:{index:'04 / Contact',title:'Let’s make something.',html:'<p>Philippines / UTC+8</p><p><a href="mailto:cocoasaurjl@gmail.com">cocoasaurjl@gmail.com</a></p><p><a href="https://github.com/Cocoasaur" target="_blank" rel="noopener noreferrer">GitHub</a> / <a href="https://linkedin.com/in/dinoweb" target="_blank" rel="noopener noreferrer">LinkedIn</a></p>'}
+};
+const poses={
+ overview:{p:[0,430,1480],target:[0,150,-120]},
+ about:{p:[-160,230,190],target:[-355,140,-260]},
+ skills:{p:[125,310,180],target:[320,145,-250]},
+ projects:{p:[-230,255,680],target:[-420,125,200]},
+ contact:{p:[230,240,650],target:[420,115,200]}
+};
+const ui={story:document.querySelector('#story'),title:document.querySelector('#title'),body:document.querySelector('#body'),index:document.querySelector('#index'),actions:document.querySelector('#actions'),notice:document.querySelector('#notice')};
+const reduced=matchMedia('(prefers-reduced-motion: reduce)');
+let destination='overview',project=4,paused=reduced.matches,drag=null,orbit=[0,0],lastDrag=-Infinity;
+let camera,rigs=[],raf=0,last=0,time=0,transitionAt=0,from=null,to=null,current=null,alive=true;
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
+const mix=(a,b,t)=>a+(b-a)*t;
+function pose(name){
+ const v=poses[name],ratio=innerWidth/innerHeight;
+ const factor=Math.max(1,1.1/ratio);
+ const target=[...v.target];
+ if(name!=='overview'){if(ratio>.9)target[0]+=110;else target[1]-=65;}
+ const p=v.p.map((x,i)=>v.target[i]+(x-v.target[i])*factor);
+ return {p,target};
+}
+function action(label,callback){
+ const button=document.createElement('button');button.type='button';button.textContent=label;button.onclick=callback;ui.actions.append(button);
+}
+function render(){
+ document.querySelectorAll('nav [data-view]').forEach(b=>{if(b.dataset.view===destination)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current');});
+ ui.story.hidden=destination==='overview';ui.actions.replaceChildren();ui.notice.textContent='';
+ if(destination==='overview')return;
+ if(destination==='projects'){
+  const p=projects[project];ui.index.textContent='03 / Projects — '+(project+1)+' of '+projects.length;ui.title.textContent=p.title;
+  ui.body.replaceChildren();
+  [p.type,p.description,p.stack].forEach(s=>{const el=document.createElement('p');el.textContent=s;ui.body.append(el);});
+  action('Previous',()=>changeProject(-1));action('Next',()=>changeProject(1));
+  if(p.url){const a=document.createElement('a');a.href=p.url;a.target='_blank';a.rel='noopener noreferrer';a.textContent='Visit project';ui.actions.append(a);}
+ }else{
+  const c=content[destination];ui.index.textContent=c.index;ui.title.textContent=c.title;ui.body.innerHTML=c.html;
+  if(destination==='contact')action('Copy email',async()=>{
+   try{await navigator.clipboard.writeText('cocoasaurjl@gmail.com');ui.notice.textContent='Email copied.';}
+   catch{ui.notice.textContent='Copy is unavailable here. Select the email address above to copy it.';}
+  });
+ }
+}
+function changeProject(delta){
+ project=(project+delta+projects.length)%projects.length;render();
+ const title=projects[project].title.replace('Pastry Shop Management System','Pastry Shop');
+ void spline.updateObject('Projects Screen Title',{geometry:{text:title,fontSize:title.length>15?9:14}});
+ void spline.updateObject('Projects Screen Subtitle',{geometry:{text:projects[project].type.toUpperCase(),fontSize:5}});
+ void spline.updateObject('Projects Screen Stack',{geometry:{text:projects[project].stack.toUpperCase().slice(0,48),fontSize:5}});
+}
+function navigate(name){
+ if(!poses[name])return;destination=name;orbit=[0,0];transitionAt=time;from=current||pose('overview');to=pose(name);render();
+}
+document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>navigate(b.dataset.view));
+document.querySelector('#close').onclick=()=>navigate('overview');
+document.querySelector('#pause').onclick=()=>{
+ paused=!paused;document.querySelector('#pause').textContent=paused?'Resume motion':'Pause motion';document.querySelector('#pause').setAttribute('aria-pressed',String(paused));
+};
+document.addEventListener('keydown',e=>{
+ if(e.target.closest('button,a,input,textarea,select')&&e.key!=='Escape')return;
+ if(e.key==='Escape'){navigate('overview');document.querySelector('[data-view="overview"]').focus();}
+ const keys={'0':'overview','1':'about','2':'skills','3':'projects','4':'contact'};
+ if(keys[e.key]){e.preventDefault();navigate(keys[e.key]);}
+ if(destination==='projects'&&(e.key==='ArrowRight'||e.key==='ArrowLeft')){e.preventDefault();changeProject(e.key==='ArrowRight'?1:-1);}
+});
+document.addEventListener('pointerdown',e=>{
+ if(e.target.closest('header,aside,footer')||!e.isPrimary)return;
+ drag={id:e.pointerId,x:e.clientX,y:e.clientY,start:[...orbit],moved:false};
+},true);
+document.addEventListener('pointermove',e=>{
+ if(!drag||e.pointerId!==drag.id)return;
+ const dx=e.clientX-drag.x,dy=e.clientY-drag.y;drag.moved ||= Math.hypot(dx,dy)>8;
+ orbit=[clamp(drag.start[0]+dx*.04,-12,12),clamp(drag.start[1]+dy*.025,-6,6)];
+},true);
+function endDrag(){if(drag?.moved)lastDrag=performance.now();drag=null;}
+document.addEventListener('pointerup',endDrag,true);document.addEventListener('pointercancel',endDrag,true);
+addEventListener('resize',()=>{from=current||pose(destination);to=pose(destination);transitionAt=time;});
+function frame(stamp){
+ if(!alive)return;
+ time+=last?Math.min((stamp-last)/1000,.06):0;last=stamp;
+ const progress=reduced.matches?1:clamp((time-transitionAt)/1.3,0,1);
+ const ease=progress*progress*(3-2*progress);
+ current={p:to.p.map((x,i)=>mix(from.p[i],x,ease)),target:to.target.map((x,i)=>mix(from.target[i],x,ease))};
+ const dx=current.p[0]-current.target[0],dy=current.p[1]-current.target[1],dz=current.p[2]-current.target[2];
+ const yaw=Math.atan2(dx,dz)*180/Math.PI+orbit[0];
+ const pitch=-Math.atan2(dy,Math.hypot(dx,dz))*180/Math.PI+orbit[1];
+ void spline.updateObject(camera.id,{position:{x:current.p[0],y:current.p[1],z:current.p[2]},rotation:{x:pitch,y:yaw,z:0}});
+ if(!paused&&!reduced.matches)rigs.forEach((rig,i)=>{
+  void spline.updateObject(rig.id,{position:{...rig.position,y:rig.position.y+Math.sin(time*.7+i*.7)*3},rotation:{...rig.rotation,y:rig.rotation.y+Math.sin(time*.4+i*.6)*5}});
+ });
+ raf=requestAnimationFrame(frame);
+}
+try{
+ await spline.ready;
+ camera=await spline.findObjectByName('DinoWeb Gallery Camera');
+ rigs=(await Promise.all([0,1,2,3].map(i=>spline.findObjectByName('Skills Motion Rig '+i)))).filter(Boolean);
+ if(!camera)throw new Error('Gallery camera is missing.');
+ from=pose('overview');from.p[2]+=160;to=pose('overview');current=from;
+ spline.addEventListener('mouseUp',e=>{
+  if(performance.now()-lastDrag<350)return;
+  const name=e.target?.name||'';
+  if(name.startsWith('Profile Exhibit'))navigate('about');
+  else if(name.startsWith('Skills Layer'))navigate('skills');
+  else if(name.startsWith('Projects Exhibit'))navigate('projects');
+  else if(name.startsWith('Contact Exhibit'))navigate('contact');
+ });
+ document.querySelector('#pause').textContent=paused?'Resume motion':'Pause motion';
+ document.querySelector('#pause').setAttribute('aria-pressed',String(paused));
+ raf=requestAnimationFrame(frame);
+ document.addEventListener('visibilitychange',()=>{
+  cancelAnimationFrame(raf);last=0;
+  if(!document.hidden&&alive)raf=requestAnimationFrame(frame);
+ });
+ addEventListener('pagehide',()=>{alive=false;cancelAnimationFrame(raf);},{once:true});
+}catch(error){
+ console.error('DinoWeb gallery boot failed:',error);
+ document.querySelector('#hint').textContent='3D navigation is unavailable. Use the destination buttons.';
+}
+</script>
+</body>
+</html>
