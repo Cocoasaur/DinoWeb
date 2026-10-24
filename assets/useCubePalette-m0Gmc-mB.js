@@ -1,1 +1,0 @@
-import{h as e}from"./cubeTransition-B3nOpRAr.js";function t(){return e().cubePalette}export{t};
