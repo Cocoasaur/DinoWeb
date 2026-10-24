@@ -93,9 +93,8 @@ export default function ProjectsPage({ selectedProject, onSelectProject, motionR
                 </section>
             </div>
             <div className="projects-list">
-                {filteredProjects.length ? filteredProjects.map(project => <ProjectCard key={project.id} project={project} onOpen={() => openProject(project)} />) : <Reveal className="projects-empty"><p className="projects-eyebrow">No matching projects</p><h3>Try a different angle.</h3><p>Search another name, tool, status, or role.</p><button type="button" onClick={() => { setSearchQuery(''); setDiscipline('all'); }}>Reset filters <ProjectArrow /></button></Reveal>}
+                {filteredProjects.length ? filteredProjects.map(project => <ProjectCard key={project.id} project={project} onOpen={() => openProject(project)} />) : <Reveal className="projects-empty"><p className="projects-eyebrow">No matching projects</p><h3>Try a different angle.</h3><p>Search another name, tool, status, or role.</p><button type="button" onClick={() => { setSearchQuery(''); setDiscipline('all'); }}>Reset filters</button></Reveal>}
             </div>
-            <footer className="projects-footer" data-projects-anchor><div data-projects-reveal><span className="projects-eyebrow">Always a work in progress</span><p>Built with curiosity.<br /><em>Refined with practice.</em></p></div><span aria-hidden="true" data-projects-reveal><ProjectArrow /></span></footer>
         </>}
     </div>;
 }

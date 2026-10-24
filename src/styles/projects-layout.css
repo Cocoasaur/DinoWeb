@@ -13,7 +13,7 @@
 .projects-hero-copy { padding: 42px var(--projects-inset); display: flex; flex-direction: column; justify-content: center; min-width: 0; }
 .projects-eyebrow { margin: 0; }
 .projects-title { margin: 22px 0; font: 500 clamp(58px, 6.4vw, 88px)/.97 'Space Grotesk', sans-serif; letter-spacing: -.065em; color: var(--projects-ink); }
-.projects-title em, .projects-footer em { font-family: Georgia, 'Times New Roman', serif; font-weight: 400; }
+.projects-title em { font-family: Georgia, 'Times New Roman', serif; font-weight: 400; }
 .projects-title em { font-size: 1.2em; letter-spacing: -.075em; }
 .projects-intro { max-width: 33ch; margin: 0; font-size: 13px; line-height: 1.85; color: var(--void-text-dim); }
 .projects-hero-bottom { margin-top: 30px; }
@@ -68,9 +68,6 @@
 .projects-empty h3 { font: 400 32px 'Space Grotesk', sans-serif; letter-spacing: -.04em; margin: 18px 0; color: var(--projects-ink); }
 .projects-empty p:not(.projects-eyebrow) { font-size: 12px; color: var(--void-text-dim); }
 .projects-empty button { display: flex; align-items: center; gap: 35px; min-height: 44px; margin-top: 22px; font-size: 12px; color: var(--projects-ink); }
-.projects-footer { display: flex; justify-content: space-between; align-items: flex-end; gap: 20px; padding: 35px var(--projects-inset) 42px; border-top: 1px solid var(--void-border); overflow: hidden; }
-.projects-footer p { margin: 18px 0 0; font: 400 clamp(28px, 3.8vw, 45px)/1.15 'Space Grotesk', sans-serif; letter-spacing: -.05em; color: var(--projects-ink); }
-.projects-footer > span .projects-arrow { width: 70px; height: 70px; color: var(--void-text-dim); }
 /* Case-study view keeps galleries, external links, and the screenshot lightbox. */
 .project-detail-hero { position: relative; padding: 40px var(--projects-inset); border-bottom: 1px solid var(--void-border); overflow: hidden; }
 .project-modal-header { position: relative; z-index: 1; max-width: 75%; }
@@ -152,8 +149,6 @@
     .projects-card-copy { font-size: 12px; }
     .projects-preview-caption { font-size: 6px; }
     .projects-card-open { min-height: 24px; }
-    .projects-footer { padding-block: 30px; }
-    .projects-footer > span .projects-arrow { width: 40px; height: 40px; }
     .project-detail-hero { padding-block: 30px; }
     .project-modal-header { max-width: 100%; }
     .project-modal-title { font-size: clamp(34px, 9vw, 46px); margin-block: 20px; }
