@@ -1,0 +1,25 @@
+select('Gallery Brand Lettering');
+position({x:1,y:330,z:-486});
+geometry({width:620,height:110,fontSize:64,horizontalAlign:'center'});
+select(o=>o.name.startsWith('Projects Screen')||o.name.startsWith('Projects Keyboard')||o.name.startsWith('Projects Portfolio')||o.name.startsWith('Projects Floor'));
+moveInto('DinoWeb_Panel_Projects');
+select(o=>o.name.startsWith('Contact Letter')||o.name.startsWith('Contact Pen')||o.name.startsWith('Contact Card')||o.name.startsWith('Contact Desk Loop'));
+moveInto('DinoWeb_Panel_Contact');
+for(let i=0;i<4;i++){
+ select(o=>o.name==='Skills Layer '+i||o.name==='Skills Layer Label '+i||o.name==='Skills Edge Accent '+i);
+ group();
+ rename('Skills Floating Assembly '+i);
+}
+select(o=>o.name.startsWith('Skills Floating Assembly'));
+moveInto('DinoWeb_Panel_Skills');
+select('Gallery Key Light');
+updateLight({intensity:0.65,shadowRadius:4});
+environment({ao:true,ambient:{color:'#e2ebf1',intensity:0.7}});
+const cam=add('PerspectiveCamera');
+position({x:0,y:440,z:1430});
+rotation({x:-12,y:0,z:0});
+rename('DinoWeb Gallery Camera');
+setPlayCamera(cam);
+playControls('none');
+select(o=>o.isMesh&&(o.name.startsWith('Profile Exhibit')||o.name.startsWith('Skills Layer')||o.name==='Projects Exhibit Display'||o.name==='Contact Exhibit Desktop'));
+iterate(o=>{addEvent('MouseUp');});

@@ -1,0 +1,13 @@
+select('Gallery Identity Sign');
+remove();
+const letters=['D','i','n','o','W','e','b','.'];
+const xs=[-220,-171,-140,-92,-22,45,93,136];
+for(let i=0;i<letters.length;i++){
+ mesh('Text',{text:letters[i],font:'Space Grotesk_700',fontSize:58,width:100,height:80,depth:2});
+ position({x:xs[i],y:330,z:-486});
+ applyMaterial('DinoWeb Ink');
+ rename('Gallery Wordmark Glyph '+i);
+}
+select('DinoWeb Gallery Camera');
+position({x:0,y:430,z:1480});
+rotation({x:-10,y:0,z:0});

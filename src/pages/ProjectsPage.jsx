@@ -1,7 +1,6 @@
 import { useLayoutEffect, useRef, useState } from 'react';
 import { PROJECTS, STATUS_COLORS } from '../data/projectsData';
 import ProjectModal from '../components/ui/ProjectModal';
-import ProjectShowcase from '../components/ui/ProjectShowcase';
 import TiltCard from '../components/ui/TiltCard';
 import { useReducedMotion } from '../hooks/useReducedMotion';
 import { useProjectsMotion } from '../hooks/useProjectsMotion';
@@ -85,7 +84,6 @@ export default function ProjectsPage({ selectedProject, onSelectProject, motionR
                     <Reveal><p className="projects-intro">From the first sketch to the final build. A collection of interfaces, applications, and small experiments in making things work.</p></Reveal>
                     <Reveal><div className="projects-hero-bottom"><div className="projects-totals"><strong>{String(PROJECTS.length).padStart(2, '0')}<span>Projects</span></strong><span className="projects-stat-rule" /><strong>03<span>Disciplines</span></strong></div><button type="button" className="projects-explore" onClick={explore}>Explore work <ProjectArrow /></button></div></Reveal>
                 </div>
-                <ProjectShowcase onOpen={openProject} />
             </header>
             <div className="projects-controls-anchor" data-projects-anchor>
                 <section className="projects-controls" aria-label="Browse projects" data-projects-reveal>
@@ -95,9 +93,8 @@ export default function ProjectsPage({ selectedProject, onSelectProject, motionR
                 </section>
             </div>
             <div className="projects-list">
-                {filteredProjects.length ? filteredProjects.map(project => <ProjectCard key={project.id} project={project} onOpen={() => openProject(project)} />) : <Reveal className="projects-empty"><p className="projects-eyebrow">No matching projects</p><h3>Try a different angle.</h3><p>Search another name, tool, status, or role.</p><button type="button" onClick={() => { setSearchQuery(''); setDiscipline('all'); }}>Reset filters <ProjectArrow /></button></Reveal>}
+                {filteredProjects.length ? filteredProjects.map(project => <ProjectCard key={project.id} project={project} onOpen={() => openProject(project)} />) : <Reveal className="projects-empty"><p className="projects-eyebrow">No matching projects</p><h3>Try a different angle.</h3><p>Search another name, tool, status, or role.</p><button type="button" onClick={() => { setSearchQuery(''); setDiscipline('all'); }}>Reset filters</button></Reveal>}
             </div>
-            <footer className="projects-footer" data-projects-anchor><div data-projects-reveal><span className="projects-eyebrow">Always a work in progress</span><p>Built with curiosity.<br /><em>Refined with practice.</em></p></div><span aria-hidden="true" data-projects-reveal><ProjectArrow /></span></footer>
         </>}
     </div>;
 }

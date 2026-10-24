@@ -1,0 +1,13 @@
+select('Gallery DinoWeb Wordmark');
+remove();
+select('Gallery Author Credit');
+remove();
+select('Gallery Manifesto');
+remove();
+select('Gallery Location');
+remove();
+mesh('Text',{text:'DinoWeb.',font:'Space Grotesk_700',fontSize:64,depth:2});
+position({x:0,y:330,z:-486});
+applyMaterial('DinoWeb Ink');
+rename('Gallery Brand Lettering');
+report(get('selection'));

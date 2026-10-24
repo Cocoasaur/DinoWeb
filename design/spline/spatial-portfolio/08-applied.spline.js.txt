@@ -1,0 +1,15 @@
+select('Gallery Identity Sign');
+position({x:0,y:300,z:-480});
+geometry({depth:100,width:650,height:350});
+select('Projects Screen Title');
+geometry({fontSize:15,width:155,height:36});
+select('Profile Exhibit Name');
+geometry({fontSize:25,width:230,height:75});
+select('Profile Exhibit Signature');
+position({x:0,y:-20.5,z:62});
+select('DinoWeb_Panel_Projects');
+position({x:-420,y:118.5,z:200});
+select('DinoWeb_Panel_Contact');
+position({x:420,y:93.5,z:200});
+select(o=>o.name.startsWith('DinoWeb_Panel'));
+lookFrom({azimuth:-7,elevation:12,target:'selection'});

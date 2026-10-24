@@ -1,0 +1,8 @@
+select('Gallery DinoWeb Wordmark');
+geometry({width:680,height:120,fontSize:72});
+select('Gallery Author Credit');
+geometry({width:650,height:35,fontSize:14});
+select(o=>o.type==='Mesh'&&o.name.includes('Index'));
+iterate(o=>{geometry({width:300,height:28,fontSize:13});});
+select(o=>o.name.startsWith('Gallery Floor Joint'));
+position({y:-1.5});

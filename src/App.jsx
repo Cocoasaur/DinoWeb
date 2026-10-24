@@ -292,14 +292,6 @@ export default function App() {
               backgroundColor: 'var(--void-btn-bg)',
               borderColor: 'var(--void-btn-border)',
             }}
-            onMouseEnter={e => {
-              e.currentTarget.style.backgroundColor = 'var(--void-surface-80)';
-              e.currentTarget.style.borderColor = 'var(--void-text-dim)';
-            }}
-            onMouseLeave={e => {
-              e.currentTarget.style.backgroundColor = 'var(--void-btn-bg)';
-              e.currentTarget.style.borderColor = 'var(--void-btn-border)';
-            }}
           >
             <OverlayNavIcon variant={selectedProject ? 'back' : 'close'} />
           </button>

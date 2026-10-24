@@ -164,9 +164,9 @@ for (const touchProfile of [{ name: 'phone', width: 430, height: 850 }, { name: 
     const panel = page.locator('.portfolio-overlay-panel')
     const session = await page.context().newCDPSession(page)
     const touch = (type, points = []) => session.send('Input.dispatchTouchEvent', { type, touchPoints: points })
-    const tilt = page.locator('.projects-hero-tilt')
+    const tilt = page.locator('.projects-card-tilt').first()
     await center(tilt)
-    await expect(page.locator('.projects-hero-art')).toHaveCSS('opacity', '1')
+    await expect(page.locator('.projects-card-face').first()).toHaveCSS('opacity', '1')
     let box = await tilt.boundingBox()
     let point = { x: box.x + box.width * .55, y: box.y + box.height * .55 }
     await touch('touchStart', [point])

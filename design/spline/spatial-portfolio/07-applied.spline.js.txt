@@ -1,0 +1,48 @@
+select(o=>o.name.startsWith('Skills Floating Assembly'));
+remove();
+select('Gallery Brand Lettering');
+remove();
+const brand=generateTexture('DinoWeb Gallery Sign',(ctx,{size})=>{
+ ctx.fillStyle='#efeee8';
+ ctx.fillRect(0,0,size,size);
+ ctx.fillStyle='#14243a';
+ ctx.textAlign='center';
+ ctx.textBaseline='middle';
+ ctx.font='bold 110px sans-serif';
+ ctx.fillText('DinoWeb.',size/2,size*.42,size*.9);
+ ctx.font='18px sans-serif';
+ ctx.fillText('JOHN JESSIENEL M. ARQUESOLA',size/2,size*.60,size*.9);
+ ctx.font='13px sans-serif';
+ ctx.fillText('A SPACE FOR IDEAS / PHILIPPINES',size/2,size*.7,size*.9);
+},1024);
+mesh('Decal',{width:650,height:350,depth:10});
+position({x:0,y:300,z:-490});
+layer('texture',{image:brand.id,projection:'uv'});
+rename('Gallery Identity Sign');
+for(let i=0;i<4;i++){
+ select('Skills Layer '+i);
+ group();
+ rename('Skills Motion Rig '+i);
+ select('Skills Layer Label '+i);
+ moveInto('Skills Motion Rig '+i);
+ select('Skills Edge Accent '+i);
+ moveInto('Skills Motion Rig '+i);
+}
+select('Contact Desk Loop');
+geometry({width:40,height:40,tube:3});
+select('Gallery Key Light');
+updateLight({intensity:0.55,shadowRadius:4});
+select('Profile Exhibit Backboard');
+addEvent('MouseUp');
+select('Skills Layer 0');
+addEvent('MouseUp');
+select('Skills Layer 1');
+addEvent('MouseUp');
+select('Skills Layer 2');
+addEvent('MouseUp');
+select('Skills Layer 3');
+addEvent('MouseUp');
+select('Projects Exhibit Display');
+addEvent('MouseUp');
+select('Contact Exhibit Desktop');
+addEvent('MouseUp');

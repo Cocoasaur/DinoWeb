@@ -55,7 +55,7 @@ for (const profile of profiles) {
       if (!profile.reduced && profile.height > 500) {
         const selectors = ['.skills-title', '.skills-hero-description', '.skills-totals strong',
           '.skills-browse-button', '.skills-stack-visual', '.skills-spread-button', '.skills-filter',
-          '.skills-index-count', '.skills-section-copy h3', '.skills-section-copy p', '.skills-footer-mark']
+          '.skills-index-count', '.skills-section-copy h3', '.skills-section-copy p']
         for (const selector of selectors) {
           const item = root.locator(selector).first()
           await item.evaluate(el => el.scrollIntoView({ block: 'center', behavior: 'instant' }))

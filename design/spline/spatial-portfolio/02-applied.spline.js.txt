@@ -1,0 +1,69 @@
+select(o=>o.name.startsWith('Profile Exhibit'));
+group();
+rename('DinoWeb_Panel_About');
+select(o=>o.name.startsWith('Skills '));
+group();
+rename('DinoWeb_Panel_Skills');
+select(o=>o.name.startsWith('Projects Exhibit'));
+group();
+rename('DinoWeb_Panel_Projects');
+select(o=>o.name.startsWith('Contact Exhibit'));
+group();
+rename('DinoWeb_Panel_Contact');
+const terrazzo=generateTexture('DinoWeb Fine Terrazzo',(ctx,{size,rng})=>{
+ ctx.fillStyle='#e8e6df';
+ ctx.fillRect(0,0,size,size);
+ for(let i=0;i<850;i++){
+  const a=rng(),x=rng()*size,y=rng()*size,r=0.4+rng()*1.1;
+  ctx.fillStyle=a>.5?'rgba(80,83,85,.13)':'rgba(255,255,255,.4)';
+  ctx.beginPath();
+  ctx.arc(x,y,r,0,Math.PI*2);
+  ctx.fill();
+ }
+},512);
+mesh('Plane',{width:5000,height:5000});
+rotation({x:-90});
+position({x:0,y:0,z:0});
+color('#e8e6df');
+layer('texture',{image:terrazzo.id,projection:'uv',alpha:0.8,texture:{repeat:[18,18]}});
+shading({category:'physical',roughness:0.84,metalness:0});
+rename('Gallery Terrazzo Floor');
+mesh('Cube',{width:1700,height:430,depth:20,cornerRadius:0});
+position({x:0,y:215,z:-500});
+color('#efeee8');
+shading({category:'physical',roughness:0.9,metalness:0});
+createMaterial('DinoWeb Gallery Plaster');
+rename('Gallery Rear Wall');
+mesh('Text',{text:'DinoWeb.',font:'Space Grotesk_700',fontSize:82,width:570,height:118,depth:2});
+position({x:0,y:340,z:-487});
+applyMaterial('DinoWeb Ink');
+rename('Gallery DinoWeb Wordmark');
+mesh('Text',{text:'JOHN JESSIENEL M. ARQUESOLA',font:'Space Grotesk_regular',fontSize:13,width:520,height:26});
+position({x:0,y:270,z:-486});
+applyMaterial('DinoWeb Ink');
+rename('Gallery Author Credit');
+for(let i=0;i<5;i++){
+ mesh('Cube',{width:2,height:4,depth:1070,cornerRadius:0});
+ position({x:-700+i*350,y:0.7,z:0});
+ color('#cfcec7');
+ rename('Gallery Floor Joint '+i);
+}
+for(let i=0;i<2;i++){
+ mesh('Cube',{width:28,height:430,depth:560,cornerRadius:0});
+ position({x:i?835:-835,y:215,z:-210});
+ applyMaterial('DinoWeb Gallery Plaster');
+ rename('Gallery Side Wall '+i);
+ mesh('Cube',{width:22,height:430,depth:24,cornerRadius:0});
+ position({x:i?615:-615,y:215,z:-380});
+ applyMaterial('DinoWeb Brushed Metal');
+ rename('Gallery Structural Column '+i);
+}
+select(o=>o.isLight);
+updateLight({intensity:0.95,color:'#fff4e4',size:2400,shadows:true,shadowRadius:3});
+position({x:-450,y:800,z:750});
+rename('Gallery Key Light');
+environment({ao:true,ambient:{color:'#e2ebf1',intensity:0.85}});
+background('#e2e3df');
+fog({useBackgroundColor:true,near:2100,far:5200});
+select(o=>o.name.startsWith('DinoWeb_Panel'));
+lookFrom({azimuth:-10,elevation:14,target:'selection'});
