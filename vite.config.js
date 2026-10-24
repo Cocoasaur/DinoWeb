@@ -51,6 +51,8 @@ export default defineConfig({
         // Registration runs after the first paint. Download the full portfolio
         // then, without evaluating WebGL/PDF code or delaying the homepage.
         globPatterns: ['**/*.{html,webmanifest,js,mjs,css,woff2,svg,webp,pdf}'],
+        // The experimental Spline renderer is fetched only when its view loads.
+        globIgnores: ['**/spline/**'],
         cleanupOutdatedCaches: true,
         navigateFallback: '/DinoWeb/index.html',
         runtimeCaching: [
