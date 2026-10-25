@@ -1,1 +1,0 @@
-import{c as e}from"./cubeTransition-C2P_aJ5C.js";function t(){return e().cubePalette}export{t};

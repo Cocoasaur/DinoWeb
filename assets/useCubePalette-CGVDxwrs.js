@@ -1,0 +1,1 @@
+import{R as e}from"./cubeTransition-Y1m2V2NO.js";function t(){return e().cubePalette}export{t};

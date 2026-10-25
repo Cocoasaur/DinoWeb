@@ -1,0 +1,1 @@
+import{_ as e}from"./runtime-chunk-7TRY6CGZ-BxKYWZx5.js";function t(n){if(n.component){let r=n.component.instances.indexOf(n);r>=0&&n.component.instances.splice(r,1);for(let r of n.children)e.is(r)&&t(r)}}export{t};

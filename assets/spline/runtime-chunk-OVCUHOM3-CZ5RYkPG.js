@@ -1,0 +1,1 @@
+import{An as e}from"./runtime-chunk-KPOUV3HD-CpaXHhAq.js";import{r as t}from"./runtime-chunk-E5ILRC2A-ggOSfL4O.js";import{t as n}from"./runtime-chunk-K3573LAV-Dd9DChJq.js";var r=class extends t(e,n){constructor(e,t,n){super(),this.super_Entity(e,t),this.context=n,this.objectHelper.update()}updateState(e,t){this.updateState_Entity(e,t)}};export{r as t};
