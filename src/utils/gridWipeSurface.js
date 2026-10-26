@@ -3,7 +3,7 @@ function backgroundOffset(value, available) {
     return parseFloat(value) || 0;
 }
 
-function readGrid(element, rect, width, height, paletteName) {
+function readGrid(element, maskElement, rect, width, height, paletteName) {
     const bounds = element.getBoundingClientRect();
     const style = getComputedStyle(element);
     const scaleX = width / rect.width, scaleY = height / rect.height;
@@ -11,15 +11,20 @@ function readGrid(element, rect, width, height, paletteName) {
     const [tileWidth, tileHeight] = style.backgroundSize.split(',')[0].trim().split(/\s+/).map(parseFloat);
     const [positionX, positionY = positionX] = style.backgroundPosition.split(',')[0].trim().split(/\s+/);
     const x = (bounds.left - rect.left) * scaleX, y = (bounds.top - rect.top) * scaleY;
-    const mask = style.maskImage || style.webkitMaskImage;
+    const maskStyle = getComputedStyle(maskElement);
+    const maskBounds = maskElement.getBoundingClientRect();
+    const maskY = (maskBounds.top - rect.top) * scaleY, maskHeight = maskBounds.height * scaleY;
+    const mask = maskStyle.maskImage || maskStyle.webkitMaskImage;
+    const lineWidth = parseFloat(style.getPropertyValue('--portfolio-grid-line-width')) || 1;
     const stops = mask && mask !== 'none' ? [...mask.matchAll(/([\d.]+)%/g)].map(match => Number(match[1]) / 100) : [];
     return {
         x, y, width: layerWidth, height: layerHeight, tileWidth, tileHeight,
         phaseX: x + backgroundOffset(positionX, layerWidth - tileWidth),
         phaseY: y + backgroundOffset(positionY, layerHeight - tileHeight),
         opacity: Number(style.opacity), paletteName,
-        fadeStart: stops.length >= 2 ? y + layerHeight * stops[0] : null,
-        fadeEnd: stops.length >= 2 ? y + layerHeight * stops[1] : null,
+        lineWidthX: lineWidth * scaleX, lineWidthY: lineWidth * scaleY,
+        fadeStart: stops.length >= 2 ? maskY + maskHeight * stops[0] : null,
+        fadeEnd: stops.length >= 2 ? maskY + maskHeight * stops[1] : null,
     };
 }
 
@@ -44,12 +49,12 @@ function paintGrid(context, grid, color, width, height) {
     // alpha at intersections instead of turning the grid into a solid union.
     context.beginPath();
     for (let x = firstLine(grid.phaseX, grid.tileWidth); x < width; x += grid.tileWidth) {
-        context.rect(x, 0, 1, height);
+        context.rect(x, 0, grid.lineWidthX, height);
     }
     context.fill();
     context.beginPath();
     for (let y = firstLine(grid.phaseY, grid.tileHeight); y < height; y += grid.tileHeight) {
-        context.rect(0, y, width, 1);
+        context.rect(0, y, width, grid.lineWidthY);
     }
     context.fill();
     context.restore();
@@ -65,7 +70,8 @@ export function createGridWipeSurface(source, canvas, oldPalette, newPalette) {
         { element: source.querySelector('.void-grid'), paletteName: '--void-grid' },
         { element: source.querySelector('.void-grid-drift'), paletteName: '--void-grid-drift' },
     ];
-    if (grids.some(({ element }) => !element)) throw new Error('The theme grid layers are unavailable.');
+    const maskElement = source.querySelector('.home-grid-palette');
+    if (!maskElement || grids.some(({ element }) => !element)) throw new Error('The theme grid layers are unavailable.');
     const paintPalette = (palette, geometry) => {
         context.fillStyle = palette['--void-bg'];
         context.fillRect(0, 0, geometry.width, geometry.height);
@@ -77,7 +83,7 @@ export function createGridWipeSurface(source, canvas, oldPalette, newPalette) {
         // Keep all layout/style reads ahead of the caller's frame writes. The
         // original CSS animations continue, so their measured phase never resets.
         read(rect, width, height) {
-            return { width, height, grids: grids.map(({ element, paletteName }) => readGrid(element, rect, width, height, paletteName)) };
+            return { width, height, grids: grids.map(({ element, paletteName }) => readGrid(element, maskElement, rect, width, height, paletteName)) };
         },
         paint({ geometry, tiles }) {
             if (!(geometry.width > 0 && geometry.height > 0)) return;

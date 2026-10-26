@@ -219,8 +219,8 @@ export default function App() {
     >
       <div className="portfolio-viewport__stage" inert={!homeReady} aria-hidden={!homeReady}>
         <div className="home-grid-wipe" aria-hidden="true">
-          <div className="home-grid-parallax">
-            <div className="home-grid-palette">
+          <div className="home-grid-palette">
+            <div className="home-grid-parallax">
               <div className="absolute inset-0 void-grid" />
               <div className="absolute inset-0 opacity-50 void-grid-drift" />
             </div>

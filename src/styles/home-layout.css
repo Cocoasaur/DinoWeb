@@ -23,8 +23,8 @@
     --drift-step-y: calc(2 * var(--wall-grid-size));
     position: absolute;
     background-image:
-        linear-gradient(var(--void-grid-drift) 1px, transparent 1px),
-        linear-gradient(90deg, var(--void-grid-drift) 1px, transparent 1px);
+        linear-gradient(var(--void-grid-drift) var(--portfolio-grid-line-width), transparent var(--portfolio-grid-line-width)),
+        linear-gradient(90deg, var(--void-grid-drift) var(--portfolio-grid-line-width), transparent var(--portfolio-grid-line-width));
     background-size: var(--drift-step-x) var(--drift-step-y);
     background-position: 0 0;
     animation: drift 60s linear infinite;
@@ -64,18 +64,14 @@
     left: calc(-1 * var(--drift-step-x));
 }
 
-/* ── Grid handoff with the 3D floor (Stage.jsx) ──
-   The perspective floor's vanishing line sits at the vertical center of the
-   screen (the camera never tilts), so the 2D wallpaper owns the top half and
-   fades out across the band where the 3D far-field lines are already faint.
-   The compositor floor is available on every device tier; the wallpaper
-   stays complete until the home scene has painted. */
-.stage-active .void-grid,
-.stage-active .void-grid-drift {
-    -webkit-mask-image: linear-gradient(to bottom, #fff 50%, transparent 75%);
-    mask-image: linear-gradient(to bottom, #fff 50%, transparent 75%);
+/* Fade the viewport-sized palette, rather than its overscanned/drifting
+   children. This keeps the wallpaper out of the perspective ground even as
+   cell size, pointer parallax and device orientation change. The mask stays
+   outside the translated grid so the screen edges remain covered. */
+.stage-active .home-grid-palette {
+    -webkit-mask-image: linear-gradient(to bottom, #fff var(--wall-grid-fade-start), transparent var(--wall-grid-fade-end));
+    mask-image: linear-gradient(to bottom, #fff var(--wall-grid-fade-start), transparent var(--wall-grid-fade-end));
 }
-
 
 
 .home-coordinate {

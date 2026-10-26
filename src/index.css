@@ -15,11 +15,12 @@
   --void-border-dim: rgba(90, 90, 90, 0.16);
 
   /* ── Grid ── */
-  --void-grid: rgba(90, 90, 90, 0.16);
-  --void-grid-drift: rgba(90, 90, 90, 0.20);
+  --void-grid: rgba(90, 90, 90, 0.24);
+  --void-grid-drift: rgba(90, 90, 90, 0.28);
+  --void-ground-grid: rgba(90, 90, 90, 0.40);
   --floor-pool: radial-gradient(ellipse, rgba(24,24,24,.09), transparent 68%);
   --floor-shadow: radial-gradient(ellipse, rgba(24,24,24,.18), rgba(24,24,24,.09) 22%, rgba(24,24,24,.025) 48%, transparent 72%);
-  --void-overlay-grid: rgba(90, 90, 90, 0.20);
+  --void-overlay-grid: rgba(90, 90, 90, 0.24);
 
   /* ── Text ── */
   --void-text: rgba(20, 20, 20, 0.92);
@@ -79,11 +80,12 @@
   --void-border-dim: rgba(187, 218, 255, 0.07);
 
   /* ── Grid ── */
-  --void-grid: rgba(187, 218, 255, 0.10);
-  --void-grid-drift: rgba(187, 218, 255, 0.16);
+  --void-grid: rgba(187, 218, 255, 0.18);
+  --void-grid-drift: rgba(187, 218, 255, 0.24);
+  --void-ground-grid: rgba(187, 218, 255, 0.34);
   --floor-pool: radial-gradient(ellipse, rgba(255,255,255,.07), transparent 68%);
   --floor-shadow: radial-gradient(ellipse, rgba(255,255,255,.14), rgba(255,255,255,.07) 22%, rgba(255,255,255,.02) 48%, transparent 72%);
-  --void-overlay-grid: rgba(135, 206, 235, 0.14);
+  --void-overlay-grid: rgba(135, 206, 235, 0.18);
 
   /* ── Text ── */
   --void-text: rgba(255, 255, 255, 0.85);

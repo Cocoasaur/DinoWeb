@@ -2,12 +2,15 @@
 /* Match the wall to a foreground ground cell; keep floor depth unchanged. */
 :root {
     --ground-grid-scale: 1.5;
+    --portfolio-grid-line-width: 1.25px;
+    --wall-grid-fade-start: 50%;
+    --wall-grid-fade-end: 72%;
     --wall-grid-size: clamp(96px, calc(var(--portfolio-viewport-height, 100dvh) * .2), 320px);
     --overlay-grid-size: var(--wall-grid-size);
 }
 .void-grid,
 .boot-screen__grid {
-    background-image: linear-gradient(var(--void-grid) 1px, transparent 1px), linear-gradient(90deg, var(--void-grid) 1px, transparent 1px);
+    background-image: linear-gradient(var(--void-grid) var(--portfolio-grid-line-width), transparent var(--portfolio-grid-line-width)), linear-gradient(90deg, var(--void-grid) var(--portfolio-grid-line-width), transparent var(--portfolio-grid-line-width));
     background-size: var(--wall-grid-size) var(--wall-grid-size);
     background-position: center center;
     transition: background-image 0.5s ease;
@@ -27,40 +30,43 @@
 }
 .home-stage-backdrop__floor {
     --floor-tile: calc(var(--portfolio-viewport-height, 100dvh) * .241421356 * var(--ground-grid-scale));
-    --floor-grid: var(--void-grid-drift);
+    --floor-grid: var(--void-ground-grid);
     position: absolute; left: 50%; top: 50%; width: 250%; height: 150%;
-    background-image: linear-gradient(var(--floor-grid) 1px, transparent 1px), linear-gradient(90deg, var(--floor-grid) 1px, transparent 1px);
+    background-image: linear-gradient(var(--floor-grid) var(--portfolio-grid-line-width), transparent var(--portfolio-grid-line-width)), linear-gradient(90deg, var(--floor-grid) var(--portfolio-grid-line-width), transparent var(--portfolio-grid-line-width));
     background-size: var(--floor-tile) var(--floor-tile);
     background-position: center top;
     /* Ground at world y=-2.35: depth changes convergence, not horizon roll. */
     transform: translate3d(calc(-50% + var(--floor-camera-x, 0px)), calc(var(--portfolio-viewport-height, 100dvh) * .567340187 + var(--floor-camera-y, 0px)), var(--floor-camera-z, 0px)) rotateX(-90deg);
     transform-origin: center top;
-    transition: transform 850ms cubic-bezier(.18, .72, .32, 1);
+    transition: none;
     mask-image: linear-gradient(to bottom, #000, transparent 95%);
 }
 /* The floor plane and its camera projection remain fixed. Move only a tiled
    child on the compositor, without repainting gradients or redrawing WebGL. */
-.home-stage-backdrop > .home-stage-backdrop__floor { background-image: none; overflow: hidden; }
-.home-stage-backdrop > .home-stage-backdrop__floor::before {
+.home-stage-backdrop__floor { background-image: none; overflow: hidden; }
+.home-stage-backdrop__floor::before {
     content: '';
     position: absolute;
     inset: calc(-1 * var(--floor-tile));
-    background-image: linear-gradient(var(--floor-grid) 1px, transparent 1px), linear-gradient(90deg, var(--floor-grid) 1px, transparent 1px);
+    background-image: linear-gradient(var(--floor-grid) var(--portfolio-grid-line-width), transparent var(--portfolio-grid-line-width)), linear-gradient(90deg, var(--floor-grid) var(--portfolio-grid-line-width), transparent var(--portfolio-grid-line-width));
     background-size: var(--floor-tile) var(--floor-tile);
+    background-position: center top;
     --drift-step-x: var(--floor-tile);
     --drift-step-y: 0px;
     animation: drift 45s linear infinite;
 }
+.boot-screen:not(.boot-screen--fading) .home-stage-backdrop__floor::before,
 .home-stage-backdrop[data-motion-paused='true'] .home-stage-backdrop__floor::before,
 .portfolio-viewport[data-home-motion-paused='true'] .void-grid-drift,
 .portfolio-viewport[data-home-motion-paused='true'] .home-stage-backdrop__floor::before {
     animation-play-state: paused;
 }
+.stage-active .home-stage-backdrop__floor { transition: transform 850ms cubic-bezier(.18, .72, .32, 1); }
 .home-stage-backdrop__pool {
     background: var(--floor-pool);
     position: absolute; bottom: -7%; width: 55%; height: 30%;
     transform: translateX(-50%) translate3d(calc(var(--floor-shadow-x, 0px) * var(--floor-zoom-scale, 1)), calc(var(--floor-shadow-y, 0px) * var(--floor-zoom-scale, 1)), 0);
-    transition: transform 850ms cubic-bezier(.18, .72, .32, 1);
+    transition: transform 850ms cubic-bezier(.18, .72, .32, 1), opacity 180ms ease;
 }
 .home-stage-backdrop__shadow {
     background: var(--floor-shadow);
@@ -71,6 +77,6 @@
 }
 @media (prefers-reduced-motion: reduce) {
     .home-grid-parallax { transition: none; }
-    .home-stage-backdrop, .home-stage-backdrop__floor, .home-stage-backdrop__pool, .home-stage-backdrop__shadow { transition: none; }
+    .stage-active .home-stage-backdrop__floor, .home-stage-backdrop, .home-stage-backdrop__floor, .home-stage-backdrop__pool, .home-stage-backdrop__shadow { transition: none; }
     .void-grid-drift, .home-stage-backdrop__floor::before { animation: none !important; }
 }
