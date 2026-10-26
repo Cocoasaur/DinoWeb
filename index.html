@@ -17,12 +17,25 @@
   <link rel="apple-touch-icon" href="/pwa-192x192.webp" />
   <meta name="theme-color" content="#f2f2f2" />
   <title>DinoWeb</title>
+  <!-- This small shell must be styled before any module or stylesheet arrives. -->
+  <style data-boot-critical>
+    :root{--boot-bg:#f2f2f2;--boot-ink:#141414}
+    [data-theme='demain-soir-bleu']{--boot-bg:#002451;--boot-ink:#fff}
+    html,body{margin:0;background:var(--boot-bg)}
+    #portfolio-boot-shell{position:fixed;inset:0;z-index:200;display:grid;place-items:center;overflow:hidden;background:var(--void-bg,var(--boot-bg));color:var(--void-text-full,var(--boot-ink));font:11px/1.5 ui-monospace,monospace;text-align:center}
+    #portfolio-boot-shell .boot-screen__stage{position:relative;box-sizing:border-box;width:100%;padding:32px 40px;max-width:360px}
+    #portfolio-boot-shell .boot-screen__icon{display:block;margin:0 auto 24px;object-fit:contain}
+    #portfolio-boot-shell .boot-screen__background{position:absolute;inset:0;pointer-events:none}
+    #portfolio-boot-shell .boot-screen__label{letter-spacing:.25em}
+    #portfolio-boot-shell .boot-screen__sub-label{font-size:9px;letter-spacing:.12em}
+    #portfolio-boot-shell [hidden]{display:none!important}
+  </style>
 </head>
 
 <body>
   <!-- Paint the actual loading screen before React downloads and starts.
-       React preserves this shell and releases it on the first
-       interactive frame; no static cube or extra loading timer is involved. -->
+       React preserves this shell until portfolio assets and the first
+       interactive frame are ready. -->
   <div id="root"></div>
     <div id="portfolio-boot-shell" class="boot-screen" role="status" aria-live="polite" aria-label="Loading the interactive portfolio">
       <div class="boot-screen__background" aria-hidden="true">
@@ -37,9 +50,11 @@
           <span class="boot-screen__bracket boot-screen__bracket--br"></span>
         </div>
         <img src="/src/assets/brand/dino-loader.webp" alt="" width="80" height="80" draggable="false" class="boot-screen__icon" />
-        <div class="boot-screen__progress" aria-hidden="true"><span></span><span></span><span></span></div>
+        <div class="boot-screen__progress" data-boot-meter role="progressbar" aria-label="Portfolio assets" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span data-boot-fill></span></div>
         <p class="boot-screen__label">ARCHIVE_SYSTEM</p>
-        <p class="boot-screen__sub-label">INITIALIZING PORTFOLIO</p>
+        <p class="boot-screen__sub-label" data-boot-status>PREPARING ASSETS</p>
+        <p class="boot-screen__count" data-boot-count aria-hidden="true"></p>
+        <div class="boot-screen__actions" data-boot-actions hidden><button type="button" data-boot-retry>Retry loading</button><button type="button" data-boot-continue>Continue with available assets</button></div>
       </div>
     </div>
   <script type="module" src="/src/main.jsx"></script>
