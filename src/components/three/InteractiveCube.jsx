@@ -1,9 +1,11 @@
+import { getCubeOcclusion } from '../../utils/cubeOcclusion';
+import { getCubeShadow } from '../../utils/cubeShadow';
 import { useRef, useEffect, useLayoutEffect, useMemo, useCallback, useState } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import * as THREE from 'three';
 import CubeFace from './CubeFace';
-import { FACE_CONFIG, DEFAULT_ROTATION, DEFAULT_CAMERA_DISTANCE, CUBE_CENTER_X } from '../../constants/cubeConfig';
+import { FACE_CONFIG, DEFAULT_ROTATION, DEFAULT_CAMERA_DISTANCE } from '../../constants/cubeConfig';
 import { useCubePalette } from '../../hooks/useCubePalette';
 import { getCubeSurfaceTexture } from '../../utils/cubeSurface';
 import { useReducedMotion } from '../../hooks/useReducedMotion';
@@ -36,7 +38,7 @@ const screenPosVector = new THREE.Vector3();
 const lightingNormal = new THREE.Vector3();
 const lightingRotation = new THREE.Quaternion();
 
-function getZoomedCameraZ(camera, cubeScale, breakpoint) {
+function getFaceApproachDistance(camera, cubeScale, breakpoint) {
     const halfFov = THREE.MathUtils.degToRad(camera.fov) / 2;
     const aspect = camera.aspect || window.innerWidth / window.innerHeight;
     const faceHalfSize = cubeScale;
@@ -52,7 +54,7 @@ function getZoomedCameraZ(camera, cubeScale, breakpoint) {
 }
 
 export default function InteractiveCube({
-    onFaceClick, onFacePressStart, targetRotation, isZoomed, isZoomingOut,
+    onFaceClick, onFacePressStart, onCubeFrame, targetRotation, isZoomed, isZoomingOut,
     zoomZ, onRotationChange, isDraggingRef, onPinchZoom,
     onDissolveStart, onZoomComplete, onZoomOutComplete,
     activeFace,
@@ -84,7 +86,7 @@ export default function InteractiveCube({
     const idleDriftRef = useRef({ active: false, x: 0, y: 0, reRollIn: 0 });
     const lastInteractTimeRef = useRef(0);
     const idleFrameTimeRef = useRef(0);
-    const { camera, invalidate, size } = useThree();
+    const { camera, invalidate, size, gl: renderer } = useThree();
     const reducedMotion = useReducedMotion();
     const transition = getCubeTransition(reduceEffects, reducedMotion);
 
@@ -126,7 +128,8 @@ export default function InteractiveCube({
         const group = groupRef.current;
         zoomPoseRef.current = {
             startedAt: performance.now(),
-            x: group.position.x, y: group.position.y, z: camera.position.z,
+            x: group.position.x, y: group.position.y, z: group.position.z,
+            cameraZ: camera.position.z,
             rx: shortestPath(group.rotation.x, targetRad.x),
             ry: shortestPath(group.rotation.y, targetRad.y),
         };
@@ -140,7 +143,7 @@ export default function InteractiveCube({
         const group = groupRef.current;
         zoomOutPoseRef.current = {
             startedAt: performance.now(),
-            x: group.position.x, y: group.position.y, z: camera.position.z,
+            x: group.position.x, y: group.position.y, z: group.position.z,
             rx: shortestPath(group.rotation.x, rotationRef.current.x),
             ry: shortestPath(group.rotation.y, rotationRef.current.y),
         };
@@ -153,8 +156,13 @@ export default function InteractiveCube({
     useLayoutEffect(() => {
         if (!isZoomed || isZoomingOut || !hasNotifiedRef.current || !groupRef.current) return;
         groupRef.current.scale.setScalar(cubeScale);
-        camera.position.set(0, 0, getZoomedCameraZ(camera, cubeScale, breakpoint));
-    }, [isZoomed, isZoomingOut, cubeScale, breakpoint, camera, size.width, size.height]);
+        groupRef.current.position.set(camera.position.x, camera.position.y,
+            camera.position.z - getFaceApproachDistance(camera, cubeScale, breakpoint));
+        const viewport = renderer.domElement.closest('.portfolio-viewport');
+        onCubeFrame?.({ shadowTransform: getCubeShadow(groupRef.current, camera, viewport?.clientHeight || size.height, restingY, cubeScale),
+            occlusion: getCubeOcclusion(groupRef.current, camera, viewport?.clientWidth || size.width, viewport?.clientHeight || size.height),
+            camera: camera.position.toArray().map(value => value.toFixed(5)).join(','), depth: groupRef.current.position.z.toFixed(5) });
+    }, [isZoomed, isZoomingOut, cubeScale, breakpoint, camera, size.width, size.height, onCubeFrame, renderer, restingY]);
 
     const clearSuppressFaceClickTimer = useCallback(() => {
         if (!suppressFaceClickTimerRef.current) return;
@@ -392,7 +400,7 @@ export default function InteractiveCube({
             const pose = zoomOutPoseRef.current;
             const t = transitionProgress(pose.startedAt, performance.now(), transition.zoomOutMs);
             const p = easeInOut(t);
-            camera.position.z = THREE.MathUtils.lerp(pose.z, DEFAULT_CAMERA_DISTANCE * (1 + zoomZ / 1000), p);
+            groupRef.current.position.z = THREE.MathUtils.lerp(pose.z, 0, p);
             groupRef.current.position.x = THREE.MathUtils.lerp(pose.x, restingX, p);
             groupRef.current.position.y = THREE.MathUtils.lerp(pose.y, restingY, p);
             groupRef.current.rotation.x = THREE.MathUtils.lerp(pose.rx, rotationRef.current.x, p);
@@ -407,9 +415,9 @@ export default function InteractiveCube({
             const now = performance.now();
             const t = transitionProgress(pose.startedAt, now, transition.zoomInMs);
             const p = easeInOut(t);
-            camera.position.z = THREE.MathUtils.lerp(pose.z, getZoomedCameraZ(camera, cubeScale, breakpoint), p);
-            groupRef.current.position.x = THREE.MathUtils.lerp(pose.x, CUBE_CENTER_X, p);
-            groupRef.current.position.y = THREE.MathUtils.lerp(pose.y, 0, p);
+            groupRef.current.position.z = THREE.MathUtils.lerp(pose.z, pose.cameraZ - getFaceApproachDistance(camera, cubeScale, breakpoint), p);
+            groupRef.current.position.x = THREE.MathUtils.lerp(pose.x, camera.position.x, p);
+            groupRef.current.position.y = THREE.MathUtils.lerp(pose.y, camera.position.y, p);
             groupRef.current.rotation.x = THREE.MathUtils.lerp(pose.rx, targetRad.x, p);
             groupRef.current.rotation.y = THREE.MathUtils.lerp(pose.ry, targetRad.y, p);
             if (t < 1) invalidate();
@@ -516,6 +524,14 @@ export default function InteractiveCube({
             screenPosRef.current.valid = true;
         }
 
+        const viewport = gl.domElement.closest('.portfolio-viewport');
+        onCubeFrame?.({
+            shadowTransform: getCubeShadow(groupRef.current, camera, viewport?.clientHeight || size.height, restingY, cubeScale),
+            occlusion: isZoomed || isZoomingOut ? getCubeOcclusion(groupRef.current, camera,
+                viewport?.clientWidth || size.width, viewport?.clientHeight || size.height) : 'none',
+            camera: camera.position.toArray().map(value => value.toFixed(5)).join(','),
+            depth: groupRef.current.position.z.toFixed(5),
+        });
         onRotationChange(
             THREE.MathUtils.radToDeg(groupRef.current.rotation.x),
             THREE.MathUtils.radToDeg(groupRef.current.rotation.y)

@@ -21,7 +21,7 @@
 }
 
 /* A compositor-transformed floor replaces full-screen transparent GL draws. */
-.home-stage-backdrop { position: absolute; inset: 0; overflow: hidden; pointer-events: none; transition: opacity 180ms ease; }
+.home-stage-backdrop { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
 .home-stage-backdrop,
 .boot-screen__background {
     /* Same focal length and eye position as the cube, with a level horizon. */
@@ -71,10 +71,12 @@
 .home-stage-backdrop__shadow {
     background: var(--floor-shadow);
     position: absolute;
-    max-width: 82vw;
-    transform: translate(-50%, -50%) translate3d(calc(var(--floor-shadow-x, 0px) * var(--floor-zoom-scale, 1)), calc(var(--floor-shadow-y, 0px) * var(--floor-zoom-scale, 1)), 0);
-    transition: transform 850ms cubic-bezier(.18, .72, .32, 1);
+    left: 50%; top: 50%;
+    transform-origin: 0 0;
+    /* Pose updates already have the cube's easing. Another CSS transition
+       would make the shadow lag behind the object, especially on return. */
 }
+.home-stage-backdrop[data-obscured='true'] .home-stage-backdrop__pool { opacity: 0; }
 @media (prefers-reduced-motion: reduce) {
     .home-grid-parallax { transition: none; }
     .stage-active .home-stage-backdrop__floor, .home-stage-backdrop, .home-stage-backdrop__floor, .home-stage-backdrop__pool, .home-stage-backdrop__shadow { transition: none; }

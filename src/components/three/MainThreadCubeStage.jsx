@@ -14,7 +14,6 @@ import { getCubeTransition, getCubeStageStyle } from '../../utils/cubeTransition
 import { useIdleBreathing } from '../../hooks/useIdleBreathing';
 import { useHomeViewportLayout } from '../../hooks/useHomeViewportLayout';
 import { useReducedMotion } from '../../hooks/useReducedMotion';
-import StageBackdrop from './StageBackdrop';
 
 const subscribeVisibility = (notify) => {
     document.addEventListener('visibilitychange', notify);
@@ -218,6 +217,7 @@ export default function MainThreadCubeStage({
     activeFace,
     zoomZ,
     handleRotationChange,
+    onCubeFrame,
     isDraggingRef,
     handlePinchZoom,
     handleZoomComplete,
@@ -250,7 +250,6 @@ export default function MainThreadCubeStage({
     return (
         <div className="absolute inset-0 w-full h-full overflow-hidden cube-entrance" data-cube-theme={theme} data-render-paused={paused} style={{ zIndex: canvasZIndex }}>
         <div className="w-full h-full" style={getCubeStageStyle(isZoomed, isZoomingOut, transition, overlayPhase, zoomInComplete)}>
-            <StageBackdrop hidden={isZoomed || isZoomingOut} paused={paused} reduceEffects={reduceEffects} zoomZ={zoomZ} />
             <div ref={breathRef} className="w-full h-full cube-breath" style={{ transformOrigin: `calc(50% + var(--portfolio-viewport-height, 100dvh) * ${restingX * projection}) calc(50% - var(--portfolio-viewport-height, 100dvh) * ${restingY * projection})` }}>
             <Canvas
                 onCreated={({ gl }) => { gl.debug.checkShaderErrors = import.meta.env.DEV; }}
@@ -262,7 +261,7 @@ export default function MainThreadCubeStage({
                     stencil: false,
                     depth: true,
                 }}
-                style={{ width: '100%', height: '100%', display: 'block', cursor: isZoomed ? 'default' : 'grab' }}
+                style={{ width: '100%', height: '100%', display: 'block', cursor: isZoomed ? 'default' : 'auto' }}
                 dpr={dpr}
                 frameloop={paused ? "never" : "demand"}
                 performance={{ min: 0.5 }}
@@ -281,6 +280,7 @@ export default function MainThreadCubeStage({
                         activeFace={activeFace}
                         zoomZ={zoomZ}
                         onRotationChange={handleRotationChange}
+                        onCubeFrame={onCubeFrame}
                         isDraggingRef={isDraggingRef}
                         onPinchZoom={handlePinchZoom}
                         onZoomComplete={handleZoomComplete}

@@ -48,6 +48,21 @@
 .home-sidebar-wipe, .home-chrome { position: absolute; inset: 0; pointer-events: none; }
 .home-sidebar-wipe { z-index: 5; }
 .home-chrome { z-index: 40; }
+/* Keep homepage layout fixed behind the approaching cube. Its silhouette
+   continues to occlude these layers during the page/canvas crossfade. */
+.portfolio-viewport[data-page-in-front='true'] :is(.home-sidebar-wipe, .home-chrome) {
+    clip-path: var(--cube-occlusion, none);
+}
+.portfolio-viewport[data-camera-active='true'] :is(.home-sidebar-wipe, .home-chrome) { pointer-events: none; }
+.cube-entrance {
+    transition: opacity var(--page-fade-duration, 900ms) cubic-bezier(.4, 0, .2, 1);
+}
+.portfolio-viewport[data-page-covered='true'] .cube-entrance {
+    opacity: 0;
+    pointer-events: none;
+}
+/* Hiding visibility before the fade finishes would cut away the zoomed face. */
+.portfolio-viewport[data-page-open='true'] .cube-entrance { visibility: hidden; }
 .home-grid-parallax .void-grid {
     top: -24px;
     right: -24px;
