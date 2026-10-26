@@ -16,6 +16,7 @@ import { useTheme } from './context/ThemeContext';
 import { useAdaptiveDPR } from './hooks/useAdaptiveDPR';
 import { useReducedMotion } from './hooks/useReducedMotion';
 import { useHomeGridMotion } from './hooks/useHomeGridMotion';
+import { subscribePortfolioPreload, getPortfolioPreloadReady } from './utils/portfolioPreload';
 import { usePortfolioViewportSize } from './hooks/usePortfolioViewportSize';
 import { getHomeViewportLayout } from './hooks/useHomeViewportLayout';
 import { revealCubeWithWipe } from './utils/themeWipe';
@@ -74,6 +75,9 @@ export default function App() {
     customCursorSupport.subscribe, customCursorSupport.getSnapshot, customCursorSupport.getServerSnapshot,
   );
   usePortfolioViewportSize();
+  const [stagePainted, setStagePainted] = useState(false);
+  const assetsReady = useSyncExternalStore(subscribePortfolioPreload, getPortfolioPreloadReady);
+  const homeReady = stagePainted && assetsReady;
 
   const {
     isZoomed, isZoomingOut, zoomInComplete, showOverlay, activeFace, targetRotation,
@@ -98,10 +102,11 @@ export default function App() {
   }, []);
 
   useEffect(() => {
+    if (!homeReady) return;
     const onWheel = (e) => { if (!isZoomed) handleWheel(e); };
     document.addEventListener('wheel', onWheel, { passive: true });
     return () => document.removeEventListener('wheel', onWheel);
-  }, [isZoomed, handleWheel]);
+  }, [homeReady, isZoomed, handleWheel]);
 
   useEffect(() => {
     if (!themeTransitionActive || transitionInProgressRef.current) return;
@@ -194,7 +199,6 @@ export default function App() {
 
   const canvasZIndex = (isZoomed || isZoomingOut) ? 60 : 10;
 
-  const [stagePainted, setStagePainted] = useState(false);
   const viewportRef = useRef(null);
   const [pageVisible, setPageVisible] = useState(() => document.visibilityState !== 'hidden');
   useEffect(() => {
@@ -202,7 +206,7 @@ export default function App() {
     document.addEventListener('visibilitychange', update);
     return () => document.removeEventListener('visibilitychange', update);
   }, []);
-  const homeMotionPaused = !pageVisible || !stagePainted || isZoomed || isZoomingOut;
+  const homeMotionPaused = !pageVisible || !homeReady || isZoomed || isZoomingOut;
   useHomeGridMotion(viewportRef, { paused: homeMotionPaused, reducedMotion, lowEnd: isLowEnd });
 
   return (
@@ -210,10 +214,10 @@ export default function App() {
     <div
       ref={viewportRef}
       data-home-motion-paused={homeMotionPaused}
-      className={`portfolio-viewport${stagePainted ? ' stage-active' : ''}`}
+      className={`portfolio-viewport${homeReady ? ' stage-active' : ''}`}
       style={{ backgroundColor: 'var(--void-bg)', transition: reducedMotion ? 'none' : 'background-color 0.5s ease' }}
     >
-      <div className="portfolio-viewport__stage">
+      <div className="portfolio-viewport__stage" inert={!homeReady} aria-hidden={!homeReady}>
         <div className="home-grid-wipe" aria-hidden="true">
           <div className="home-grid-parallax">
             <div className="home-grid-palette">
@@ -266,7 +270,7 @@ export default function App() {
         </div>
       </div>
 
-      <BootScreen ready={stagePainted} />
+      <BootScreen ready={stagePainted} preload />
       {showOverlay && <Overlay
         phase={overlayPhase}
         faceName={activeFace}
@@ -298,7 +302,7 @@ export default function App() {
         ) : undefined}
       />}
     </div>
-    {stagePainted && customCursorEnabled && (
+    {homeReady && customCursorEnabled && (
       <Suspense fallback={null}><LazyCustomCursor /><LazyCustomScrollbars /></Suspense>
     )}
     </RenderProfileContext.Provider>

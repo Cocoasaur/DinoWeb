@@ -1,7 +1,7 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './styles/hero-font.css'
-import { loadDeferredStyles } from './utils/deferredLoad'
+import { startPortfolioPreload } from './utils/portfolioPreload'
 import RootApp from './RootApp.jsx'
 import AppErrorBoundary from './components/ui/AppErrorBoundary.jsx'
 
@@ -10,8 +10,8 @@ import AppErrorBoundary from './components/ui/AppErrorBoundary.jsx'
 export function mountPortfolio() {
   const root = createRoot(document.getElementById('root'))
 
-  // Warms secondary fonts + animation/layout CSS after first paint (idle callback).
-  loadDeferredStyles()
+  // The loader covers the scene until the complete local asset queue settles.
+  void startPortfolioPreload()
 
   root.render(
     <StrictMode>

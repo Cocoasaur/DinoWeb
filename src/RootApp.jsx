@@ -1,6 +1,6 @@
-import { Suspense, lazy, useEffect, useRef, useState } from 'react'
+import { Suspense, lazy, useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import App from './App.jsx'
-import { prefetchLazyChunks } from './utils/prefetchPages'
+import { subscribePortfolioPreload, getPortfolioPreloadReady } from './utils/portfolioPreload'
 import { ThemeProvider } from './context/ThemeContext'
 import { recoverImportFailure } from './utils/loadRecovery'
 
@@ -9,8 +9,10 @@ const LazyUpdatePrompt = lazy(() => import('./components/ui/UpdatePrompt.jsx'))
 export default function RootApp() {
   const [updateAvailable, setUpdateAvailable] = useState(false)
   const applyUpdate = useRef(null)
+  const assetsReady = useSyncExternalStore(subscribePortfolioPreload, getPortfolioPreloadReady)
 
   useEffect(() => {
+    if (!assetsReady) return
     let idleId = 0
     let timerId = 0
     let cancelled = false
@@ -28,11 +30,7 @@ export default function RootApp() {
             window.location.reload()
           },
         })
-        // Also warm section modules on refresh when the worker is already
-        // installed. Heavy WebGL/PDF modules remain cached without evaluation.
-        navigator.serviceWorker?.ready.then(() => {
-          if (!cancelled) return Promise.allSettled(prefetchLazyChunks())
-        }).catch(() => {})
+
       }).catch(recoverImportFailure)
     }
 
@@ -60,7 +58,7 @@ export default function RootApp() {
       if (idleId && window.cancelIdleCallback) window.cancelIdleCallback(idleId)
       window.clearTimeout(timerId)
     }
-  }, [])
+  }, [assetsReady])
 
   return (
     <ThemeProvider>
