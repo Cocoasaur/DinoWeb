@@ -12,7 +12,7 @@ const ACTION = 'a[href], button, summary, [role="button"], [role="tab"], [role="
 
 function isNativeScrollbar(target, point) {
     const html = document.documentElement;
-    if (point.x >= html.clientWidth || point.y >= html.clientHeight) return true;
+    if (point.x < 0 || point.y < 0 || point.x >= html.clientWidth || point.y >= html.clientHeight) return true;
     if (!(target instanceof HTMLElement)) return false;
     if (target.dataset.scrollbars === 'custom') return false;
     const vertical = target.scrollHeight > target.clientHeight && target.offsetWidth > target.clientWidth;
@@ -46,8 +46,7 @@ function interactionFor(target, pressed) {
     if (canvas?.closest('.cube-entrance')) {
         // The worker updates the canvas cursor asynchronously after raycasting.
         // Read its semantic inline value; the visible cursor is replaced by CSS.
-        const worker = canvas.closest('[data-renderer="worker"]');
-        const cursor = worker ? canvas.style.cursor : document.body.style.cursor || canvas.style.cursor;
+        const cursor = canvas.style.cursor;
         if (pressed || cursor === 'grabbing') return { mode: 'drag', label: 'DRAG', canvas };
         if (cursor === 'pointer') return { mode: 'action', label: 'OPEN', canvas };
         if (cursor === 'nwse-resize') return { mode: 'action', label: 'ZOOM', canvas };
@@ -97,7 +96,7 @@ export default function CustomCursor() {
             const yTo = gsap.quickTo(follower, 'y', { duration: 0.16, ease: 'power3.out' });
             const scaleTo = gsap.quickTo(frame, 'scale', { duration: 0.18, ease: 'power3.out' });
             const rotationTo = gsap.quickTo(frame, 'rotation', { duration: 0.2, ease: 'power3.out' });
-            const alphaTo = gsap.quickTo(root, 'opacity', { duration: 0.12, ease: 'power2.out' });
+            const alpha = gsap.quickSetter(root, 'opacity');
             let visible = false;
             let pressed = false;
             let lastTarget = null;
@@ -108,11 +107,16 @@ export default function CustomCursor() {
 
             const hide = () => {
                 visible = false;
+                pressed = false;
+                point = null;
+                lastTarget = null;
+                cancelAnimationFrame(scrollFrame);
+                scrollFrame = 0;
                 canvasObserver.disconnect();
                 activeCanvas = null;
                 root.dataset.visible = 'false';
                 html.removeAttribute('data-custom-cursor');
-                alphaTo(0);
+                alpha(0);
                 xTo.tween.pause();
                 yTo.tween.pause();
             };
@@ -124,9 +128,6 @@ export default function CustomCursor() {
                     activeCanvas = next.canvas;
                     if (activeCanvas) {
                         canvasObserver.observe(activeCanvas, { attributes: true, attributeFilter: ['style'] });
-                        if (!activeCanvas.closest('[data-renderer="worker"]')) {
-                            canvasObserver.observe(document.body, { attributes: true, attributeFilter: ['style'] });
-                        }
                     }
                 }
                 const key = `${next.mode}:${next.label}:${pressed}`;
@@ -155,8 +156,9 @@ export default function CustomCursor() {
                 if (!visible) {
                     visible = true;
                     root.dataset.visible = 'true';
+                    // Paint the replacement before suppressing the native cursor.
+                    alpha(1);
                     html.setAttribute('data-custom-cursor', 'active');
-                    alphaTo(1);
                 }
             };
             const move = (event) => {
@@ -188,7 +190,8 @@ export default function CustomCursor() {
                 pressed = false;
                 if (visible && point) {
                     lastTarget = document.elementFromPoint(point.x, point.y);
-                    update(lastTarget);
+                    if (isNativeScrollbar(lastTarget, point)) hide();
+                    else update(lastTarget);
                 }
             };
             const leave = (event) => {
@@ -217,6 +220,9 @@ export default function CustomCursor() {
             document.addEventListener('pointercancel', blur, true);
             document.addEventListener('lostpointercapture', lostCapture, true);
             document.addEventListener('pointerout', leave);
+            document.documentElement.addEventListener('pointerleave', blur);
+            window.addEventListener('pagehide', blur);
+            window.addEventListener('resize', blur);
             document.addEventListener('keydown', keyboard);
             document.addEventListener('visibilitychange', visibility);
             document.addEventListener('scroll', scroll, { capture: true, passive: true });
@@ -226,12 +232,16 @@ export default function CustomCursor() {
                 cancelAnimationFrame(scrollFrame);
                 html.removeAttribute('data-custom-cursor');
                 root.dataset.visible = 'false';
+                alpha(0);
                 document.removeEventListener('pointermove', move, true);
                 document.removeEventListener('pointerdown', down, true);
                 document.removeEventListener('pointerup', up, true);
                 document.removeEventListener('pointercancel', blur, true);
                 document.removeEventListener('lostpointercapture', lostCapture, true);
                 document.removeEventListener('pointerout', leave);
+                document.documentElement.removeEventListener('pointerleave', blur);
+                window.removeEventListener('pagehide', blur);
+                window.removeEventListener('resize', blur);
                 document.removeEventListener('keydown', keyboard);
                 document.removeEventListener('visibilitychange', visibility);
                 document.removeEventListener('scroll', scroll, true);
