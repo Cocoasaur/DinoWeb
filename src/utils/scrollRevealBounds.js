@@ -1,4 +1,4 @@
-// Shared by About and Skills: measurements use layout, never animated bounds.
+// Shared by the overlay pages: measurements use layout, never animated bounds.
 export function layoutTop(element, scroller) {
     let top = 0;
     for (let node = element; node && node !== scroller; node = node.offsetParent) top += node.offsetTop;
