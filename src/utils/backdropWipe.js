@@ -1,7 +1,7 @@
 import { localPixelRectangles, pixelRectanglesPath } from './pixelWipe';
 import { createGridWipeSurface } from './gridWipeSurface';
 
-const PALETTE = ['--void-bg', '--void-grid', '--void-grid-drift', '--floor-pool', '--floor-shadow',
+const PALETTE = ['--void-bg', '--void-grid', '--void-grid-drift', '--void-ground-grid', '--floor-pool', '--floor-shadow',
     '--void-text-full', '--void-text-dim', '--void-text-muted', '--void-marker', '--void-border',
     '--void-scrubber', '--home-hatch-color'];
 

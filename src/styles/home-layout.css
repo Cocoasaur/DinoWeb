@@ -23,8 +23,8 @@
     --drift-step-y: calc(2 * var(--wall-grid-size));
     position: absolute;
     background-image:
-        linear-gradient(var(--void-grid-drift) 1px, transparent 1px),
-        linear-gradient(90deg, var(--void-grid-drift) 1px, transparent 1px);
+        linear-gradient(var(--void-grid-drift) var(--portfolio-grid-line-width), transparent var(--portfolio-grid-line-width)),
+        linear-gradient(90deg, var(--void-grid-drift) var(--portfolio-grid-line-width), transparent var(--portfolio-grid-line-width));
     background-size: var(--drift-step-x) var(--drift-step-y);
     background-position: 0 0;
     animation: drift 60s linear infinite;
@@ -48,6 +48,21 @@
 .home-sidebar-wipe, .home-chrome { position: absolute; inset: 0; pointer-events: none; }
 .home-sidebar-wipe { z-index: 5; }
 .home-chrome { z-index: 40; }
+/* Keep homepage layout fixed behind the approaching cube. Its silhouette
+   continues to occlude these layers during the page/canvas crossfade. */
+.portfolio-viewport[data-page-in-front='true'] :is(.home-sidebar-wipe, .home-chrome) {
+    clip-path: var(--cube-occlusion, none);
+}
+.portfolio-viewport[data-camera-active='true'] :is(.home-sidebar-wipe, .home-chrome) { pointer-events: none; }
+.cube-entrance {
+    transition: opacity var(--page-fade-duration, 900ms) cubic-bezier(.4, 0, .2, 1);
+}
+.portfolio-viewport[data-page-covered='true'] .cube-entrance {
+    opacity: 0;
+    pointer-events: none;
+}
+/* Hiding visibility before the fade finishes would cut away the zoomed face. */
+.portfolio-viewport[data-page-open='true'] .cube-entrance { visibility: hidden; }
 .home-grid-parallax .void-grid {
     top: -24px;
     right: -24px;
@@ -64,18 +79,14 @@
     left: calc(-1 * var(--drift-step-x));
 }
 
-/* ── Grid handoff with the 3D floor (Stage.jsx) ──
-   The perspective floor's vanishing line sits at the vertical center of the
-   screen (the camera never tilts), so the 2D wallpaper owns the top half and
-   fades out across the band where the 3D far-field lines are already faint.
-   The compositor floor is available on every device tier; the wallpaper
-   stays complete until the home scene has painted. */
-.stage-active .void-grid,
-.stage-active .void-grid-drift {
-    -webkit-mask-image: linear-gradient(to bottom, #fff 50%, transparent 75%);
-    mask-image: linear-gradient(to bottom, #fff 50%, transparent 75%);
+/* Fade the viewport-sized palette, rather than its overscanned/drifting
+   children. This keeps the wallpaper out of the perspective ground even as
+   cell size, pointer parallax and device orientation change. The mask stays
+   outside the translated grid so the screen edges remain covered. */
+.stage-active .home-grid-palette {
+    -webkit-mask-image: linear-gradient(to bottom, #fff var(--wall-grid-fade-start), transparent var(--wall-grid-fade-end));
+    mask-image: linear-gradient(to bottom, #fff var(--wall-grid-fade-start), transparent var(--wall-grid-fade-end));
 }
-
 
 
 .home-coordinate {

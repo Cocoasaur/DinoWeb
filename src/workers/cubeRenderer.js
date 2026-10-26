@@ -1,3 +1,5 @@
+import { getCubeOcclusion } from '../utils/cubeOcclusion';
+import { getCubeShadow } from '../utils/cubeShadow';
 import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { FACE_CONFIG, DEFAULT_ROTATION, DEFAULT_CAMERA_DISTANCE, DRAG_THRESHOLD } from '../constants/cubeConfig';
@@ -144,24 +146,26 @@ function requestFrame() {
     if (!initialized || state.paused || frameId) return;
     frameId=self.requestAnimationFrame(renderFrame);
 }
-function pose() { return { x:cube.position.x,y:cube.position.y,z:camera.position.z,rx:cube.rotation.x,ry:cube.rotation.y }; }
+function pose() { return { x:cube.position.x,y:cube.position.y,z:cube.position.z,cameraZ:camera.position.z,rx:cube.rotation.x,ry:cube.rotation.y }; }
 // Resizing a paused WebGL canvas clears its backing image. Repaint the held
 // pose once, without advancing motion, firing completion signals, or an idle loop.
 function drawScene() {
     renderer.render(scene,camera);draws+=renderer.info.render.calls;
     cube.updateWorldMatrix(true,false);origin.setFromMatrixPosition(cube.matrixWorld).project(camera);
-    send('frame',{x:THREE.MathUtils.radToDeg(cube.rotation.x),y:THREE.MathUtils.radToDeg(cube.rotation.y),draws,origin:{x:(origin.x+1)*width/2,y:(1-origin.y)*height/2}});
+    send('frame',{x:THREE.MathUtils.radToDeg(cube.rotation.x),y:THREE.MathUtils.radToDeg(cube.rotation.y),draws,origin:{x:(origin.x+1)*width/2,y:(1-origin.y)*height/2},
+        foreground:{shadowTransform:getCubeShadow(cube,camera,height,state.layout.restingY,state.layout.cubeScale),occlusion:state.isZoomed||state.isZoomingOut?getCubeOcclusion(cube,camera,width,height):'none',
+            camera:camera.position.toArray().map(value=>value.toFixed(5)).join(','),depth:cube.position.z.toFixed(5)}});
 }
 function repaintHeldFrame() {
     if (!initialized || !state.paused) return;
     if (state.isZoomed && state.zoomInComplete) {
         cube.scale.setScalar(state.layout.cubeScale);
-        camera.position.set(0,0,zoomedZ());
+        cube.position.set(camera.position.x,camera.position.y,camera.position.z-faceDistance());
     }
     updateLighting();
     drawScene();
 }
-function zoomedZ() {
+function faceDistance() {
     const size=state.layout.cubeScale, breakpoint=state.layout.breakpoint;
     const overscan=breakpoint==='phone'?1.55:breakpoint==='tablet'?1.45:1.65;
     return Math.max(size*1.01+size/(Math.tan(camera.fov*Math.PI/360)*Math.max(1,camera.aspect)*overscan),size*1.01+camera.near+.16);
@@ -203,7 +207,7 @@ function receiveState(next) {
             if (builtReduceEffects !== state.reduceEffects) {
                 const oldScene = scene, oldPose = pose();
                 buildScene(homeIcon, maps);
-                cube.position.set(oldPose.x, oldPose.y, 0);
+                cube.position.set(oldPose.x, oldPose.y, oldPose.z);
                 cube.rotation.set(oldPose.rx, oldPose.ry, 0);
                 const geometries = new Set(), materials = new Set();
                 oldScene.traverse((object) => {
@@ -259,17 +263,17 @@ function renderFrame(now) {
     if(motion){
         const duration=motion.kind==='in'?state.transition.zoomInMs:state.transition.zoomOutMs;
         const t=transitionProgress(motion.started,now,duration),p=easeInOut(t),start=motion.pose;
-        const target=motion.kind==='in'?{x:0,y:0,z:zoomedZ(),rx:THREE.MathUtils.degToRad(state.targetRotation.x),ry:THREE.MathUtils.degToRad(state.targetRotation.y)}:{x:state.layout.restingX,y:state.layout.restingY,z:DEFAULT_CAMERA_DISTANCE*(1+state.zoomZ/1000),rx:rotation.x,ry:rotation.y};
-        camera.position.z=THREE.MathUtils.lerp(start.z,target.z,p);cube.position.x=THREE.MathUtils.lerp(start.x,target.x,p);cube.position.y=THREE.MathUtils.lerp(start.y,target.y,p);cube.rotation.x=THREE.MathUtils.lerp(start.rx,target.rx,p);cube.rotation.y=THREE.MathUtils.lerp(start.ry,target.ry,p);
+        const target=motion.kind==='in'?{x:camera.position.x,y:camera.position.y,z:start.cameraZ-faceDistance(),rx:THREE.MathUtils.degToRad(state.targetRotation.x),ry:THREE.MathUtils.degToRad(state.targetRotation.y)}:{x:state.layout.restingX,y:state.layout.restingY,z:0,rx:rotation.x,ry:rotation.y};
+        cube.position.z=THREE.MathUtils.lerp(start.z,target.z,p);cube.position.x=THREE.MathUtils.lerp(start.x,target.x,p);cube.position.y=THREE.MathUtils.lerp(start.y,target.y,p);cube.rotation.x=THREE.MathUtils.lerp(start.rx,target.rx,p);cube.rotation.y=THREE.MathUtils.lerp(start.ry,target.ry,p);
         if(motion.kind==='in'&&now-motion.started>=state.transition.fadeStartMs&&!motion.dissolveNotified){motion.dissolveNotified=true;startDissolve=true;}
         if(motion.kind==='in'&&t>=1&&!motion.notified){motion.notified=true;completedIn=true;}
         if(t<1)animate=true;else {if(motion.kind==='out')completedOut=true;motion=null;}
     }else if(!state.isZoomed&&!state.isZoomingOut){
-        for(const [object,key,target]of[[cube.rotation,'x',rotation.x],[cube.rotation,'y',rotation.y],[cube.position,'x',state.layout.restingX],[cube.position,'y',state.layout.restingY],[camera.position,'z',DEFAULT_CAMERA_DISTANCE*(1+state.zoomZ/1000)]]){
+        for(const [object,key,target]of[[cube.rotation,'x',rotation.x],[cube.rotation,'y',rotation.y],[cube.position,'x',state.layout.restingX],[cube.position,'y',state.layout.restingY],[cube.position,'z',0],[camera.position,'z',DEFAULT_CAMERA_DISTANCE*(1+state.zoomZ/1000)]]){
             const diff=target-object[key];if(Math.abs(diff)>.0004){object[key]+=diff*smooth(key==='z'?5:6);animate=true;}else object[key]=target;
         }
     }
-    if(!state.reduceEffects&&!state.reducedMotion){
+    if(!state.reduceEffects&&!state.reducedMotion&&!state.isZoomed&&!state.isZoomingOut){
         const settled=state.isZoomed||state.isZoomingOut||dragging||now-lastMove>3000;
         const px=settled?0:(isTouch?(pointer.x-(touchAnchor?.x||pointer.x)):-pointer.x)*(isTouch?-.42:-.3);
         // Worker pointer Y points upward; the fallback's pointer Y points down.
@@ -353,14 +357,14 @@ function receivePointer(message){
     }
     if(kind==='move'){
         if(dragging&&lastPointer){if(down&&Math.hypot(x-down.x,y-down.y)>DRAG_THRESHOLD){hoverFace=null;down.cancelled=true;}rotation.x+=(y-lastPointer.y)*.008;rotation.y+=(x-lastPointer.x)*.008;lastPointer={x,y};}
-        else {hoverFace=pick(x,y);send('cursor',{cursor:hoverFace==='home'?'nwse-resize':hoverFace?'pointer':'grab'});}
+        else {hoverFace=pick(x,y);send('cursor',{cursor:hoverFace==='home'?'nwse-resize':hoverFace?'pointer':'auto'});}
     }
     if(kind==='up'){
         dragging=false;touchAnchor=null;
         const face=pick(x,y);
         if(down&&!down.cancelled&&Math.hypot(x-down.x,y-down.y)<=DRAG_THRESHOLD&&face===down.face&&face&&face!=='home'&&!press){send('press',{face});press={face,started:performance.now()};if(face==='theme')labelMaps(state.theme==='clair-obscur'?'demain-soir-bleu':'clair-obscur').catch(()=>{});}
         if(isTouch)hoverFace=null;
-        down=null;send('cursor',{cursor:'grab'});
+        down=null;send('cursor',{cursor:'auto'});
     }
     requestFrame();
 }

@@ -16,8 +16,8 @@
 .boot-screen__grid {
     position: absolute;
     inset: 0;
-    -webkit-mask-image: linear-gradient(to bottom, #fff 50%, transparent 75%);
-    mask-image: linear-gradient(to bottom, #fff 50%, transparent 75%);
+    -webkit-mask-image: linear-gradient(to bottom, #fff var(--wall-grid-fade-start), transparent var(--wall-grid-fade-end));
+    mask-image: linear-gradient(to bottom, #fff var(--wall-grid-fade-start), transparent var(--wall-grid-fade-end));
 }
 .boot-screen__stage { position: relative; z-index: 1; padding: 32px 40px; text-align: center; }
 .boot-screen__icon { display: block; margin: 0 auto 24px; object-fit: contain; }
@@ -26,15 +26,16 @@
 .boot-screen__bracket--tr { top: 0; right: 0; border-width: 1px 1px 0 0; }
 .boot-screen__bracket--bl { bottom: 0; left: 0; border-width: 0 0 1px 1px; }
 .boot-screen__bracket--br { bottom: 0; right: 0; border-width: 0 1px 1px 0; }
-.boot-screen__progress { display: flex; justify-content: center; gap: 6px; margin-bottom: 18px; }
-.boot-screen__progress span { width: 20px; height: 3px; background: currentColor; animation: boot-pulse 900ms ease-in-out infinite alternate; }
-.boot-screen__progress span:nth-child(2) { animation-delay: 150ms; }
-.boot-screen__progress span:nth-child(3) { animation-delay: 300ms; }
+.boot-screen__progress { width: 140px; height: 3px; margin: 0 auto 18px; overflow: hidden; background: var(--void-border); }
+.boot-screen__progress span { display: block; width: 100%; height: 100%; background: currentColor; transform: scaleX(0); transform-origin: left; }
+.boot-screen__count { margin-top: 12px; font: 10px/1.5 ui-monospace, monospace; color: var(--void-text-dim); }
+.boot-screen__actions { display: flex; flex-direction: column; align-items: center; gap: 10px; margin-top: 20px; }
+.boot-screen__actions[hidden] { display: none; }
+.boot-screen__actions button { min-height: 44px; padding: 8px 12px; border: 1px solid currentColor; background: transparent; color: inherit; font: 11px/1.5 ui-monospace, monospace; cursor: pointer; }
+.boot-screen__actions button:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
 .boot-screen__label, .boot-screen__sub-label { font-family: ui-monospace, 'Cascadia Code', 'Liberation Mono', monospace; }
 .boot-screen__label { font-size: 11px; letter-spacing: .25em; }
 .boot-screen__sub-label { margin-top: 8px; color: var(--void-text-dim); font-size: 9px; letter-spacing: .12em; }
-@keyframes boot-pulse { from { opacity: .25; } to { opacity: 1; } }
 @media (prefers-reduced-motion: reduce) {
     .boot-screen { transition: none; }
-    .boot-screen__progress span { animation: none; }
 }

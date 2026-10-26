@@ -118,6 +118,24 @@
     .project-tool:hover { background: var(--void-bg); }
     .project-tool:hover img { filter: none; }
 }
+/* Use the former gallery space for the existing introduction on desktop. */
+@media (min-width: 1024px) {
+    .projects-hero-copy {
+        display: grid;
+        grid-template-columns: minmax(0, 1.25fr) minmax(0, .85fr);
+        grid-template-areas: 'kicker kicker' 'heading description' 'heading actions';
+        gap: 28px clamp(36px, 6vw, 112px);
+        padding-block: clamp(42px, 4vw, 68px);
+        align-items: start;
+    }
+    .projects-hero-kicker { grid-area: kicker; }
+    .projects-hero-heading { grid-area: heading; align-self: center; }
+    .projects-hero-description { grid-area: description; }
+    .projects-hero-actions { grid-area: actions; }
+    .projects-title { margin: 0; font-size: clamp(68px, 6.4vw, 104px); }
+    .projects-intro { max-width: 42ch; font-size: clamp(13px, 1vw, 16px); }
+    .projects-hero-bottom { margin: 0; }
+}
 @media (max-width: 900px) {
     .projects-card { grid-template-columns: 1fr 1fr; }
     .projects-card-info { padding: 24px; }

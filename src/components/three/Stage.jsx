@@ -89,7 +89,7 @@ export default function Stage({ isLowEnd, isZoomed, isZoomingOut, isDraggingRef 
     }, [isLowEnd, reducedMotion, invalidate]);
 
     useFrame((state, delta) => {
-        if (isLowEnd || reducedMotion) return;
+        if (isLowEnd || reducedMotion || isZoomed || isZoomingOut) return;
         const cam = state.camera;
         const settled = isZoomed || isZoomingOut || (!isTouchRef.current && isDraggingRef?.current);
         const timeSinceMove = performance.now() - lastMoveRef.current;

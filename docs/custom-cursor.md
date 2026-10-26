@@ -8,8 +8,7 @@ The App lazy-loads it after the first scene frame when any available input
 supports fine pointing and hover, with no reduced-motion preference or forced
 colors. Its own media context uses the same query. Availability is independent
 of window width and the WebGL performance tier, which can vary between browsers.
-Hybrid devices can use a mouse alongside touch. Native cursors remain in place
-until the component has tracked an actual mouse move; touch events hide it.
+Hybrid devices can use a mouse alongside touch. Inside the portfolio viewport, the custom cursor replaces the native pointer after an actual mouse move has positioned its point and frame. The replacement becomes opaque before the active flag suppresses the native pointer. Touch events clear the active flag and hide the custom cursor.
 
 ## Interaction and lifecycle
 
@@ -20,8 +19,8 @@ until the component has tracked an actual mouse move; touch events hide it.
   cursor, updated by its renderer, supplies rotate, open, zoom, and drag states.
   Other canvases, including PDF pages, use the default custom cursor state.
 - The visual is portaled to `body`, ignores pointer events, and is hidden from
-  assistive technology. Text fields keep the custom pointer with a TYPE label
-  and normal editing behavior. Embedded frames and native media controls retain their own
+  assistive technology. Text fields use the custom TYPE pointer while retaining
+  their normal text caret and editing behavior. Embedded frames and native media controls retain their own
   pointers. Add `data-cursor="native"` to any further native-control surface.
 - `CustomScrollbars.jsx` replaces native thumbs on overlay panels, PDF viewers,
   and contribution calendars whenever the mouse cursor is enabled. The DOM
@@ -43,10 +42,11 @@ until the component has tracked an actual mouse move; touch events hide it.
   tweens. Unmanaged native surfaces use the browser cursor as a fallback.
 - Pointer listeners use capture phase so drag controls cannot block tracking by
   stopping propagation. Release, cancellation, and lost capture reset drag state.
-- Keyboard use, leaving the document, window blur, and hiding the tab restore
-  native cursors. Movement restores the custom visual when appropriate.
+- Keyboard use, leaving the document, window blur, and hiding the tab hide
+  the decorative hints. Movement restores them when appropriate.
 - The root `data-custom-cursor` attribute is present only while the custom cursor
-  is active. Its CSS replacement is also gated by the accessibility media query.
+  is active. A CSS rule gated by the same accessibility media query suppresses
+  the native cursor only while that attribute is present. Clearing it restores native pointer shapes immediately.
 - Scoped GSAP contexts clean up tweens, listeners, the cube cursor observer, and
   the root attribute on unmount or media changes.
 
@@ -60,9 +60,8 @@ Run `tests/e2e/custom-cursor.spec.js` plus the desktop and blue-theme profiles o
 certificate controls, keyboard and text editing, dynamic accessibility
 preferences, touch devices, narrow windows, low-end desktops, captured drags, and
 custom scrollbar drags on both axes, nested PDF scrolling, and rail cleanup.
-The cursor suite keeps OS scrollbars visible to detect unintended native gutters. The renderer's inline cursor
-remains the source for picking assertions because CSS hides its visible cursor
-while the custom cursor is active.
+The cursor suite keeps OS scrollbars visible to detect unintended native gutters. The renderer's inline canvas cursor remains the source for picking assertions.
+CSS no longer hides it or replaces the native pointer.
 
 
 ## Explicit hints for interactive surfaces
@@ -72,3 +71,11 @@ Non-button interactions opt in with `data-cursor-label`; `data-cursor-pressed-la
 TiltCard supplies TILT for the About portrait and all skill tiles. The Skills layer stack also advertises TILT. Screenshot galleries display VIEW / DRAG and retain DRAG during pointer capture on the wrapper. Clickable lightbox backdrops display CLOSE while static images inside them have no action label. Labels remain visible during presses. Ordinary buttons, links, fields, range/selection/toggle controls, disabled controls, download links, and document zoom controls retain appropriate semantic hints; native media and iframe controls keep their native cursor fallback.
 
 Validation: ten cursor browser checks pass, including real portrait hover/press, all 25 skill tiles, the layer stack, captured gallery dragging, nested arrows, disabled controls, static content, exact cursor tracking, scrollbars, keyboard/accessibility preferences, and touch exclusion. Two targeted checks also pass after adding both lightbox backdrops. Build and focused lint pass; ProjectModal's one existing lint error is unchanged from HEAD. Artifacts: `/tmp/dinoweb-cursor-hints-final` and `/tmp/dinoweb-cursor-hints-lightboxes`.
+
+## Viewport cursor replacement — 26 October 2026
+
+The default pointer is hidden only while the custom cursor has a valid mouse position inside this document and is fully visible. The active-state CSS also covers buttons, links, text fields, the cube canvas, and portaled controls. Inline canvas cursor values continue supplying semantic hints without displaying a second native pointer.
+
+Captured movement beyond any viewport edge clears the active attribute immediately. Leaving, blur, pagehide, resize, cancellation, keyboard use, reduced-motion/forced-colors changes, and unmount restore native pointer behavior. Native-control surfaces also clear the flag. The replacement opacity is set immediately before activating suppression, avoiding a blank-pointer interval on entry.
+
+Validation: production build, targeted ESLint, and whitespace checks passed. Eleven cursor cases passed in `/tmp/dinoweb-cursor-replacement-checks/`; the boundary fixture now waits for the lazy cursor to mount before its first movement, and passed in `/tmp/dinoweb-cursor-boundaries-final/`. Together the 12 cases verify replacement over the cube and text controls, native-surface fallback, four captured viewport exits, blur/pagehide/resize restoration, both renderers, keyboard/accessibility changes, touch exclusion, scrollbars, and page interaction hints.

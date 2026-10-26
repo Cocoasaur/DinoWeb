@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useSyncExternalStore, Suspense, lazy } from 'react';
+import { useState, useEffect, useRef, useCallback, useSyncExternalStore, Suspense, lazy } from 'react';
 import { flushSync } from 'react-dom';
 import MobileBranding from './components/ui/MobileBranding';
 import RotatePrompt from './components/ui/RotatePrompt';
@@ -11,15 +11,18 @@ import CoordinateDisplay from './components/ui/CoordinateDisplay';
 import Footer from './components/ui/Footer';
 import Overlay from './components/ui/Overlay';
 import BootScreen from './components/ui/BootScreen';
+import StageBackdrop from './components/three/StageBackdrop';
 import { useCubeInteraction } from './hooks/useCubeInteraction';
 import { useTheme } from './context/ThemeContext';
 import { useAdaptiveDPR } from './hooks/useAdaptiveDPR';
 import { useReducedMotion } from './hooks/useReducedMotion';
 import { useHomeGridMotion } from './hooks/useHomeGridMotion';
+import { subscribePortfolioPreload, getPortfolioPreloadReady } from './utils/portfolioPreload';
 import { usePortfolioViewportSize } from './hooks/usePortfolioViewportSize';
 import { getHomeViewportLayout } from './hooks/useHomeViewportLayout';
 import { revealCubeWithWipe } from './utils/themeWipe';
 import { prepareBackdropWipe } from './utils/backdropWipe';
+import { getCubeTransition } from './utils/cubeTransition';
 import './styles/home-layout.css';
 import { RenderProfileContext } from './context/RenderProfileContext';
 import { customCursorSupport } from './utils/customCursorSupport';
@@ -74,6 +77,9 @@ export default function App() {
     customCursorSupport.subscribe, customCursorSupport.getSnapshot, customCursorSupport.getServerSnapshot,
   );
   usePortfolioViewportSize();
+  const [stagePainted, setStagePainted] = useState(false);
+  const assetsReady = useSyncExternalStore(subscribePortfolioPreload, getPortfolioPreloadReady);
+  const homeReady = stagePainted && assetsReady;
 
   const {
     isZoomed, isZoomingOut, zoomInComplete, showOverlay, activeFace, targetRotation,
@@ -98,10 +104,11 @@ export default function App() {
   }, []);
 
   useEffect(() => {
+    if (!homeReady) return;
     const onWheel = (e) => { if (!isZoomed) handleWheel(e); };
     document.addEventListener('wheel', onWheel, { passive: true });
     return () => document.removeEventListener('wheel', onWheel);
-  }, [isZoomed, handleWheel]);
+  }, [homeReady, isZoomed, handleWheel]);
 
   useEffect(() => {
     if (!themeTransitionActive || transitionInProgressRef.current) return;
@@ -193,8 +200,8 @@ export default function App() {
   const reduceEffects = tier !== 'high' || isMobile || reducedMotion;
 
   const canvasZIndex = (isZoomed || isZoomingOut) ? 60 : 10;
+  const { fadeMs } = getCubeTransition(reduceEffects, reducedMotion);
 
-  const [stagePainted, setStagePainted] = useState(false);
   const viewportRef = useRef(null);
   const [pageVisible, setPageVisible] = useState(() => document.visibilityState !== 'hidden');
   useEffect(() => {
@@ -202,26 +209,43 @@ export default function App() {
     document.addEventListener('visibilitychange', update);
     return () => document.removeEventListener('visibilitychange', update);
   }, []);
-  const homeMotionPaused = !pageVisible || !stagePainted || isZoomed || isZoomingOut;
-  useHomeGridMotion(viewportRef, { paused: homeMotionPaused, reducedMotion, lowEnd: isLowEnd });
+  const homeMotionPaused = !pageVisible || !homeReady;
+  // Keep ambient drift running behind pages, without letting panel gestures
+  // move the scene's camera or compete with native scrolling.
+  const gridInteractionPaused = homeMotionPaused || isZoomed || isZoomingOut;
+  useHomeGridMotion(viewportRef, { paused: gridInteractionPaused, reducedMotion, lowEnd: isLowEnd });
+  const handleCubeFrame = useCallback(({ occlusion, camera, depth, shadowTransform }) => {
+    const viewport = viewportRef.current;
+    if (!viewport) return;
+    if (viewport.style.getPropertyValue('--cube-occlusion') !== occlusion) viewport.style.setProperty('--cube-occlusion', occlusion);
+    if (viewport.style.getPropertyValue('--cube-shadow-transform') !== shadowTransform) viewport.style.setProperty('--cube-shadow-transform', shadowTransform);
+    if (viewport.dataset.cameraPosition !== camera) viewport.dataset.cameraPosition = camera;
+    if (viewport.dataset.cubeDepth !== depth) viewport.dataset.cubeDepth = depth;
+  }, []);
 
   return (
     <RenderProfileContext.Provider value={{ reduceEffects, labelScale, tier }}>
     <div
       ref={viewportRef}
       data-home-motion-paused={homeMotionPaused}
-      className={`portfolio-viewport${stagePainted ? ' stage-active' : ''}`}
-      style={{ backgroundColor: 'var(--void-bg)', transition: reducedMotion ? 'none' : 'background-color 0.5s ease' }}
+      data-camera-active={isZoomed || isZoomingOut}
+      data-page-covered={overlayPhase === 'fading-in' || overlayPhase === 'open'}
+      data-page-open={overlayPhase === 'open'}
+      data-page-in-front={['fading-in', 'open', 'fading-out'].includes(overlayPhase)}
+      className={`portfolio-viewport${homeReady ? ' stage-active' : ''}`}
+      style={{ backgroundColor: 'var(--void-bg)', '--page-fade-duration': `${fadeMs}ms`, transition: reducedMotion ? 'none' : 'background-color 0.5s ease' }}
     >
-      <div className="portfolio-viewport__stage">
+      <div className="portfolio-viewport__stage" inert={!homeReady} aria-hidden={!homeReady}>
         <div className="home-grid-wipe" aria-hidden="true">
-          <div className="home-grid-parallax">
-            <div className="home-grid-palette">
+          <div className="home-grid-palette">
+            <div className="home-grid-parallax">
               <div className="absolute inset-0 void-grid" />
               <div className="absolute inset-0 opacity-50 void-grid-drift" />
             </div>
           </div>
         </div>
+
+        <StageBackdrop paused={homeMotionPaused} obscured={isZoomed || isZoomingOut} reduceEffects={reduceEffects} zoomZ={zoomZ} />
 
         <div className="home-sidebar-wipe"><Sidebar /></div>
 
@@ -242,6 +266,7 @@ export default function App() {
               activeFace={activeFace}
               zoomZ={zoomZ}
               handleRotationChange={handleRotationChange}
+              onCubeFrame={handleCubeFrame}
               isDraggingRef={isDraggingRef}
               handlePinchZoom={handlePinchZoom}
               handleZoomComplete={handleZoomComplete}
@@ -260,13 +285,11 @@ export default function App() {
           <CoordinateDisplay coordsRef={coordsRef} paused={overlayPhase === 'open'} />
           <Footer />
           <MobileBranding />
-          {!isZoomed && (
-            <RotatePrompt />
-          )}
+          <RotatePrompt />
         </div>
       </div>
 
-      <BootScreen ready={stagePainted} />
+      <BootScreen ready={stagePainted} preload />
       {showOverlay && <Overlay
         phase={overlayPhase}
         faceName={activeFace}
@@ -298,7 +321,7 @@ export default function App() {
         ) : undefined}
       />}
     </div>
-    {stagePainted && customCursorEnabled && (
+    {homeReady && customCursorEnabled && (
       <Suspense fallback={null}><LazyCustomCursor /><LazyCustomScrollbars /></Suspense>
     )}
     </RenderProfileContext.Provider>

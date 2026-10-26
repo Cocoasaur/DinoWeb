@@ -79,10 +79,10 @@ export default function ProjectsPage({ selectedProject, onSelectProject, motionR
         {selectedProject ? <ProjectModal key={selectedProject.id} project={selectedProject} /> : <>
             <header className="projects-hero">
                 <div className="projects-hero-copy">
-                    <Reveal><p className="projects-eyebrow">A selection of things I’ve made</p></Reveal>
-                    <Reveal><h2 className="projects-title">Ideas, made<br /><em>real.</em></h2></Reveal>
-                    <Reveal><p className="projects-intro">From the first sketch to the final build. A collection of interfaces, applications, and small experiments in making things work.</p></Reveal>
-                    <Reveal><div className="projects-hero-bottom"><div className="projects-totals"><strong>{String(PROJECTS.length).padStart(2, '0')}<span>Projects</span></strong><span className="projects-stat-rule" /><strong>03<span>Disciplines</span></strong></div><button type="button" className="projects-explore" onClick={explore}>Explore work <ProjectArrow /></button></div></Reveal>
+                    <Reveal className="projects-hero-kicker"><p className="projects-eyebrow">A selection of things I’ve made</p></Reveal>
+                    <Reveal className="projects-hero-heading"><h2 className="projects-title">Ideas, made<br /><em>real.</em></h2></Reveal>
+                    <Reveal className="projects-hero-description"><p className="projects-intro">From the first sketch to the final build. A collection of interfaces, applications, and small experiments in making things work.</p></Reveal>
+                    <Reveal className="projects-hero-actions"><div className="projects-hero-bottom"><div className="projects-totals"><strong>{String(PROJECTS.length).padStart(2, '0')}<span>Projects</span></strong><span className="projects-stat-rule" /><strong>03<span>Disciplines</span></strong></div><button type="button" className="projects-explore" onClick={explore}>Explore work <ProjectArrow /></button></div></Reveal>
                 </div>
             </header>
             <div className="projects-controls-anchor" data-projects-anchor>

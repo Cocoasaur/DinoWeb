@@ -24,3 +24,27 @@ Fresh standard Lighthouse desktop and mobile homepage navigation audits both sco
 | Mobile | 100/100 | 0.75 s | 0.98 s | 22 ms | 0.00081 |
 
 Reports and source/build hashes: `/tmp/dinoweb-redesign-release-lighthouse/`. Audited production index SHA-256: `3b38136ef84db236aaf418676d45a90eed65e040d752db59fcbd24d382e1fa54`.
+
+## Individual scroll reveals — 25 October 2026
+
+Contact now reveals each introduction line, recipient label/name, postmark, email link, explanation, copy control, desk caption, availability detail, social row, and sign-off independently. The decorative envelope has its own motion surface; the letter layout stays stationary so child animations do not inherit a second fade or transform. The clipboard status uses a brief entrance and remains readable as sticky feedback.
+
+The hook continues to use the same `scrollRevealBounds` utility as About, Skills, and Projects: entrance from 96% to 84% of the scroll panel, and upper exit from 34% to 8%, measured using stationary layout anchors. Scroll motion reverses in either direction. Only the opening of initially visible content uses a short stagger; scrolling retains the shared viewport boundaries. Reduced effects use smaller movements, reduced motion skips animation, and keyboard-focused controls stay at rest without snapping pointer taps. The masthead and close control remain fixed above the scrolling panel.
+
+Validation: production build, focused ESLint, and whitespace checks pass. All five Contact interaction profiles pass, alongside three scroll-animation profiles (desktop, phone, and blue-theme tablet) checking individual content, reversible entrance/exit bands, and pinned-header alignment. Browser results: `/tmp/dinoweb-contact-scroll-final/` (interaction checks) and `/tmp/dinoweb-contact-motion-verified/` (final motion checks). No deployment or new Lighthouse measurement was performed.
+
+## Opening smoothness fix — 25 October 2026
+
+Frame-by-frame checks reproduced a flash in the first opening on both desktop and phone: a delayed heading became fully visible before its tween began, then dropped below 8% opacity. The previous `isActive()` check returned false during the stagger delay and cleared the hidden entrance styles too early.
+
+An explicit pending-entrance state now preserves those styles throughout the delay and tween. Refresh callbacks leave that entrance running when scroll position and the readable state have not changed; actual scrolling or keyboard focus still takes control immediately. Opening durations are 0.75 seconds on the full-effects profile and 0.55 seconds on reduced-effects profiles, with a shorter stagger. Temporary compositor hints are removed at rest. The shared scroll viewport boundaries and reduced-motion behavior are unchanged.
+
+`contacts-opening.spec.js` samples the introduction across animation frames on desktop and phone, including a viewport refresh during the entrance. It checks continuous opacity and movement toward rest without the previous reset.
+
+Validation: production build, focused ESLint, and whitespace checks passed. All ten browser checks passed: two frame-sampled opening regressions, three viewport/scroll reversal profiles, and five Contact interaction profiles. Results: `/tmp/dinoweb-contact-opening-after/`. The two opening regressions failed against the previous build and passed after this fix.
+
+## Scroll progress consistency — 25 October 2026
+
+Contact now has the same 2px sticky, left-to-right scroll progress indicator as About, Skills, and Projects. It sits at the top of the native scroll panel, immediately beneath the fixed masthead, and uses the active Contact theme ink. Its fill tracks the panel’s real scroll range and refreshes after layout changes. It remains functional with reduced motion and is excluded from content entrance/exit animations and pointer interaction.
+
+Validation: production build, focused ESLint, and whitespace checks passed. Seven browser checks passed, covering Contact progress at the top/middle/bottom and its fixed position below the header on desktop, blue theme, phone, small phone, and reduced-motion tablet, plus both opening smoothness regressions. Results: `/tmp/dinoweb-contact-progress-checks/`.

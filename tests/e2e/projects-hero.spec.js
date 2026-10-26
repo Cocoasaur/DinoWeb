@@ -3,6 +3,8 @@ import { openProjects } from './helpers/skills.js'
 
 for (const profile of [
   { name: 'desktop', width: 1440, height: 900 },
+  { name: 'wide desktop blue', width: 1920, height: 1080, dark: true },
+  { name: 'compact desktop', width: 1024, height: 768 },
   { name: 'tablet', width: 820, height: 1180, touch: true },
   { name: 'phone reduced motion', width: 390, height: 844, touch: true, reduced: true },
 ]) test.describe(`Projects introduction: ${profile.name}`, () => {
@@ -13,6 +15,7 @@ for (const profile of [
     test.setTimeout(60000)
     const errors = []
     page.on('pageerror', error => errors.push(error.message))
+    await page.addInitScript(dark => localStorage.setItem('dinoweb-theme-v2', dark ? 'demain-soir-bleu' : 'clair-obscur'), !!profile.dark)
     await openProjects(page, profile)
     const hero = page.locator('.projects-hero')
     const copy = hero.locator('.projects-hero-copy')
@@ -22,6 +25,19 @@ for (const profile of [
     const bounds = await hero.boundingBox(), content = await copy.boundingBox()
     expect(Math.abs(bounds.width - content.width)).toBeLessThan(1)
     await expect(page.locator('.projects-card')).toHaveCount(5)
+    await expect(hero.locator('.projects-hero-description > [data-projects-reveal]')).toHaveCSS('opacity', '1')
+    const heading = await hero.locator('.projects-hero-heading').boundingBox()
+    const description = await hero.locator('.projects-hero-description').boundingBox()
+    const actions = await hero.locator('.projects-hero-actions').boundingBox()
+    if (profile.width >= 1024) {
+      expect(description.x).toBeGreaterThan(bounds.x + bounds.width * .5)
+      expect(description.y).toBeLessThan(heading.y + heading.height)
+      expect(actions.x).toBe(description.x)
+      expect(bounds.height).toBeLessThan(profile.height * .65)
+    } else {
+      expect(description.y).toBeGreaterThanOrEqual(heading.y + heading.height)
+      expect(actions.y).toBeGreaterThanOrEqual(description.y + description.height)
+    }
     await hero.screenshot({ path: testInfo.outputPath('projects-introduction.png') })
     await copy.getByRole('button', { name: 'Explore work' }).click()
     const search = page.getByRole('searchbox', { name: 'Search projects' })

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback, Suspense, lazy } from 'react';
+import { useState, useEffect, useLayoutEffect, useRef, useCallback, Suspense, lazy } from 'react';
 import OverlayNavIcon from './OverlayNavIcon';
 import '../../styles/overlay-frame.css';
 import { PAGE_LOADERS } from '../../utils/prefetchPages';
@@ -11,7 +11,7 @@ const SkillsPage = lazy(PAGE_LOADERS.skills);
 
 // Commit the actual page before beginning the dissolve; never fade a skeleton.
 function ReadyContent({ onReady, children }) {
-    useEffect(onReady, [onReady]);
+    useLayoutEffect(onReady, [onReady]);
     return children;
 }
 
@@ -29,6 +29,7 @@ export default function Overlay({
 }) {
     const [entering, setEntering] = useState(false);
     const scrollPanelRef = useRef(null);
+    const overlayRef = useRef(null);
     const transition = getCubeTransition(reduceEffects, reducedMotion);
     const isVisible = (phase === 'fading-in' && entering) || phase === 'open';
     const fading = phase === 'fading-in' || phase === 'fading-out';
@@ -37,15 +38,10 @@ export default function Overlay({
         if (phase === 'fading-out') onCloseComplete?.();
     }, [phase, entering, onOpenComplete, onCloseComplete]);
     const pageReady = useCallback(() => {
-        // Two frames establish the starting opacity even with a cached chunk.
-        let second = 0;
-        const first = requestAnimationFrame(() => {
-            second = requestAnimationFrame(() => setEntering(true));
-        });
-        return () => {
-            cancelAnimationFrame(first);
-            cancelAnimationFrame(second);
-        };
+        // Establish the committed zero-opacity state before starting the fade.
+        // Deferred frames can consume the camera/dissolve overlap on slow GPUs.
+        if (overlayRef.current) getComputedStyle(overlayRef.current).opacity;
+        setEntering(true);
     }, []);
 
     useEffect(() => {
@@ -119,6 +115,7 @@ export default function Overlay({
 
     return (
         <div
+            ref={overlayRef}
             className="fixed inset-0 z-[100] flex items-center justify-center overflow-clip"
             data-phase={phase}
             role="dialog"
@@ -134,24 +131,6 @@ export default function Overlay({
                 if (event.target === event.currentTarget && event.propertyName === 'opacity') complete();
             }}
         >
-            <div
-                className="absolute inset-0"
-                style={{
-                    backgroundColor: 'var(--void-bg)',
-                }}
-            />
-            <div
-                className={`absolute inset-0 pointer-events-none${reduceEffects ? '' : ' overlay-grid-drift'}`}
-                style={{
-                    backgroundImage: `
-                        linear-gradient(var(--void-overlay-grid) 1px, transparent 1px),
-                        linear-gradient(90deg, var(--void-overlay-grid) 1px, transparent 1px)
-                    `,
-                    backgroundSize: 'var(--overlay-grid-size) var(--overlay-grid-size)',
-                    inset: reduceEffects ? 0 : 'calc(-1 * var(--overlay-grid-size))',
-                    opacity: 0.6,
-                }}
-            />
             {editorial ? (
                 <div className="portfolio-overlay-frame" data-page={faceName}>
                     <header className="portfolio-overlay-masthead">

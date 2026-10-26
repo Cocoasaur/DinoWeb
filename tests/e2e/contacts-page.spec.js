@@ -22,6 +22,8 @@ for (const profile of [
     const panel = page.locator('.portfolio-overlay-panel[data-page="contacts"]')
     const frame = page.locator('.portfolio-overlay-frame[data-page="contacts"]')
     const root = page.locator('.contacts-page')
+    const progress = root.locator('.contact-scroll-progress')
+    const progressFill = root.locator('.contact-scroll-progress-fill')
     const letter = root.locator('.contact-letter-anchor > div')
     await expect(root.getByRole('heading', { level: 2 })).toHaveText('Have somethingin mind?')
     await expect(root.locator('.contact-introduction [data-contact-reveal]').first()).toHaveCSS('opacity', '1')
@@ -49,6 +51,8 @@ for (const profile of [
     await copy.click()
     await expect(root.getByRole('status')).toContainText('Couldn’t copy.')
     await expect(copy).toBeFocused()
+    // Use keyboard modality to check focused controls without snapping pointer taps.
+    await page.keyboard.press('Tab')
     for (const [title, href] of [['GitHub', 'https://github.com/Cocoasaur'], ['LinkedIn', 'https://linkedin.com/in/dinoweb'], ['Stack Overflow', 'https://stackoverflow.com/users/24706411/jlkoko']]) {
       const link = root.getByRole('link', { name: new RegExp(title) })
       await link.focus()
@@ -85,6 +89,14 @@ for (const profile of [
       const body = await panel.boundingBox()
       expect(Math.abs(header.y + header.height - body.y)).toBeLessThan(1)
       expect(Math.abs(close.y - header.y)).toBeLessThan(1)
+      const progressBox = await progress.boundingBox()
+      expect(Math.abs(progressBox.y - body.y)).toBeLessThan(1)
+      expect(progressBox.height).toBe(2)
+      await expect.poll(async () => {
+        const scale = await progressFill.evaluate(el => new DOMMatrixReadOnly(getComputedStyle(el).transform).a)
+        const ratio = await panel.evaluate(el => el.scrollTop / Math.max(1, el.scrollHeight - el.clientHeight))
+        return Math.abs(scale - ratio)
+      }).toBeLessThan(.01)
       await expect.poll(() => panel.evaluate(el => el.scrollWidth - el.clientWidth)).toBeLessThanOrEqual(1)
     }
     await panel.evaluate(el => { el.scrollTop = 0 })

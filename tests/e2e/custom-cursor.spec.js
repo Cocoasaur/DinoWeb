@@ -30,6 +30,8 @@ test('tracks precisely, reacts to cube dragging, and covers text controls and re
   await expect(html).toHaveAttribute('data-custom-cursor', 'active')
   await expect(cursor).toHaveAttribute('data-visible', 'true')
   await expect(cursor).toHaveCSS('pointer-events', 'none')
+  await expect(cursor).toHaveCSS('opacity', '1')
+  await expect(page.locator('.cube-entrance canvas')).toHaveCSS('cursor', 'none')
 
   await page.mouse.move(260, 180, { steps: 5 })
   for (const part of ['point', 'follower']) {
@@ -59,6 +61,15 @@ test('tracks precisely, reacts to cube dragging, and covers text controls and re
   await expect(cursor).toHaveAttribute('data-mode', 'text')
   await input.fill('Text editing still works')
   await expect(input).toHaveValue('Text editing still works')
+  await input.evaluate(el => { el.dataset.cursor = 'native' })
+  await page.mouse.move(70, 70)
+  await expect(cursor).toHaveAttribute('data-visible', 'false')
+  await expect(html).not.toHaveAttribute('data-custom-cursor')
+  await expect(input).toHaveCSS('cursor', 'text')
+  await input.evaluate(el => { delete el.dataset.cursor })
+  await page.mouse.move(80, 80)
+  await expect(cursor).toHaveAttribute('data-visible', 'true')
+  await expect(input).toHaveCSS('cursor', 'none')
   await input.evaluate(el => el.remove())
 
   await page.mouse.move(180, 140)
@@ -66,6 +77,7 @@ test('tracks precisely, reacts to cube dragging, and covers text controls and re
   await page.keyboard.press('Tab')
   await expect(html).not.toHaveAttribute('data-custom-cursor')
   await expect(cursor).toHaveAttribute('data-visible', 'false')
+  await expect(page.locator('body')).toHaveCSS('cursor', 'auto')
 
   await page.mouse.move(200, 150)
   await expect(html).toHaveAttribute('data-custom-cursor', 'active')
@@ -95,6 +107,8 @@ test('keeps the mouse cursor across layout breakpoints without overriding device
   await expect(page.locator('.boot-screen')).toHaveCount(0, { timeout: 30000 })
   for (const width of [1440, 640, 900]) {
     await page.setViewportSize({ width, height: 900 })
+    // Resize clears stale positions; wait for its browser event before moving.
+    await page.evaluate(() => new Promise(requestAnimationFrame))
     await expect(page.locator('.portfolio-cursor')).toHaveCount(1)
     await page.mouse.move(120, 120)
     await expect(page.locator('html')).toHaveAttribute('data-custom-cursor', 'active')
@@ -358,4 +372,51 @@ test('keeps gallery hints through pointer capture and labels its nested arrows',
   await expect(label).toHaveText('CLOSE')
   await page.mouse.click(5, 5)
   await expect(page.locator('.cert-lightbox')).toHaveCount(0)
+})
+
+test('replaces the native pointer inside the viewport and restores it across captured exits and window changes', async ({ page }) => {
+  await loadHome(page)
+  const cursor = page.locator('.portfolio-cursor')
+  const html = page.locator('html')
+  // Wait for the lazy replacement before testing its first tracked movement.
+  await expect(cursor).toHaveCount(1)
+  await page.evaluate(() => {
+    const surface = document.createElement('button')
+    surface.id = 'cursor-boundary-fixture'
+    surface.textContent = 'Boundary drag'
+    surface.dataset.cursorLabel = 'DRAG'
+    surface.style.cssText = 'position:fixed;left:60px;top:60px;width:240px;height:160px;z-index:2000;cursor:pointer'
+    surface.addEventListener('pointerdown', event => surface.setPointerCapture(event.pointerId))
+    document.body.appendChild(surface)
+  })
+  await page.mouse.move(20, 20)
+  await expect(page.locator('.cube-entrance canvas')).toHaveCSS('cursor', 'none')
+  const surface = page.locator('#cursor-boundary-fixture')
+  await surface.hover()
+  await expect(cursor).toHaveAttribute('data-visible', 'true')
+  await expect(surface).toHaveCSS('cursor', 'none')
+  await expect(page.locator('body')).toHaveCSS('cursor', 'none')
+  for (const [x, y] of [[-12, 100], [100, -12], [1452, 100], [100, 912]]) {
+    await page.mouse.move(160, 120)
+    await page.mouse.down()
+    await page.mouse.move(x, y)
+    await expect(cursor).toHaveAttribute('data-visible', 'false')
+    await expect(html).not.toHaveAttribute('data-custom-cursor')
+    await expect(surface).toHaveCSS('cursor', 'pointer')
+    await expect(page.locator('body')).toHaveCSS('cursor', 'auto')
+    await page.mouse.up()
+    await page.mouse.move(160, 120)
+    await expect(cursor).toHaveAttribute('data-visible', 'true')
+    await expect(surface).toHaveCSS('cursor', 'none')
+  }
+  for (const event of ['blur', 'pagehide', 'resize']) {
+    await page.evaluate(event => window.dispatchEvent(new Event(event)), event)
+    await expect(cursor).toHaveAttribute('data-visible', 'false')
+    await expect(html).not.toHaveAttribute('data-custom-cursor')
+    await expect(surface).toHaveCSS('cursor', 'pointer')
+    await expect(page.locator('body')).toHaveCSS('cursor', 'auto')
+    await page.mouse.move(165, 125)
+    await page.mouse.move(160, 120)
+    await expect(cursor).toHaveAttribute('data-visible', 'true')
+  }
 })

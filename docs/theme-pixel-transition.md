@@ -49,3 +49,11 @@ Latest output folders are `/tmp/dinoweb-pixel-spatial`, `/tmp/dinoweb-pixel-grid
 Returning from Demain Soir Bleu to Clair Obscur now uses the complementary cell threshold in both JavaScript masks and the WebGL material. A regression fixture verifies that matching progress values in opposite directions produce complementary masks. Cube render gating uses conservative bounds for both directions.
 
 Production build, targeted ESLint and ten focused mask/cube/screen-edge checks passed, including the throttled phone fallback rerun. Three unpaused playback profiles also passed: recorded high-DPR desktop, ordinary high-DPR desktop, and throttled low-end phone. Playback background classification excludes the projected cube and foreground interface; dedicated cube spatial tests continue to check its palettes. Output: `/tmp/dinoweb-reverse-pixel-check`, `/tmp/dinoweb-reverse-pixel-playback`, `/tmp/dinoweb-reverse-pixel-recording`, `/tmp/dinoweb-reverse-pixel-recording-final`. Earlier failed attempts remain in those directories for diagnosis.
+
+## Wall/ground separation — 2026-10-25
+
+The wall fade now belongs to the viewport-sized `.home-grid-palette`, outside the translated `.home-grid-parallax`. Masking each oversized grid child previously extended the drift layer's fade into the perspective floor. Both wall layers now fade from 50% to 72% of the viewport, leaving the lower ground clear of flat grid lines without exposing gaps at the screen edges. The loader shares these fade stops.
+
+Backdrop and overlay grids use a shared 1.25px stroke. Grid alpha rises by four percentage points in both themes: Clair Obscur wall/drift/overlay use .20/.24/.24; Demain Soir Bleu uses .14/.20/.18. The transient canvas reads the same stroke and viewport mask geometry, keeping the per-grid theme transition consistent with the resting CSS grid.
+
+Production build, changed-file ESLint, all three grid-glitch unit tests, and 14 focused Chromium checks passed. The six new handoff cases cover desktop, phone and tablet in both themes; eight existing grid/transition cases cover worker/fallback rendering, high DPR, CPU throttling, both transition directions and cleanup. Screenshots and results: `/tmp/dinoweb-grid-handoff-checks/`. Lighthouse was not rerun.

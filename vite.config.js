@@ -15,7 +15,10 @@ export default defineConfig({
           // The homepage's small stylesheet is needed on every navigation.
           // Inline the built CSS to remove its extra blocking network trip;
           // section styles keep their existing deferred boundaries.
-          return html.replace(/<link\b[^>]*rel="stylesheet"[^>]*>/g, (link) => {
+          const splineAssets = new Set(Object.values(bundle).filter(item => item.type === 'chunk' && item.fileName.startsWith('assets/spline/')).flatMap(item => [item.fileName, ...(item.viteMetadata?.importedCss || [])]));
+          const assets = Object.keys(bundle).filter(name => name.startsWith('assets/') && !splineAssets.has(name) && !name.startsWith('assets/spline/'));
+          const manifest = `<script id="portfolio-preload-manifest" type="application/json">${JSON.stringify(assets.map(name => `/DinoWeb/${name}`))}</script>`;
+          return html.replace('</head>', `${manifest}</head>`).replace(/<link\b[^>]*rel="stylesheet"[^>]*>/g, (link) => {
             const href = link.match(/href="([^"]+)"/)?.[1];
             const asset = href && bundle[href.replace(/^\/DinoWeb\//, '')];
             if (asset?.type !== 'asset' || !href.endsWith('.css')) return link;
@@ -48,8 +51,8 @@ export default defineConfig({
         // A waiting update takes control only after visitor acceptance (or the
         // legacy migration). This triggers registerSW's reload callback.
         clientsClaim: true,
-        // Registration runs after the first paint. Download the full portfolio
-        // then, without evaluating WebGL/PDF code or delaying the homepage.
+        // Registration follows the completed asset preloader. Reuse its cached
+        // downloads without competing with the startup queue.
         globPatterns: ['**/*.{html,webmanifest,js,mjs,css,woff2,svg,webp,pdf}'],
         // The experimental Spline renderer is fetched only when its view loads.
         globIgnores: ['**/spline/**'],

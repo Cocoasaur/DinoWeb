@@ -2,6 +2,10 @@
 
 The Projects page uses the same fixed header frame and native overlay scrollport as About and Skills. A full-width introduction, search, and discipline filters lead into screenshot-led project case studies with descriptions, screenshots, tools, and live/repository links. Existing project descriptions, images, roles, and repository visibility remain the content source. `title`, `category`, and `categoryLabel` in `src/data/projectsData.js` supply presentation and filter metadata.
 
+## Introduction layout
+
+At desktop widths (1024px and above), the existing headline occupies the left column. The description, totals, and Explore work control occupy the right column, bringing the project collection higher into view after removal of the hero gallery. Tablet and phone layouts retain their original vertical order. The same independent GSAP reveal anchors remain around every text group; no duplicate content or replacement hero media is added.
+
 ## Motion and 3D surfaces
 
 `src/hooks/useProjectsMotion.js` owns scoped GSAP timelines and ScrollTriggers. It starts the intro after the overlay opens. Stationary layout anchors supply `scrollRevealBounds` measurements, while their children move through entry, a fully readable resting phase, and upper-edge exit. Reversing scroll restores the content. The entry band is 96%–84% of content-viewport height; the exit band is 34%–8%, shared with About and Skills.
@@ -65,3 +69,7 @@ Reports and source/build hashes: `/tmp/dinoweb-redesign-release-lighthouse/`. Au
 The hero now contains only the introduction, totals and Explore work action, across the full panel width. The separate showcase, switching controls, preview animation and their styles have been removed. The searchable project cards and case-study screenshot galleries remain available. Hero regression coverage replaces the removed showcase tests; native finger tilt/pan checks now target the project cards.
 
 The combined remaining changes pass production build, changed-file ESLint, and 22 focused Chromium checks: three full-width hero layouts, eight shared overlay close/navigation checks, four unconfigured-prototype/navigation-isolation cases, four configured runtime lifecycle/failure cases, and three native touch cases. Screenshots and reports are in `/tmp/dinoweb-second-half-checks/`, `/tmp/dinoweb-second-half-runtime/`, and `/tmp/dinoweb-second-half-touch/`. Spline tests validate the local integration boundary; no real exported scene is configured. These checks are not a fresh Lighthouse measurement.
+
+## Desktop introduction spacing — 26 October 2026
+
+The desktop introduction now places its description, project/discipline counts, and Explore work control beside the headline. The collection starts higher on screen. Five introduction checks passed at 1024px, 1440px, and 1920px desktop widths, tablet, and phone with reduced motion; these also cover search, detail navigation, and retained mobile stacking. Desktop screenshots in both themes were inspected. Together with six shadow/transition checks, all 11 browser checks passed in `/tmp/dinoweb-shadow-layout-final/`. Production build, targeted ESLint, and whitespace checks passed.

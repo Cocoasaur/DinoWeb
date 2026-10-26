@@ -32,11 +32,24 @@ async function trace(page) {
       const blur = document.querySelector('.cube-entrance > div')
       const overlay = document.querySelector('[role="dialog"]')
       const filter = blur && getComputedStyle(blur).filter
+      const shadow = document.querySelector('.home-stage-backdrop__shadow')
+      const shadowBox = shadow.getBoundingClientRect()
       window.__transitionFrames.push({
+        shadow: { x: shadowBox.x + shadowBox.width / 2, y: shadowBox.y + shadowBox.height / 2,
+          width: shadowBox.width, opacity: Number(getComputedStyle(shadow).opacity) },
         time: performance.now(), phase: overlay?.dataset.phase || 'hidden',
         opacity: overlay ? Number(getComputedStyle(overlay).opacity) : 0,
         paused: stage?.dataset.renderPaused === 'true',
         blur: Number(filter?.match(/blur\(([\d.]+)px\)/)?.[1] || 0),
+        cameraActive: document.querySelector('.portfolio-viewport')?.dataset.cameraActive === 'true',
+        cubeOpacity: stage ? Number(getComputedStyle(stage).opacity) : 0,
+        cubeVisible: stage ? getComputedStyle(stage).visibility === 'visible' : false,
+        homeRendered: [...document.querySelectorAll('.home-sidebar-wipe, .home-chrome')]
+          .every(el => getComputedStyle(el).visibility === 'visible' && Number(getComputedStyle(el).opacity) === 1),
+        camera: document.querySelector('.portfolio-viewport')?.dataset.cameraPosition,
+        depth: Number(document.querySelector('.portfolio-viewport')?.dataset.cubeDepth || 0),
+        homeStationary: [...document.querySelectorAll('.home-sidebar-wipe, .home-chrome')].every(el => getComputedStyle(el).transform === 'none'),
+        occluded: getComputedStyle(document.querySelector('.home-chrome')).clipPath !== 'none',
       })
       window.__transitionTraceFrame = requestAnimationFrame(sample)
     }
@@ -59,7 +72,7 @@ for (const profile of profiles) {
       reducedMotion: profile.reduced ? 'reduce' : 'no-preference',
       serviceWorkers: 'block',
     })
-    test('overlaps the dissolve and camera, preserves blur, and returns cleanly', async ({ page }, testInfo) => {
+    test('moves the cube toward a fixed camera with a stationary homepage and dissolve', async ({ page }, testInfo) => {
       test.setTimeout(90000)
       const transition = getCubeTransition(!!profile.touch || !!profile.low, !!profile.reduced)
       const errors = []
@@ -85,17 +98,39 @@ for (const profile of profiles) {
       await expect(stage).toHaveAttribute('data-render-paused', 'true')
       await page.waitForFunction(() => window.__transitionFrames.some(frame => frame.phase !== 'hidden' && frame.paused))
       const frames = await history(page)
+      expect(frames.filter(frame => frame.cameraActive).every(frame => frame.homeRendered),
+        'homepage UI stays painted throughout the camera zoom').toBe(true)
       const fading = frames.find(frame => frame.phase === 'fading-in')
       const endpoint = frames.find(frame => frame.time >= fading?.time && frame.paused)
       expect(fading).toBeTruthy()
       expect(endpoint).toBeTruthy()
+      expect(endpoint.depth, 'the cube moves forward from z=0').toBeGreaterThan(.5)
+      expect(frames.every(frame => frame.homeStationary), 'homepage layout remains stationary').toBe(true)
+      const approach = frames.filter(frame => frame.cameraActive && frame.depth > .001)
+      expect(approach.length).toBeGreaterThan(0)
+      expect(new Set(approach.map(frame => frame.camera)).size, 'the camera does not dolly into the cube').toBe(1)
+      expect(endpoint.occluded, 'the approaching cube covers the homepage through the dissolve').toBe(true)
+      expect(approach.every(frame => frame.shadow.opacity === 1), 'the shadow stays painted during approach').toBe(true)
+      if (!profile.reduced) {
+        const early = approach.find(frame => frame.depth < endpoint.depth * .5)
+        expect(early, 'sample the shadow before the cube reaches the camera').toBeTruthy()
+        expect(endpoint.shadow.y - early.shadow.y, 'shadow advances across the ground with the cube').toBeGreaterThan(15)
+        expect(endpoint.shadow.width / early.shadow.width, 'shadow grows with perspective').toBeGreaterThan(1.15)
+      }
       if (!profile.reduced) {
         expect(fading.paused).toBe(false)
         const lead = endpoint.time - fading.time
         expect(lead).toBeGreaterThan(transition.zoomInMs - transition.fadeStartMs - 180)
         expect(lead).toBeLessThan(transition.zoomInMs - transition.fadeStartMs + 180)
         const overlapping = frames.filter(frame => frame.phase === 'fading-in' && !frame.paused)
-        expect(overlapping.some(frame => frame.opacity > 0 && frame.opacity < 1)).toBe(true)
+        // The camera face and page must both paint during the dissolve;
+        // visibility:hidden here would create a blank gap instead of a crossfade.
+        const dissolving = frames.filter(frame => frame.phase === 'fading-in');
+        expect(dissolving.some(frame => frame.opacity > 0 && frame.opacity < 1)).toBe(true);
+        expect(dissolving.every(frame => frame.homeRendered)).toBe(true);
+        expect(dissolving.some(frame => frame.cubeVisible && frame.cubeOpacity > 0 && frame.cubeOpacity < 1
+          && frame.opacity > 0 && frame.opacity < 1), 'cube face and page paint together').toBe(true);
+        expect(dissolving.every(frame => frame.cubeVisible), 'keep the cube painted until the fade completes').toBe(true);
         expect(Math.max(...overlapping.map(frame => frame.blur))).toBeGreaterThanOrEqual(fading.blur)
         const maxBlur = transition.blurPx
         expect(endpoint.blur).toBeCloseTo(maxBlur, 0)
@@ -103,13 +138,40 @@ for (const profile of profiles) {
         expect(endpoint.blur).toBe(0)
       }
       await testInfo.attach('opening timeline', { body: JSON.stringify(frames), contentType: 'application/json' })
+      if (profile.fallback || profile.name === 'desktop worker') {
+        // The covered renderer sleeps, but orientation changes must still
+        // reproject the retained homepage instead of leaving its old pose.
+        const occlusion = () => page.locator('.portfolio-viewport').evaluate(el => el.style.getPropertyValue('--cube-occlusion'))
+        const original = await occlusion()
+        const depth = () => page.locator('.portfolio-viewport').evaluate(el => Number(el.dataset.cubeDepth))
+        const originalDepth = await depth()
+        await page.setViewportSize({ width: profile.height, height: profile.width })
+        await expect.poll(occlusion).not.toBe(original)
+        await expect(dialog).toHaveAttribute('data-phase', 'open')
+        await expect(stage).toHaveAttribute('data-render-paused', 'true')
+        await page.setViewportSize({ width: profile.width, height: profile.height })
+        await expect.poll(async () => Math.abs(await depth() - originalDepth)).toBeLessThan(.001)
+        await expect(page.locator('.home-sidebar-wipe')).toHaveCSS('transform', 'none')
+      }
       // Closing must keep the blurred face still until the page disappears.
       await trace(page)
       await page.getByRole('button', { name: 'Close projects', exact: true }).click()
       await expect(dialog).toHaveCount(0, { timeout: 10000 })
       await expect(stage).toHaveAttribute('data-render-paused', 'false')
       await expect.poll(() => page.locator('.cube-entrance > div').evaluate(el => getComputedStyle(el).filter)).toBe('blur(0px)')
+      await expect(page.locator('.portfolio-viewport')).toHaveAttribute('data-camera-active', 'false')
+      await expect(page.locator('.home-sidebar-wipe')).toBeVisible()
+      await expect(page.locator('.home-sidebar-wipe')).toHaveCSS('transform', 'none')
+      expect(Number(await page.locator('.portfolio-viewport').getAttribute('data-cube-depth'))).toBeCloseTo(0, 3)
       const closed = await history(page)
+      expect(closed.filter(frame => frame.cameraActive).every(frame => frame.homeRendered),
+        'homepage UI stays painted until the camera returns home').toBe(true)
+      if (!profile.reduced) {
+        const returning = closed.filter(frame => frame.phase === 'hidden' && frame.cameraActive && frame.depth > .02)
+        expect(returning.length).toBeGreaterThan(1)
+        expect(returning[0].shadow.y - returning.at(-1).shadow.y).toBeGreaterThan(15)
+        expect(returning[0].shadow.width).toBeGreaterThan(returning.at(-1).shadow.width)
+      }
       const outgoing = closed.filter(frame => frame.phase === 'fading-out')
       expect(outgoing.length).toBeGreaterThan(0)
       expect(outgoing.every(frame => frame.paused)).toBe(true)

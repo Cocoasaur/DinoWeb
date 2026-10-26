@@ -5,7 +5,6 @@ import { useHomeViewportLayout } from '../../hooks/useHomeViewportLayout';
 import { getCubeTransition, getCubeStageStyle } from '../../utils/cubeTransition';
 import { useIdleBreathing } from '../../hooks/useIdleBreathing';
 import { cubeAssets } from '../../utils/cubeAssetUrls';
-import StageBackdrop from './StageBackdrop';
 
 const FallbackStage = lazy(async () => {
     const module = await import('./MainThreadCubeStage');
@@ -60,7 +59,7 @@ export default function CubeStage(props) {
         // Keep the previous worker frame proportional while a viewport resize
         // is in flight. Filling both axes stretches its old drawing buffer.
         host.style.position = 'relative';
-        canvas.style.cssText = 'position:absolute;inset:0;margin:auto;width:100%;height:auto;display:block;touch-action:none;cursor:grab';
+        canvas.style.cssText = 'position:absolute;inset:0;margin:auto;width:100%;height:auto;display:block;touch-action:none;cursor:auto';
         canvas.setAttribute('aria-label', 'Interactive portfolio cube');
         const wipe = event => worker?.postMessage({ type: 'wipe', frame: event.detail });
         window.addEventListener('cube-wipe-frame', wipe);
@@ -109,6 +108,7 @@ export default function CubeStage(props) {
                 const current = propsRef.current;
                 if (data.type === 'ready') readyFrame = requestAnimationFrame(() => current.onReady());
                 if (data.type === 'frame') {
+                    current.onCubeFrame?.(data.foreground);
                     current.handleRotationChange(data.x, data.y);
                     if (current.screenPosRef?.current) Object.assign(current.screenPosRef.current, data.origin, { valid: true });
                     host.dataset.sceneDraws = data.draws;
@@ -152,7 +152,6 @@ export default function CubeStage(props) {
     return (
         <div className="absolute inset-0 w-full h-full overflow-hidden cube-entrance" data-renderer="worker" data-cube-theme={theme} data-render-paused={paused} style={{ zIndex: canvasZIndex }}>
             <div className="w-full h-full" style={getCubeStageStyle(isZoomed, isZoomingOut, transition, overlayPhase, zoomInComplete)}>
-                <StageBackdrop hidden={isZoomed || isZoomingOut} paused={paused} reduceEffects={reduceEffects} zoomZ={props.zoomZ} />
                 <div ref={hostRef} className="w-full h-full cube-breath" />
             </div>
         </div>
