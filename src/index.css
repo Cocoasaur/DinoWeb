@@ -220,14 +220,10 @@
     margin: 0;
     background-color: var(--void-bg);
     font-family: 'Inter', sans-serif;
-    cursor: grab;
+    cursor: auto;
     transition: background-color 0.5s ease;
     user-select: none;
     -webkit-user-select: none;
-  }
-
-  body:active {
-    cursor: grabbing;
   }
 
   .portfolio-overlay-panel,

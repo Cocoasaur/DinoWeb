@@ -63,13 +63,15 @@ export default function CubeFace({
     const handlePointerOver = useCallback((e) => {
         e.stopPropagation();
         setHovered(true);
-        document.body.style.cursor = isHome ? 'nwse-resize' : 'pointer';
+        const canvas = e.nativeEvent.target;
+        if (canvas instanceof HTMLCanvasElement) canvas.style.cursor = isHome ? 'nwse-resize' : 'pointer';
     }, [isHome]);
 
     const handlePointerOut = useCallback((e) => {
         e.stopPropagation();
         setHovered(false);
-        document.body.style.cursor = 'grab';
+        const canvas = e.nativeEvent.target;
+        if (canvas instanceof HTMLCanvasElement) canvas.style.cursor = 'auto';
     }, []);
 
     useEffect(() => {
