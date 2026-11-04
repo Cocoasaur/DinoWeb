@@ -1,3 +1,5 @@
+> Current state (2026-10-26): the original gallery was replaced in the same Spline file at the user’s request. See [the unfinished portfolio recreation and exact remaining work](../design/spline/portfolio-match/README.md). Historical gallery notes below no longer describe the current scene. The local prototype still has no real export configured.
+
 # DinoWeb: Spline spatial portfolio prototype
 
 ## Direction

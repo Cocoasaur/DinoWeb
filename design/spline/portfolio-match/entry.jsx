@@ -1,0 +1,12 @@
+import React from 'react';
+import { createRoot } from 'react-dom/client';
+import App from '../../../src/App.jsx';
+import { ThemeProvider } from '../../../src/context/ThemeContext.jsx';
+import { startPortfolioPreload } from '../../../src/utils/portfolioPreload.js';
+import '../../../src/index.css';
+import '../../../src/styles/hero-font.css';
+import '../../../src/styles/boot-screen.css';
+import '../../../src/styles/stage-backdrop.css';
+import '../../../src/styles/deferred.css.js';
+void startPortfolioPreload();
+createRoot(document.getElementById('root')).render(<ThemeProvider><App /></ThemeProvider>);
