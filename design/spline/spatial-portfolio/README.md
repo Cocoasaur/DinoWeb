@@ -1,3 +1,5 @@
+> Historical build record: the gallery objects below were cleared at the user’s request on 2026-10-26. The same Spline file now contains the unfinished current-portfolio recreation documented in [portfolio-match](../portfolio-match/README.md). Do not replay the old gallery passes.
+
 # DinoWeb spatial portfolio — work in progress
 
 Editable scene: [DinoWeb — Spatial Portfolio](https://app.spline.design/file/605da011-49e7-4339-9117-24f37c21281f).

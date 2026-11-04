@@ -1,0 +1,16 @@
+{
+  "file": "605da011-49e7-4339-9117-24f37c21281f",
+  "sourceCommit": "7e22b12babe648dbb442c95fc2dce78d4356651d",
+  "oldObjectsRemoved": 70,
+  "currentObjects": 13,
+  "htmlCharacters": 702370,
+  "htmlSha256": "178f3022146321de1f8317374da90a0af76021668575e45bc72a4e943e905798",
+  "accepted": false,
+  "published": false,
+  "quota": {
+    "used": 20,
+    "limit": 20,
+    "resetsAt": "2026-10-27T00:00:00Z"
+  },
+  "pendingUserInput": "What is visible in Spline Preview, and what does its Console report?"
+}
